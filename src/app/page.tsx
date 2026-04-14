@@ -72,6 +72,17 @@ export default function Home() {
               className="rounded-lg w-56 aspect-square object-cover object-[40%_center]"
               priority
             />
+            <p className="text-stone-400 text-[10px] mt-1">
+              Photo by{" "}
+              <a
+                href="https://photos.justinkhoo.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-stone-600 transition-colors"
+              >
+                Justin Khoo
+              </a>
+            </p>
           </div>
           <div>
             <h2 className="text-2xl tracking-tight text-stone-900 mb-1">
