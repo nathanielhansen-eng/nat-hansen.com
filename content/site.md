@@ -26,7 +26,7 @@ events:
   - title: Aesthetic Judgment, Criticism, and Conversation
     venue: University of Reading
     date: May 12, 2026
-    link: ""
+    link: "/events/aesthetic-judgment"
   - title: UCL Linguistics Seminar
     venue: University College London
     date: May 20, 2026
