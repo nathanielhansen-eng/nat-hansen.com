@@ -8,9 +8,11 @@ links:
   - label: n.d.hansen@reading.ac.uk
     href: mailto:n.d.hansen@reading.ac.uk
   - label: PhilPapers
-    href: https://philpapers.org/s/nat%20hansen
+    href: https://philpeople.org/profiles/nat-hansen/
   - label: ux-phi.com
     href: https://ux-phi.com
+  - label: CV
+    href: https://www.dropbox.com/scl/fi/fq3jaysj166t9ott6y17m/CV-Hansen-2017.pdf?rlkey=d6x7m8rsxncvkd624qyj41ly1&dl=0
 
 events:
   - title: "Varieties of Realism: Aesthetics, Politics, Philosophy"
