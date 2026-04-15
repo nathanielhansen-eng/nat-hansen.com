@@ -14,12 +14,12 @@ export const metadata: Metadata = {
 const modules = [
   {
     title: "Philosophy of Language: Animals, Babies, Colours, and Language Death",
-    year: "2026",
+    year: "PP3LANG 2026",
     slug: "philosophy-of-language",
   },
   {
     title: "Speech Attacks: Bullshit, Lies, Propaganda",
-    year: "2026",
+    year: "PP3SPA 2026",
     slug: "speech-attacks",
   },
 ];
