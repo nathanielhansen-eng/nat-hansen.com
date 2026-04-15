@@ -1,9 +1,15 @@
 import Link from "next/link";
 import localFont from "next/font/local";
+import { Press_Start_2P } from "next/font/google";
 import type { Metadata } from "next";
 
 const betania = localFont({
   src: "../fonts/BetaniaPatmosInGDL-Regular.woff2",
+});
+
+const pressStart = Press_Start_2P({
+  weight: "400",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -74,6 +80,14 @@ export default function PhilosophyOfLanguagePage() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="mb-12">
+          <Link href="/teaching/philosophy-of-language/games">
+            <h2 className={`${pressStart.className} text-2xl sm:text-3xl text-fuchsia-500 mb-6 hover:text-fuchsia-400 transition-colors`}>
+              Games &amp; Experiments
+            </h2>
+          </Link>
         </section>
 
         <section className="mb-12">

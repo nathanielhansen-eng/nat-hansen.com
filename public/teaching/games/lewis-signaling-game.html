@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lewis Signaling Game — Online</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Silkscreen', cursive; background: #fafafa; color: #2c2c2c; line-height: 1.6; min-height: 100vh; }
+        .container { max-width: 680px; margin: 0 auto; padding: 2rem 1rem; }
+        header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e8e8e8; }
+        header h1 { font-size: 1.9rem; font-weight: normal; margin-bottom: 0.35rem; }
+        header p { font-size: 0.95rem; color: #999; font-style: italic; }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 2.5rem; text-align: center; }
+
+        .badge { display: inline-block; padding: 0.3rem 1.1rem; border-radius: 20px; font-size: 0.82rem; letter-spacing: 0.06em; margin-bottom: 1.5rem; }
+        .badge-sender { background: #ebf4ff; color: #2c5282; }
+        .badge-receiver { background: #fefcbf; color: #744210; }
+
+        .big { font-size: 3rem; font-weight: bold; margin: 1.25rem 0 0.5rem; line-height: 1.2; }
+        .big-state { color: #2c5282; }
+        .big-signal { color: #744210; font-style: italic; }
+
+        .lbl { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.12em; color: #aaa; margin-bottom: 0.25rem; }
+        .inst { font-size: 1.05rem; color: #555; margin: 1.25rem 0; }
+        .phase-lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: #bbb; margin-bottom: 0.75rem; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; max-width: 380px; margin: 0 auto; }
+        .choice { padding: 1rem; font-family: 'Silkscreen', cursive; font-size: 1.05rem; border: 2px solid #ddd; background: #fff; cursor: pointer; border-radius: 8px; transition: border-color 0.15s, background 0.15s; }
+        .choice:hover { border-color: #2c5282; background: #f0f4f8; }
+        .choice-sig:hover { border-color: #744210; background: #faf5eb; }
+
+        .btn { padding: 0.85rem 2rem; font-family: 'Silkscreen', cursive; font-size: 1rem; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 7px; transition: background 0.15s; }
+        .btn:hover { background: #f5f5f5; }
+        .btn-primary { background: #2c2c2c; color: #fff; border-color: #2c2c2c; }
+        .btn-primary:hover { background: #444; }
+        .btn-lg { padding: 1rem 2.5rem; font-size: 1.05rem; }
+        .btn-pair { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.75rem; }
+
+        .room-code { font-size: 3.2rem; font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: 0.25em; color: #2c2c2c; background: #f5f5f5; padding: 1.25rem 2rem; border-radius: 8px; margin: 1.5rem auto; display: inline-block; }
+        .code-input { font-size: 2.2rem; font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: 0.2em; text-align: center; text-transform: uppercase; width: 100%; max-width: 280px; padding: 0.6rem 1rem; border: 2px solid #ddd; border-radius: 8px; outline: none; margin: 0 auto 1.25rem; display: block; }
+        .code-input:focus { border-color: #2c5282; }
+        .err { color: #c53030; font-size: 0.9rem; min-height: 1.4em; margin-top: 0.5rem; }
+
+        .stats { display: flex; justify-content: center; gap: 3rem; padding: 0.9rem 1.5rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 1.5rem; }
+        .stat { text-align: center; }
+        .stat-val { font-size: 1.35rem; font-family: 'Courier New', monospace; font-weight: bold; }
+        .stat-lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; }
+
+        .flow { display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; padding: 1.1rem 1.5rem; background: #f8f8f8; border-radius: 8px; margin: 1.5rem 0; }
+        .flow-item { text-align: center; min-width: 80px; }
+        .flow-lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #bbb; }
+        .flow-val { font-size: 1.1rem; font-weight: bold; }
+        .flow-arrow { color: #ccc; font-size: 1.2rem; }
+
+        .result-icon { font-size: 3.5rem; margin-bottom: 0.6rem; }
+        .result-txt { font-size: 1.4rem; margin-bottom: 0.5rem; }
+        .success-txt { color: #276749; }
+        .failure-txt { color: #c53030; }
+
+        .waiting { color: #aaa; font-style: italic; margin: 1.5rem 0; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        .history-wrap { margin-top: 1.5rem; }
+        .section-heading { font-size: 0.85rem; font-weight: normal; color: #aaa; padding-bottom: 0.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid #e8e8e8; }
+        .hist-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        .hist-table th { text-align: left; padding: 0.35rem 0.5rem; font-weight: normal; color: #bbb; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.08em; border-bottom: 1px solid #eee; }
+        .hist-table td { padding: 0.35rem 0.5rem; border-bottom: 1px solid #f3f3f3; }
+        .hist-table tr:last-child td { border-bottom: none; }
+        .c-success { color: #276749; }
+        .c-fail { color: #c53030; }
+        .c-gray { color: #bbb; font-family: monospace; }
+
+        .chart-wrap { margin-top: 1.5rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.25rem; }
+        .chart-wrap h3 { font-size: 0.8rem; font-weight: normal; color: #aaa; text-align: center; margin-bottom: 0.75rem; }
+        .chart-inner { position: relative; height: 160px; }
+
+        /* Celebration */
+        @keyframes pop { 0% { transform: scale(0.3); opacity: 0; } 70% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        @keyframes shimmer { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .convention-card { background: #fff; border: 2px solid #2c5282; border-radius: 16px; padding: 3rem 2.5rem; text-align: center; }
+        .fanfare-emoji { font-size: 4rem; animation: float 2.5s ease-in-out infinite; display: block; margin-bottom: 1rem; }
+        .convention-title { font-size: 2rem; font-weight: normal; color: #2c5282; animation: pop 0.7s ease-out; margin-bottom: 0.5rem; }
+        .convention-sub { font-size: 1rem; color: #aaa; margin-bottom: 2rem; }
+        .convention-quote { font-size: 0.9rem; color: #666; font-style: italic; border-left: 3px solid #e0e0e0; text-align: left; padding: 0.75rem 1rem; margin: 2rem 0; line-height: 1.7; }
+        .convention-quote cite { display: block; margin-top: 0.5rem; font-style: normal; color: #aaa; font-size: 0.82rem; }
+        .convention-stats { display: flex; justify-content: center; gap: 2.5rem; margin: 1.5rem 0 2rem; }
+        .confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 100; }
+        .confetti-piece { position: absolute; width: 10px; height: 10px; border-radius: 2px; animation: fall linear forwards; }
+        @keyframes fall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+        #conn-badge { position: fixed; top: 1rem; right: 1rem; padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.75rem; display: none; font-family: 'Silkscreen', cursive; }
+        #conn-badge.on  { display: block; background: #c6f6d5; color: #276749; }
+        #conn-badge.off { display: block; background: #fed7d7; color: #c53030; }
+
+        .intro { font-size: 0.9rem; color: #666; text-align: left; background: #fff; border: 1px solid #e8e8e8; border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+        .intro h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: #bbb; font-weight: normal; margin-bottom: 0.75rem; }
+        .intro ol { margin-left: 1.25rem; }
+        .intro li { margin-bottom: 0.4rem; }
+
+        @media (max-width: 480px) {
+            .room-code { font-size: 2.2rem; padding: 1rem 1.25rem; }
+            .code-input { font-size: 1.6rem; }
+            .stats { gap: 1.5rem; }
+            .btn-pair { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+<div id="conn-badge"></div>
+<div class="container">
+    <header>
+        <h1>Lewis Signaling Game</h1>
+        <p>A game about how linguistic conventions emerge</p>
+    </header>
+
+    <!-- LOBBY -->
+    <div id="s-lobby" class="screen active">
+        <div class="intro">
+            <h3>About this game</h3>
+            <ol>
+                <li>Two players — a <strong>Sender</strong> and a <strong>Receiver</strong> — each on their own device</li>
+                <li>Each round, Sender sees a secret world state and picks a signal to transmit</li>
+                <li>Receiver sees only the signal and must guess the world state</li>
+                <li>Signals have no pre-assigned meanings — conventions emerge through repeated play</li>
+            </ol>
+        </div>
+        <div class="card">
+            <p style="color:#666;margin-bottom:1.75rem;">One person creates a game and shares the room code with their partner.</p>
+            <div class="btn-pair">
+                <button class="btn btn-primary btn-lg" onclick="createGame()">
+                    Create Game
+                    <span style="display:block;font-size:0.78rem;opacity:0.65;margin-top:2px;">You'll be the Sender</span>
+                </button>
+                <button class="btn btn-lg" onclick="showScreen('joining')">
+                    Join Game
+                    <span style="display:block;font-size:0.78rem;color:#888;margin-top:2px;">You'll be the Receiver</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATING -->
+    <div id="s-creating" class="screen">
+        <div class="card">
+            <div class="badge badge-sender">Sender</div>
+            <p style="color:#666;">Share this code with your partner:</p>
+            <div class="room-code" id="roomCode">——</div>
+            <p id="create-status" class="waiting" style="min-height:1.5em;">Connecting to server…</p>
+            <p style="color:#bbb;font-size:0.82rem;margin-bottom:1.5rem;">Both players must be on this page at the same time.</p>
+            <button class="btn" onclick="cancelCreate()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- JOINING -->
+    <div id="s-joining" class="screen">
+        <div class="card">
+            <div class="badge badge-receiver">Receiver</div>
+            <p style="color:#666;margin-bottom:1.5rem;">Enter your partner's room code:</p>
+            <input type="text" id="codeIn" class="code-input" maxlength="6" placeholder="XXXXXX"
+                   oninput="this.value=this.value.toUpperCase()"
+                   onkeydown="if(event.key==='Enter')joinGame()">
+            <button class="btn btn-primary btn-lg" onclick="joinGame()">Join</button>
+            <div class="err" id="joinErr"></div>
+            <br>
+            <button class="btn" style="margin-top:0.75rem;" onclick="showScreen('lobby')">Back</button>
+        </div>
+    </div>
+
+    <!-- GAME -->
+    <div id="s-game" class="screen">
+        <div class="stats" id="stats-bar" style="display:none;">
+            <div class="stat"><div class="stat-val" id="s-round">0</div><div class="stat-lbl">Round</div></div>
+            <div class="stat"><div class="stat-val" id="s-succ">0</div><div class="stat-lbl">Successes</div></div>
+            <div class="stat"><div class="stat-val" id="s-rate">—</div><div class="stat-lbl">Rate</div></div>
+        </div>
+        <div class="card" id="game-card"></div>
+        <div class="history-wrap" id="history-section" style="display:none;">
+            <h2 class="section-heading">Round History</h2>
+            <div id="history-content"></div>
+        </div>
+        <div class="chart-wrap" id="chart-section" style="display:none;">
+            <h3>Convention Emergence</h3>
+            <div class="chart-inner"><canvas id="theChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- CONVENTION CELEBRATION -->
+    <div id="s-convention" class="screen">
+        <div id="confetti-container" class="confetti"></div>
+        <div class="convention-card">
+            <span class="fanfare-emoji">🎉</span>
+            <div class="convention-title">YOU ESTABLISHED CONVENTIONS!</div>
+            <div class="convention-sub">All four signals now have stable, shared meanings.</div>
+            <div class="convention-stats">
+                <div class="stat"><div class="stat-val" id="cv-round">—</div><div class="stat-lbl">Rounds</div></div>
+                <div class="stat"><div class="stat-val" id="cv-succ">—</div><div class="stat-lbl">Successes</div></div>
+                <div class="stat"><div class="stat-val" id="cv-rate">—</div><div class="stat-lbl">Final Rate</div></div>
+            </div>
+            <div class="convention-quote">
+                "A regularity R in the behavior of members of a population P when they are agents in a recurrent situation S is a convention if and only if… everyone conforms to R, everyone expects everyone else to conform to R, and everyone prefers to conform to R on condition that the others do."
+                <cite>— David Lewis, <em>Convention</em> (1969)</cite>
+            </div>
+            <p style="color:#666;font-size:0.92rem;margin-bottom:2rem;">You started with four meaningless sounds and turned them into a working language — without any explicit agreement. That's a convention.</p>
+            <button class="btn btn-primary btn-lg" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <!-- DISCONNECTED -->
+    <div id="s-disconnected" class="screen">
+        <div class="card">
+            <div class="result-icon">⚠️</div>
+            <div class="result-txt failure-txt">Connection Lost</div>
+            <p style="color:#aaa;margin:1rem 0;">Your partner has disconnected.</p>
+            <button class="btn btn-primary btn-lg" onclick="location.reload()">Start Over</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STATES  = ['Fire', 'Water', 'Food', 'Poison'];
+    const SIGNALS = ['Blep', 'Mog', 'Kiki', 'Bouba'];
+    const ICONS   = { Fire:'🔥', Water:'💧', Food:'🍎', Poison:'☠️' };
+
+    let peer   = null;
+    let conn   = null;
+    let myRole = null; // 'sender' | 'receiver'
+    let joinTimeout = null;
+
+    const gs = {
+        round: 0, successes: 0,
+        state: null, signal: null, guess: null,
+        history: [], rates: [],
+        streakCounts: [0, 0, 0, 0], // per-state successes in current no-error streak
+        conventionEstablished: false
+    };
+
+    let chart = null;
+
+    // ── SCREENS ──────────────────────────────────────────────────
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('s-' + id).classList.add('active');
+    }
+
+    function badge(role) {
+        return `<div class="badge badge-${role}">${role === 'sender' ? 'Sender' : 'Receiver'}</div>`;
+    }
+
+    function setConnBadge(text, cls) {
+        const el = document.getElementById('conn-badge');
+        el.textContent = text;
+        el.className = cls;
+    }
+
+    // ── PEER HELPERS ──────────────────────────────────────────────
+
+    function genCode() {
+        const ch = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        return Array.from({length:6}, () => ch[Math.floor(Math.random()*ch.length)]).join('');
+    }
+
+    function destroyPeer() {
+        if (joinTimeout) { clearTimeout(joinTimeout); joinTimeout = null; }
+        if (peer) { try { peer.destroy(); } catch(e){} peer = null; }
+        conn = null; myRole = null;
+    }
+
+    function send(data) {
+        if (conn && conn.open) conn.send(data);
+    }
+
+    // ── CREATE GAME (Sender) ──────────────────────────────────────
+
+    const ICE_CONFIG = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' },
+        ]
+    };
+
+    function createGame() {
+        destroyPeer();
+        myRole = 'sender';
+        const code = genCode();
+        showScreen('creating');
+        document.getElementById('roomCode').textContent = '……';
+        document.getElementById('create-status').textContent = 'Connecting to server…';
+
+        peer = new Peer('lsg-' + code, { debug: 0, config: ICE_CONFIG });
+
+        peer.on('open', () => {
+            document.getElementById('roomCode').textContent = code;
+            document.getElementById('create-status').textContent = '';
+        });
+
+        peer.on('error', err => {
+            if (err.type === 'unavailable-id') {
+                destroyPeer(); createGame(); // try a new code
+            } else {
+                document.getElementById('create-status').textContent =
+                    'Could not reach server. Check your internet connection and try again.';
+                document.getElementById('create-status').style.color = '#c53030';
+            }
+        });
+
+        peer.on('connection', c => {
+            conn = c;
+            conn.on('open', () => {
+                conn.on('data', onData);
+                conn.on('close', onDisconnect);
+                onBothConnected();
+            });
+        });
+    }
+
+    function cancelCreate() {
+        destroyPeer();
+        showScreen('lobby');
+    }
+
+    // ── JOIN GAME (Receiver) ──────────────────────────────────────
+
+    function joinGame() {
+        const raw = document.getElementById('codeIn').value.trim().toUpperCase();
+        if (raw.length < 4) {
+            document.getElementById('joinErr').textContent = 'Please enter the full room code.';
+            return;
+        }
+        document.getElementById('joinErr').textContent = 'Connecting…';
+        destroyPeer();
+        myRole = 'receiver';
+
+        peer = new Peer({ debug: 0, config: ICE_CONFIG });
+
+        peer.on('error', err => {
+            const msg = err.type === 'peer-unavailable'
+                ? 'Room not found. Check the code — is the other player on this page?'
+                : 'Connection error (' + err.type + '). Check your internet and try again.';
+            document.getElementById('joinErr').textContent = msg;
+            destroyPeer();
+        });
+
+        peer.on('open', () => {
+            conn = peer.connect('lsg-' + raw, { reliable: true });
+
+            joinTimeout = setTimeout(() => {
+                document.getElementById('joinErr').textContent = 'Timed out. Is the code correct and is the other player already on this page with a visible room code?';
+                destroyPeer();
+            }, 20000);
+
+            conn.on('open', () => {
+                if (joinTimeout) { clearTimeout(joinTimeout); joinTimeout = null; }
+                conn.on('data', onData);
+                conn.on('close', onDisconnect);
+                onBothConnected();
+            });
+
+            conn.on('error', () => {
+                if (joinTimeout) { clearTimeout(joinTimeout); joinTimeout = null; }
+                document.getElementById('joinErr').textContent = 'Could not connect. Check the code.';
+                destroyPeer();
+            });
+        });
+    }
+
+    // ── BOTH CONNECTED ────────────────────────────────────────────
+
+    function onBothConnected() {
+        setConnBadge('Connected', 'on');
+        showScreen('game');
+
+        if (myRole === 'sender') {
+            document.getElementById('game-card').innerHTML = `
+                ${badge('sender')}
+                <p style="color:#666;margin-bottom:1.5rem;">Your partner has joined. You are the <strong>Sender</strong>.</p>
+                <p style="color:#aaa;font-size:0.9rem;margin-bottom:2rem;">Each round you'll see the world state and choose a signal to transmit.<br>No meanings are pre-arranged — conventions must emerge.</p>
+                <button class="btn btn-primary btn-lg" onclick="startRound()">Start First Round</button>
+            `;
+        } else {
+            document.getElementById('game-card').innerHTML = `
+                ${badge('receiver')}
+                <p style="color:#666;margin-bottom:1.5rem;">Connected! You are the <strong>Receiver</strong>.</p>
+                <p style="color:#aaa;font-size:0.9rem;margin-bottom:2rem;">Each round you'll receive a signal and must guess the world state.<br>No meanings are pre-arranged — conventions must emerge.</p>
+                <p class="waiting">Waiting for Sender to start the game…</p>
+            `;
+        }
+    }
+
+    // ── ROUND LOGIC ───────────────────────────────────────────────
+
+    function startRound() {
+        gs.round++;
+        gs.state  = Math.floor(Math.random() * STATES.length);
+        gs.signal = null;
+        gs.guess  = null;
+        send({ type: 'round-start', round: gs.round });
+        renderSenderTurn();
+    }
+
+    function renderSenderTurn() {
+        updateStats();
+        const state = STATES[gs.state];
+        document.getElementById('game-card').innerHTML = `
+            ${badge('sender')}
+            <div class="phase-lbl">Round ${gs.round}</div>
+            <div class="lbl">The world state is:</div>
+            <div class="big big-state">${ICONS[state]} ${state}</div>
+            <div class="inst">Choose a signal to send:</div>
+            <div class="grid">
+                ${SIGNALS.map((sig, i) =>
+                    `<button class="choice choice-sig" onclick="senderSend(${i})">${sig}</button>`
+                ).join('')}
+            </div>
+        `;
+    }
+
+    function senderSend(sigIdx) {
+        gs.signal = sigIdx;
+        send({ type: 'signal', signal: sigIdx, round: gs.round });
+        document.getElementById('game-card').innerHTML = `
+            ${badge('sender')}
+            <div class="phase-lbl">Round ${gs.round}</div>
+            <div class="lbl">You sent:</div>
+            <div class="big big-signal">"${SIGNALS[sigIdx]}"</div>
+            <p class="waiting">Waiting for Receiver's guess…</p>
+        `;
+    }
+
+    function renderReceiverTurn(data) {
+        gs.round  = data.round;
+        gs.signal = data.signal;
+        updateStats();
+
+        document.getElementById('game-card').innerHTML = `
+            ${badge('receiver')}
+            <div class="phase-lbl">Round ${gs.round}</div>
+            <div class="lbl">The Sender's signal is:</div>
+            <div class="big big-signal">"${SIGNALS[data.signal]}"</div>
+            <div class="inst">What do you think the world state is?</div>
+            <div class="grid">
+                ${STATES.map((st, i) =>
+                    `<button class="choice" onclick="receiverGuess(${i})">${ICONS[st]} ${st}</button>`
+                ).join('')}
+            </div>
+        `;
+    }
+
+    function receiverGuess(guessIdx) {
+        gs.guess = guessIdx;
+        send({ type: 'guess', guess: guessIdx });
+        document.getElementById('game-card').innerHTML = `
+            ${badge('receiver')}
+            <div class="phase-lbl">Round ${gs.round}</div>
+            <div class="lbl">You guessed:</div>
+            <div class="big big-state">${ICONS[STATES[guessIdx]]} ${STATES[guessIdx]}</div>
+            <p class="waiting">Waiting for result…</p>
+        `;
+    }
+
+    function resolveRound(guessIdx) {
+        gs.guess = guessIdx;
+        const success = gs.state === gs.guess;
+        if (success) {
+            gs.successes++;
+            gs.streakCounts[gs.state]++;
+        } else {
+            gs.streakCounts = [0, 0, 0, 0]; // any error resets all state streaks
+        }
+
+        const rate = Math.round(100 * gs.successes / gs.round);
+        gs.history.push({ round: gs.round, state: gs.state, signal: gs.signal, guess: gs.guess, success });
+        gs.rates.push({ round: gs.round, rate });
+
+        const newlyEstablished = !gs.conventionEstablished && gs.streakCounts.every(c => c >= 3);
+        if (newlyEstablished) gs.conventionEstablished = true;
+
+        const result = {
+            type: 'result',
+            round: gs.round, success,
+            state: gs.state, signal: gs.signal, guess: gs.guess,
+            successes: gs.successes, rate,
+            history: gs.history, rates: gs.rates,
+            streakCounts: gs.streakCounts,
+            conventionEstablished: gs.conventionEstablished,
+            newlyEstablished
+        };
+        send(result);
+        renderResult(result);
+    }
+
+    function renderResult(data) {
+        if (myRole === 'receiver') {
+            gs.round               = data.round;
+            gs.successes           = data.successes;
+            gs.history             = data.history;
+            gs.rates               = data.rates;
+            gs.state               = data.state;
+            gs.signal              = data.signal;
+            gs.guess               = data.guess;
+            gs.streakCounts        = data.streakCounts;
+            gs.conventionEstablished = data.conventionEstablished;
+        }
+
+        updateStats();
+
+        if (data.newlyEstablished) {
+            renderHistory(); // update history first
+            renderChart();
+            setTimeout(() => renderConvention(), 800); // brief pause before celebration
+            return;
+        }
+
+        const { success, state, signal, guess } = data;
+
+        document.getElementById('game-card').innerHTML = `
+            <div class="result-icon">${success ? '✓' : '✗'}</div>
+            <div class="result-txt ${success ? 'success-txt' : 'failure-txt'}">
+                ${success ? 'Coordination Success!' : 'Coordination Failed'}
+            </div>
+            <div class="flow">
+                <div class="flow-item">
+                    <div class="flow-lbl">World State</div>
+                    <div class="flow-val">${ICONS[STATES[state]]} ${STATES[state]}</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-item">
+                    <div class="flow-lbl">Signal</div>
+                    <div class="flow-val" style="font-style:italic;">"${SIGNALS[signal]}"</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-item">
+                    <div class="flow-lbl">Guess</div>
+                    <div class="flow-val">${ICONS[STATES[guess]]} ${STATES[guess]}</div>
+                </div>
+            </div>
+            ${myRole === 'sender'
+                ? `<button class="btn btn-primary btn-lg" onclick="startRound()">Next Round</button>`
+                : `<p class="waiting">Waiting for next round…</p>`
+            }
+        `;
+
+        renderHistory();
+        renderChart();
+    }
+
+    // ── STATS ─────────────────────────────────────────────────────
+
+    function updateStats() {
+        document.getElementById('stats-bar').style.display = 'flex';
+        document.getElementById('s-round').textContent = gs.round;
+        document.getElementById('s-succ').textContent  = gs.successes;
+        document.getElementById('s-rate').textContent  =
+            gs.round > 0 ? Math.round(100 * gs.successes / gs.round) + '%' : '—';
+    }
+
+    // ── HISTORY ───────────────────────────────────────────────────
+
+    function renderHistory() {
+        if (gs.history.length === 0) return;
+        document.getElementById('history-section').style.display = 'block';
+
+        const showState = myRole === 'sender';
+        const rows = gs.history.slice(-10).reverse().map(h => `
+            <tr>
+                <td class="c-gray">${h.round}</td>
+                ${showState ? `<td>${ICONS[STATES[h.state]]} ${STATES[h.state]}</td>` : ''}
+                <td style="font-style:italic;">${SIGNALS[h.signal]}</td>
+                <td>${ICONS[STATES[h.guess]]} ${STATES[h.guess]}</td>
+                <td class="${h.success ? 'c-success' : 'c-fail'}">${h.success ? '✓' : '✗'}</td>
+            </tr>
+        `).join('');
+
+        document.getElementById('history-content').innerHTML = `
+            <table class="hist-table">
+                <thead><tr>
+                    <th>#</th>
+                    ${showState ? '<th>State</th>' : ''}
+                    <th>Signal</th><th>Guess</th><th>Result</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `;
+    }
+
+    // ── CHART ─────────────────────────────────────────────────────
+
+    function renderChart() {
+        if (gs.rates.length < 2) return;
+        document.getElementById('chart-section').style.display = 'block';
+
+        const labels = gs.rates.map(r => r.round);
+        const data   = gs.rates.map(r => r.rate);
+
+        if (!chart) {
+            chart = new Chart(document.getElementById('theChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        data,
+                        borderColor: '#2c5282',
+                        backgroundColor: 'rgba(44,82,130,0.1)',
+                        fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: v => v + '%', stepSize: 25 } },
+                        x: { title: { display: true, text: 'Round', font: { family: 'Georgia' } } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        } else {
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = data;
+            chart.update('none');
+        }
+    }
+
+    // ── CONVENTION CELEBRATION ────────────────────────────────────
+
+    function renderConvention() {
+        // Fill in final stats
+        document.getElementById('cv-round').textContent = gs.round;
+        document.getElementById('cv-succ').textContent  = gs.successes;
+        document.getElementById('cv-rate').textContent  = Math.round(100 * gs.successes / gs.round) + '%';
+        showScreen('convention');
+        launchConfetti();
+    }
+
+    function launchConfetti() {
+        const container = document.getElementById('confetti-container');
+        const colors = ['#2c5282','#744210','#276749','#c53030','#d69e2e','#553c9a'];
+        for (let i = 0; i < 80; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            const size = 6 + Math.random() * 8;
+            piece.style.cssText = `
+                left: ${Math.random() * 100}%;
+                width: ${size}px;
+                height: ${size}px;
+                background: ${colors[Math.floor(Math.random() * colors.length)]};
+                opacity: ${0.7 + Math.random() * 0.3};
+                animation-duration: ${2 + Math.random() * 3}s;
+                animation-delay: ${Math.random() * 1.5}s;
+                border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+            `;
+            container.appendChild(piece);
+        }
+        // Clean up after animation
+        setTimeout(() => container.innerHTML = '', 6000);
+    }
+
+    // ── MESSAGE HANDLER ───────────────────────────────────────────
+
+    function onData(msg) {
+        switch (msg.type) {
+            case 'round-start':
+                gs.round = msg.round;
+                updateStats();
+                break;
+            case 'signal':
+                renderReceiverTurn(msg);
+                break;
+            case 'guess':
+                resolveRound(msg.guess);
+                break;
+            case 'result':
+                renderResult(msg);
+                break;
+        }
+    }
+
+    function onDisconnect() {
+        setConnBadge('Disconnected', 'off');
+        setTimeout(() => showScreen('disconnected'), 600);
+    }
+</script>
+</body>
+</html>
