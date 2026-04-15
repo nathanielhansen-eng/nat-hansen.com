@@ -4,11 +4,13 @@ import matter from "gray-matter";
 import { marked } from "marked";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { AbstractToggle } from "./abstract-toggle";
 
 interface ScheduleItem {
   time: string;
   title: string;
   speaker?: string;
+  abstract?: string;
 }
 
 interface Speaker {
@@ -115,85 +117,61 @@ export default function AestheticJudgmentWorkshop() {
           </section>
         )}
 
-        {/* Speakers */}
-        {event.speakers.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-sm text-stone-500 mb-4 uppercase tracking-wider">
-              Speakers
-            </h2>
-            <div className="space-y-3">
-              {event.speakers.map((speaker) => (
-                <div
-                  key={speaker.name}
-                  className="border border-stone-300 rounded-lg p-4"
-                >
-                  <p className="text-stone-800 text-base font-medium">
-                    {speaker.name}
-                  </p>
-                  <p className="text-stone-500 text-sm mt-1">
-                    {speaker.affiliation}
-                  </p>
-                  {speaker.title && (
-                    <p
-                      className="text-stone-600 text-base mt-2"
-                      dangerouslySetInnerHTML={{
-                        __html: `&ldquo;${md(speaker.title)}&rdquo;`,
-                      }}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-            <p className="text-stone-500 text-base mt-6">
-              Organized by{" "}
-              <a
-                href="https://www.nat-hansen.com"
-                className="text-stone-600 hover:text-stone-900 underline underline-offset-2 transition-colors"
-              >
-                {event.organizer}
-              </a>
-            </p>
-          </section>
-        )}
-
-        {/* Schedule — set showSchedule: true in the content file to display */}
+        {/* Schedule */}
         {event.showSchedule && <section className="mb-12">
-          <h2 className="text-sm text-stone-500 mb-4 uppercase tracking-wider">
+          <h2 className="text-xl text-stone-800 mb-4 font-semibold uppercase tracking-wider">
             Schedule
           </h2>
-          <div className="space-y-1">
+          <div className="space-y-3">
             {event.schedule.map((item, i) => {
-              const isBreak = !item.speaker;
-              return (
+              const speaker = item.speaker
+                ? event.speakers.find((s) => s.name === item.speaker)
+                : undefined;
+
+              return item.speaker ? (
                 <div
                   key={i}
-                  className={`flex gap-4 py-2 ${
-                    isBreak
-                      ? "text-stone-400 text-xs"
-                      : "border-b border-stone-200"
-                  }`}
+                  className="border border-stone-300 rounded-lg p-4"
                 >
-                  <span className="text-stone-400 text-sm w-12 flex-shrink-0 pt-0.5">
-                    {item.time}
-                  </span>
-                  <div>
-                    <p
-                      className={
-                        isBreak
-                          ? "text-stone-400 text-sm"
-                          : "text-stone-700 text-base"
-                      }
-                    >
-                      {item.title}
+                  <p className="text-stone-400 text-sm mb-2">{item.time}</p>
+                  <p className="text-stone-800 text-base font-medium">
+                    {item.speaker}
+                  </p>
+                  {speaker?.affiliation && (
+                    <p className="text-stone-500 text-sm mt-1">
+                      {speaker.affiliation}
                     </p>
-                    {item.speaker && (
-                      <p className="text-stone-500 text-sm">{item.speaker}</p>
-                    )}
-                  </div>
+                  )}
+                  <p
+                    className="text-stone-600 text-base mt-2"
+                    dangerouslySetInnerHTML={{
+                      __html: `&ldquo;${md(item.title)}&rdquo;`,
+                    }}
+                  />
+                  {item.abstract && (
+                    <AbstractToggle html={md(item.abstract)} />
+                  )}
+                </div>
+              ) : (
+                <div key={i} className="py-2 px-4">
+                  <p className="text-stone-400 text-base">
+                    <span>{item.time}</span>
+                    <span className="mx-2">&middot;</span>
+                    <span>{item.title}</span>
+                  </p>
                 </div>
               );
             })}
           </div>
+          <p className="text-stone-500 text-base mt-6">
+            Organized by{" "}
+            <a
+              href="https://www.nat-hansen.com"
+              className="text-stone-600 hover:text-stone-900 underline underline-offset-2 transition-colors"
+            >
+              {event.organizer}
+            </a>
+          </p>
         </section>}
 
         {/* Practical Info */}
