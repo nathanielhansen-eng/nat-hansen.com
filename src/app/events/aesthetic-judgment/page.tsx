@@ -77,16 +77,9 @@ export default function AestheticJudgmentWorkshop() {
               <span className="block">&amp; Conversation</span>
             </h1>
 
-            <div className="hidden sm:flex flex-col items-end flex-shrink-0">
-              <img
-                src="/reading-arms.png"
-                alt="University of Reading coat of arms"
-                className="w-20 md:w-24 lg:w-28 opacity-90"
-              />
-              <div className="mt-3 text-right">
-                <p className="font-sans text-lg sm:text-xl font-semibold">{event.date}</p>
-                <p className="font-sans text-lg sm:text-xl font-semibold">{event.venue}</p>
-              </div>
+            <div className="hidden sm:flex flex-col items-end justify-end flex-shrink-0 self-end">
+              <p className="font-sans text-xl sm:text-2xl font-semibold text-right">{event.date}</p>
+              <p className="font-sans text-xl sm:text-2xl font-semibold text-right">{event.venue}</p>
             </div>
           </div>
 
