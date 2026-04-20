@@ -119,4 +119,4 @@ publications:
 
 ---
 
-I work in philosophy of language, with a focus on the intersection of ordinary language philosophy and experimental approaches to meaning. I have interests in aesthetics, the history of analytic philosophy, epistemology, and philosophy of mind.
+I work in philosophy of language, with a focus on the intersection of ordinary language philosophy and experimental approaches to meaning. I have interests in aesthetics, the history of analytic philosophy, epistemology, and philosophy of mind. I’m an editor at *Mind & Language*. 
