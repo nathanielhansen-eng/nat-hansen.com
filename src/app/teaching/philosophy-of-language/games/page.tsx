@@ -57,6 +57,27 @@ export default function GamesPage() {
             />
           </div>
         </section>
+
+        <section className="mb-12">
+          <div className="border border-stone-300 rounded-lg p-5">
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <h3 className={`${pressStart.className} text-xs sm:text-sm text-stone-800`}>
+                Brown &amp; Lenneberg (1954)
+              </h3>
+              <Link
+                href="/teaching/philosophy-of-language/games/brown-lenneberg"
+                className="text-stone-500 text-sm hover:text-stone-800 transition-colors whitespace-nowrap"
+              >
+                Start experiment &rarr;
+              </Link>
+            </div>
+            <p className="text-stone-600 text-sm leading-relaxed">
+              A classroom replication of the classic codability-and-memory study: name 12
+              colours, then try to recognise a subset of them after a 30-second delay filled
+              with arithmetic. Your anonymous results are compiled for in-class discussion.
+            </p>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}
