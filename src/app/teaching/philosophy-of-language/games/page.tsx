@@ -78,6 +78,29 @@ export default function GamesPage() {
             </p>
           </div>
         </section>
+
+        <section className="mb-12">
+          <div className="border border-stone-300 rounded-lg p-5">
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <h3 className={`${pressStart.className} text-xs sm:text-sm text-stone-800`}>
+                Heider — Focal Colours (1972)
+              </h3>
+              <Link
+                href="/teaching/philosophy-of-language/games/heider-focal-colors"
+                className="text-stone-500 text-sm hover:text-stone-800 transition-colors whitespace-nowrap"
+              >
+                Start experiment &rarr;
+              </Link>
+            </div>
+            <p className="text-stone-600 text-sm leading-relaxed">
+              Rosch Heider&apos;s challenge to Brown &amp; Lenneberg. Pick best examples of
+              basic colour names, name 12 chips from three categories (focal, internominal,
+              boundary), then try to recognise a subset from an 80-chip array. The data speak
+              to whether codability drives memory — or whether some colours are simply more
+              distinctive than others.
+            </p>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}
