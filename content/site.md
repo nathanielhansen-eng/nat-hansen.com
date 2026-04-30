@@ -15,10 +15,6 @@ links:
     href: https://www.dropbox.com/scl/fi/fq3jaysj166t9ott6y17m/CV-Hansen-2017.pdf?rlkey=d6x7m8rsxncvkd624qyj41ly1&dl=0
 
 events:
-  - title: "Varieties of Realism: Aesthetics, Politics, Philosophy"
-    venue: Maison Française, New York
-    date: April 27-28, 2026
-    link: "https://as.nyu.edu/research-centers/maisonfrancaise/events/spring-2026/workshop-paris-1--dem-arts---maison-francaise--nyu--varieties-of.html"
   - title: Edinburgh Meaning Sciences Group
     venue: University of Edinburgh
     date: May 1, 2026
