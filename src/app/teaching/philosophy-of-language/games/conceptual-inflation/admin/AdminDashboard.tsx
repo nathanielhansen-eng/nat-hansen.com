@@ -80,6 +80,26 @@ function meanSd(xs: number[]): { m: number; sd: number; n: number } {
   return { m, sd: Math.sqrt(v), n };
 }
 
+function pearson(xs: number[], ys: number[]): { r: number; slope: number; intercept: number; n: number } {
+  const n = Math.min(xs.length, ys.length);
+  if (n < 2) return { r: NaN, slope: NaN, intercept: NaN, n };
+  const mx = xs.reduce((s, x) => s + x, 0) / n;
+  const my = ys.reduce((s, y) => s + y, 0) / n;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = xs[i] - mx;
+    const dy = ys[i] - my;
+    sxy += dx * dy;
+    sxx += dx * dx;
+    syy += dy * dy;
+  }
+  if (sxx === 0 || syy === 0) return { r: NaN, slope: NaN, intercept: NaN, n };
+  const r = sxy / Math.sqrt(sxx * syy);
+  const slope = sxy / sxx;
+  const intercept = my - slope * mx;
+  return { r, slope, intercept, n };
+}
+
 function csvEscape(v: unknown): string {
   const s = v === null || v === undefined ? "" : String(v);
   if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
@@ -144,7 +164,28 @@ export default function AdminDashboard() {
         intValues: rec.int,
       };
     });
-    return { n, rows };
+
+    // Apparent-time: per-participant (age, racist-ext, racist-int)
+    const ageExt: { age: number; v: number }[] = [];
+    const ageInt: { age: number; v: number }[] = [];
+    for (const sub of submissions) {
+      if (sub.demographics.ageDeclined) continue;
+      const age = sub.demographics.age;
+      if (age === null || age === undefined) continue;
+      let ext: number | null = null;
+      let int: number | null = null;
+      for (const r of sub.responses) {
+        if (r.term !== "racist") continue;
+        if (r.questionType === "extension") ext = r.value;
+        else int = r.value;
+      }
+      if (ext !== null) ageExt.push({ age, v: ext });
+      if (int !== null) ageInt.push({ age, v: int });
+    }
+    const extFit = pearson(ageExt.map((p) => p.age), ageExt.map((p) => p.v));
+    const intFit = pearson(ageInt.map((p) => p.age), ageInt.map((p) => p.v));
+
+    return { n, rows, ageExt, ageInt, extFit, intFit };
   }, [submissions]);
 
   const downloadCsv = () => {
@@ -513,6 +554,46 @@ export default function AdminDashboard() {
               );
             })}
 
+            <div style={{ borderTop: `1px solid ${C.border}`, marginTop: "36px", paddingTop: "24px" }}>
+              <div style={eyebrow}>Apparent time — age × &lsquo;racist&rsquo;</div>
+              <p style={{ fontSize: "14px", lineHeight: "1.55", color: C.body, marginTop: "8px", marginBottom: "16px" }}>
+                Each dot is one participant. Solid line is this session&apos;s least-squares fit; r is shown
+                below each panel. Hansen &amp; Liao Study 1 reported r = −0.05 (extension, p = .463) and r = 0.04
+                (intensity, p = .556) — neither statistically significant.
+              </p>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: "20px",
+                }}
+              >
+                <Scatter
+                  title='EXTENSION × AGE'
+                  data={stats.ageExt}
+                  fit={stats.extFit}
+                  refR={-0.05}
+                  refP={0.463}
+                  yLabel="What % can be called 'racist'?"
+                  color={C.ext}
+                />
+                <Scatter
+                  title='INTENSITY × AGE'
+                  data={stats.ageInt}
+                  fit={stats.intFit}
+                  refR={0.04}
+                  refP={0.556}
+                  yLabel="How bad to be called 'racist'?"
+                  color={C.int}
+                />
+              </div>
+              {(stats.ageExt.length === 0 && stats.ageInt.length === 0) && (
+                <p style={{ fontSize: "13px", color: C.muted, fontStyle: "italic", marginTop: "10px" }}>
+                  No age data yet — apparent-time scatter will appear once participants submit ages.
+                </p>
+              )}
+            </div>
+
             <div style={{ borderTop: `1px solid ${C.border}`, marginTop: "32px", paddingTop: "20px" }}>
               <div style={eyebrow}>About the reference values</div>
               <p style={{ fontSize: "15px", lineHeight: "1.6", color: C.body, marginTop: "8px" }}>
@@ -525,6 +606,183 @@ export default function AdminDashboard() {
             </div>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+function Scatter({
+  title,
+  data,
+  fit,
+  refR,
+  refP,
+  yLabel,
+  color,
+}: {
+  title: string;
+  data: { age: number; v: number }[];
+  fit: { r: number; slope: number; intercept: number; n: number };
+  refR: number;
+  refP: number;
+  yLabel: string;
+  color: string;
+}) {
+  const W = 380;
+  const H = 260;
+  const PAD_L = 44;
+  const PAD_R = 12;
+  const PAD_T = 14;
+  const PAD_B = 36;
+  const plotW = W - PAD_L - PAD_R;
+  const plotH = H - PAD_T - PAD_B;
+
+  // Axes: age 18..90, value 0..100
+  const xMin = 18;
+  const xMax = 90;
+  const yMin = 0;
+  const yMax = 100;
+  const sx = (a: number) => PAD_L + ((a - xMin) / (xMax - xMin)) * plotW;
+  const sy = (v: number) => PAD_T + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+
+  const xTicks = [20, 30, 40, 50, 60, 70, 80, 90];
+  const yTicks = [0, 25, 50, 75, 100];
+
+  const fitX1 = xMin;
+  const fitX2 = xMax;
+  const fitY1 = fit.intercept + fit.slope * fitX1;
+  const fitY2 = fit.intercept + fit.slope * fitX2;
+  const fitOk = Number.isFinite(fit.r) && data.length >= 2;
+
+  return (
+    <div>
+      <div
+        style={{
+          fontFamily: "'Space Mono', monospace",
+          fontSize: "11px",
+          letterSpacing: "0.12em",
+          color: C.muted,
+          marginBottom: "6px",
+        }}
+      >
+        {title}
+      </div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block", background: "#FDFAF5", border: `1px solid ${C.border}` }}>
+        {/* y gridlines + labels */}
+        {yTicks.map((v) => (
+          <g key={`y${v}`}>
+            <line
+              x1={PAD_L}
+              x2={W - PAD_R}
+              y1={sy(v)}
+              y2={sy(v)}
+              stroke="#EDE8DF"
+              strokeWidth="1"
+            />
+            <text
+              x={PAD_L - 6}
+              y={sy(v) + 4}
+              fontSize="10"
+              textAnchor="end"
+              fontFamily="'Space Mono', monospace"
+              fill={C.muted}
+            >
+              {v}
+            </text>
+          </g>
+        ))}
+        {/* x ticks */}
+        {xTicks.map((a) => (
+          <g key={`x${a}`}>
+            <line
+              x1={sx(a)}
+              x2={sx(a)}
+              y1={PAD_T + plotH}
+              y2={PAD_T + plotH + 4}
+              stroke={C.muted}
+              strokeWidth="1"
+            />
+            <text
+              x={sx(a)}
+              y={PAD_T + plotH + 16}
+              fontSize="10"
+              textAnchor="middle"
+              fontFamily="'Space Mono', monospace"
+              fill={C.muted}
+            >
+              {a}
+            </text>
+          </g>
+        ))}
+        {/* axes */}
+        <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T + plotH} stroke={C.text} strokeWidth="1" />
+        <line x1={PAD_L} y1={PAD_T + plotH} x2={W - PAD_R} y2={PAD_T + plotH} stroke={C.text} strokeWidth="1" />
+        {/* axis labels */}
+        <text
+          x={PAD_L + plotW / 2}
+          y={H - 6}
+          fontSize="11"
+          textAnchor="middle"
+          fontFamily="'Crimson Pro', Georgia, serif"
+          fill={C.body}
+        >
+          age (years)
+        </text>
+        <text
+          x={10}
+          y={PAD_T + plotH / 2}
+          fontSize="10"
+          textAnchor="middle"
+          fontFamily="'Crimson Pro', Georgia, serif"
+          fill={C.body}
+          transform={`rotate(-90 10 ${PAD_T + plotH / 2})`}
+        >
+          {yLabel}
+        </text>
+        {/* fit line */}
+        {fitOk && (
+          <line
+            x1={sx(fitX1)}
+            y1={sy(Math.max(yMin, Math.min(yMax, fitY1)))}
+            x2={sx(fitX2)}
+            y2={sy(Math.max(yMin, Math.min(yMax, fitY2)))}
+            stroke={color}
+            strokeWidth="1.5"
+            opacity={0.7}
+          />
+        )}
+        {/* points */}
+        {data.map((p, i) => (
+          <circle
+            key={i}
+            cx={sx(Math.max(xMin, Math.min(xMax, p.age)))}
+            cy={sy(p.v)}
+            r="4"
+            fill={color}
+            fillOpacity="0.55"
+            stroke={color}
+            strokeWidth="0.5"
+          />
+        ))}
+      </svg>
+      <div
+        style={{
+          marginTop: "6px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          fontFamily: "'Space Mono', monospace",
+          fontSize: "11px",
+          color: C.body,
+        }}
+      >
+        <span>
+          n = {data.length}
+          {fitOk && <> · r = {fit.r.toFixed(3)} · slope = {fit.slope.toFixed(2)}</>}
+        </span>
+        <span style={{ color: C.ref }}>
+          ref: r = {refR.toFixed(2)}, p = {refP.toFixed(3)}
+        </span>
       </div>
     </div>
   );
