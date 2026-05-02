@@ -101,6 +101,29 @@ export default function GamesPage() {
             </p>
           </div>
         </section>
+
+        <section className="mb-12">
+          <div className="border border-stone-300 rounded-lg p-5">
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <h3 className={`${pressStart.className} text-xs sm:text-sm text-stone-800`}>
+                Measuring Conceptual Inflation
+              </h3>
+              <Link
+                href="/teaching/philosophy-of-language/games/conceptual-inflation"
+                className="text-stone-500 text-sm hover:text-stone-800 transition-colors whitespace-nowrap"
+              >
+                Start experiment &rarr;
+              </Link>
+            </div>
+            <p className="text-stone-600 text-sm leading-relaxed">
+              A classroom replication of Hansen &amp; Liao&apos;s Study 1 on the meaning of
+              &lsquo;racist&rsquo;. Rate the extension and intensity of &lsquo;racist&rsquo;,
+              its degree-modified forms, related alternative vocabulary, and a set of thin
+              moral terms — then compare your live audience&apos;s pattern with the published
+              representative-sample results.
+            </p>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}
