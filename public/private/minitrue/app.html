@@ -308,8 +308,24 @@
     background: var(--ink);
     border-bottom: 2px solid var(--ink);
   }
+  .density-axis {
+    padding: 10px 18px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: "Michroma", "Eurostile", sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .density-axis > span:nth-child(2) {
+    color: var(--ink-soft);
+    flex: 1;
+    text-align: center;
+  }
   .density-rows {
-    padding: 16px 18px;
+    padding: 10px 18px 16px;
     display: grid;
     grid-template-columns: auto 1fr auto;
     gap: 6px 14px;
@@ -341,16 +357,18 @@
   }
   .density-block .total {
     border-top: 1px solid var(--rule-soft);
-    padding: 10px 18px;
-    font-family: "Michroma", "Eurostile", sans-serif;
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    display: flex;
-    justify-content: space-between;
+    padding: 14px 18px;
+    font-family: ui-monospace, "SF Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
+    font-size: 14px;
+    color: var(--ink);
+    background: #fff;
   }
-  .density-block .total b { color: var(--red); font-weight: 400; }
+  .density-block .total .verdict {
+    color: var(--red);
+    font-weight: 700;
+    margin-right: 6px;
+  }
+  .density-block .total .ref { color: var(--ink-soft); margin-right: 4px; }
 
   .assessment-block {
     background: #fff;
@@ -496,7 +514,7 @@ function minitruePrompt(paragraph) {
 - unperson (one whose existence has been erased from the record)
 - speakwrite (dictation device); thoughtcrime; Big Brother
 
-5. REGULARIZE GRAMMAR. All past tenses end in -ed (thinked, stealed, swimmed, runned). All plurals -s/-es (mans, oxes, lifes, childs). Comparison -er/-est (good, gooder, goodest). Adjectives by -ful (speedful = rapid). Adverbs by -wise (speedwise = quickly, goodwise = well).
+5. REGULARIZE GRAMMAR. All past tenses end in lowercase -ed appended to the verb root, EXACTLY as ordinary English suffixes attach: "think" → "thinked", "steal" → "stealed", "swim" → "swimmed", "run" → "runned", "say" → "sayed", "buy" → "buyed", "go" → "goed". DO NOT write the suffix in capitals. NEVER produce forms like "sayED", "thinkED", "coverED" — that is wrong. The suffix is always lowercase -ed, joined to the root with no caps and no separation. Likewise lowercase -s/-es for plurals (mans, oxes, lifes, childs), -er/-est for comparison (good, gooder, goodest), -ful for adjectives (speedful = rapid), -wise for adverbs (speedwise = quickly, goodwise = well). All Newspeak suffixes are lowercase.
 
 6. SUPPRESS shall/should AND whom. Use will/would. "to whom" → "to who".
 
@@ -581,7 +599,7 @@ Write ONE short document-level assessment in the voice of a humourless Ministry 
 - Cite the dominant types of thoughtcrime (crimethink, oldthink, ownlife, facecrime) detected across the document as a whole.
 - Name at most ONE concrete offence (a specific concept or phrase) as illustrative — do not enumerate.
 - Conclude with a one-clause verdict on the citizen's overall ideological reliability.
-- Plain prose only. No bullet points, no preamble, no headings, no markdown.`;
+- OUTPUT FORMAT: PLAIN PROSE ONLY. Do NOT wrap in JSON. Do NOT use code fences. Do NOT add a heading or label. Do NOT include the word "assessment". Just the prose paragraph itself, starting with the first word of the assessment.`;
 
   const res = await fetch("/api/orwell-workshop/workshop", {
     method: "POST",
@@ -598,7 +616,25 @@ Write ONE short document-level assessment in the voice of a humourless Ministry 
     throw new Error(`Server error ${res.status}: ${text || res.statusText}`);
   }
   const data = await res.json();
-  return (data.text || "").trim();
+  return unwrapAssessmentText((data.text || "").trim());
+}
+
+// Defensive: if Claude wraps the assessment in ```json … ``` or returns
+// {"assessment": "..."}, dig the prose out so the user doesn't see scaffolding.
+function unwrapAssessmentText(raw) {
+  let txt = (raw || "").trim();
+  txt = txt.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  if (txt.startsWith("{") && txt.endsWith("}")) {
+    try {
+      const obj = JSON.parse(txt);
+      if (obj && typeof obj.assessment === "string") return obj.assessment.trim();
+      const keys = Object.keys(obj || {});
+      for (const k of keys) {
+        if (typeof obj[k] === "string" && obj[k].trim()) return obj[k].trim();
+      }
+    } catch (_) { /* fall through */ }
+  }
+  return txt;
 }
 
 async function callMinitrue(paragraph) {
@@ -717,9 +753,11 @@ function normalizeForMatch(text) {
 // Tries direct indexOf first; falls back to normalized fuzzy match. Indices
 // from later spans are recomputed against the remaining tail to handle
 // overlapping or already-consumed regions gracefully.
-function renderRedactedParagraph(text, censored) {
-  if (!censored || censored.length === 0) return escapeHtml(text);
-  // Compute spans (start, end, idx) in original text
+// Resolve each censored phrase to a {start, end, idx} span in the
+// original text, with fuzzy fallback for PDF/typographic mismatches.
+// Drops overlaps (earliest wins).
+function resolveCensoredSpans(text, censored) {
+  if (!censored || censored.length === 0) return [];
   const spans = [];
   for (let i = 0; i < censored.length; i++) {
     const phrase = censored[i].phrase;
@@ -738,7 +776,6 @@ function renderRedactedParagraph(text, censored) {
     if (start === -1) continue;
     spans.push({ start, end: start + len, idx: i });
   }
-  // Drop overlaps: keep earliest, drop any that overlap the previous
   spans.sort((a, b) => a.start - b.start);
   const kept = [];
   let lastEnd = -1;
@@ -747,6 +784,22 @@ function renderRedactedParagraph(text, censored) {
     kept.push(s);
     lastEnd = s.end;
   }
+  return kept;
+}
+
+// Fraction (0..1) of the paragraph's characters that fall inside a
+// flagged span, after fuzzy resolution and overlap removal.
+function flaggedFraction(text, censored) {
+  if (!text || !text.length) return 0;
+  const spans = resolveCensoredSpans(text, censored);
+  if (spans.length === 0) return 0;
+  const flagged = spans.reduce((n, s) => n + (s.end - s.start), 0);
+  return Math.max(0, Math.min(1, flagged / text.length));
+}
+
+function renderRedactedParagraph(text, censored) {
+  if (!censored || censored.length === 0) return escapeHtml(text);
+  const kept = resolveCensoredSpans(text, censored);
   // Build HTML
   let out = "";
   let cursor = 0;
@@ -1029,25 +1082,41 @@ function processingView() {
 }
 
 function densityChartBlock() {
-  const counts = state.paragraphs.map(p => (p.censored || []).length);
-  const total = counts.reduce((a, b) => a + b, 0);
-  const max = Math.max(1, ...counts);
+  const totalCount = state.paragraphs.reduce(
+    (n, p) => n + (p.censored || []).length, 0);
+  const totalChars = state.paragraphs.reduce((n, p) => n + (p.text || "").length, 0);
+  const totalFlaggedChars = state.paragraphs.reduce((n, p) => {
+    const spans = resolveCensoredSpans(p.text, p.censored);
+    return n + spans.reduce((s, sp) => s + (sp.end - sp.start), 0);
+  }, 0);
+  const docPct = totalChars > 0
+    ? Math.round((totalFlaggedChars / totalChars) * 100)
+    : 0;
+
   const rows = [];
-  state.paragraphs.forEach((_p, i) => {
-    const n = counts[i];
-    const pct = (n / max) * 100;
+  state.paragraphs.forEach((p, i) => {
+    const frac = flaggedFraction(p.text, p.censored);
+    const pct = Math.round(frac * 100);
     rows.push(
       el("span", { class: "label" }, "¶" + (i + 1)),
       el("span", { class: "bar" }, el("span", { style: "width: " + pct + "%;" })),
-      el("span", { class: "count" }, String(n))
+      el("span", { class: "count" }, pct + "%")
     );
   });
   return el("div", { class: "density-block" },
     el("h4", null, "Thoughtcrime Density · Per Paragraph"),
+    el("div", { class: "density-axis" },
+      el("span", null, "0%"),
+      el("span", null, "Proportion of text flagged as thoughtcrime"),
+      el("span", null, "100%")
+    ),
     el("div", { class: "density-rows" }, ...rows),
     el("div", { class: "total" },
-      el("span", null, "Total Offences Detected"),
-      el("span", null, el("b", null, String(total)))
+      el("span", { class: "ref" }, "[TOT]"),
+      " ",
+      el("span", { class: "verdict" }, "UNGOOD"),
+      " · " + totalCount + " thoughtcrime" + (totalCount === 1 ? "" : "s") +
+      " detected · " + docPct + "% of document flagged"
     )
   );
 }
