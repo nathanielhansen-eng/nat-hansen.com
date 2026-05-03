@@ -514,7 +514,19 @@ function minitruePrompt(paragraph) {
 - unperson (one whose existence has been erased from the record)
 - speakwrite (dictation device); thoughtcrime; Big Brother
 
-5. REGULARIZE GRAMMAR. All past tenses end in lowercase -ed appended to the verb root, EXACTLY as ordinary English suffixes attach: "think" → "thinked", "steal" → "stealed", "swim" → "swimmed", "run" → "runned", "say" → "sayed", "buy" → "buyed", "go" → "goed". DO NOT write the suffix in capitals. NEVER produce forms like "sayED", "thinkED", "coverED" — that is wrong. The suffix is always lowercase -ed, joined to the root with no caps and no separation. Likewise lowercase -s/-es for plurals (mans, oxes, lifes, childs), -er/-est for comparison (good, gooder, goodest), -ful for adjectives (speedful = rapid), -wise for adverbs (speedwise = quickly, goodwise = well). All Newspeak suffixes are lowercase.
+5. REGULARIZE GRAMMAR. All past tenses are formed with lowercase -ed, attached to the verb root by ORDINARY ENGLISH SPELLING CONVENTIONS:
+
+   a. If the verb root ends in a silent -e, DROP the -e before -ed: "write" → "writed" (NOT "writeed"); "use" → "used" (NOT "useed"); "make" → "maked"; "take" → "taked"; "give" → "gived".
+
+   b. NEVER double the final consonant when adding -ed: "cover" → "covered" (NOT "covvered"); "happen" → "happened" (NOT "happenned"); "open" → "opened"; "differ" → "differed".
+
+   c. If the verb ALREADY ends in -ed, DO NOT ADD ANOTHER -ed. It is already past-tense in shape. "stretched" stays "stretched"; "pointed" stays "pointed"; "extended" stays "extended"; "happened" stays "happened". NEVER produce "stretcheded", "pointeded", "extendeded", "happeneded" — those are wrong.
+
+   d. Otherwise, just append -ed to the root: "think" → "thinked", "steal" → "stealed", "swim" → "swimmed", "run" → "runned", "say" → "sayed", "buy" → "buyed", "go" → "goed".
+
+   e. The suffix is always lowercase -ed. NEVER capitalise it (no "sayED", "thinkED", "coverED").
+
+   Likewise lowercase -s/-es for plurals (mans, oxes, lifes, childs), -er/-est for comparison (good, gooder, goodest), -ful for adjectives (speedful = rapid), -wise for adverbs (speedwise = quickly, goodwise = well). All Newspeak suffixes are lowercase and follow normal English spelling rules for joining.
 
 6. SUPPRESS shall/should AND whom. Use will/would. "to whom" → "to who".
 
@@ -690,7 +702,7 @@ function parseMinitrueResponse(raw) {
 // Text utilities
 // -----------------------------------------------------------------------
 
-const MAX_WORDS = 2500;
+const MAX_WORDS = 500;
 
 function countWords(text) {
   if (!text) return 0;
@@ -870,23 +882,23 @@ function intakeView() {
       el("em", null, "ownlife"),
       ", or other deviationist content will receive an automatically generated Newspeak rewrite for their compliance and re-education. Failure to submit suspect material is itself crimethink. Big Brother is watching."),
     el("h3", { class: "section" }, "I.  Submission of Document"),
-    el("label", { class: "field-label" }, "Paste document text below · maximum 2,500 words"),
+    el("label", { class: "field-label" }, "Paste document text below · maximum 500 words"),
     el("textarea", {
       id: "rawInput",
-      placeholder: "Paste document text here. Multi-paragraph submissions are accepted (separate paragraphs with a blank line). Documents exceeding 2,500 words will be refused.",
+      placeholder: "Paste document text here. Multi-paragraph submissions are accepted (separate paragraphs with a blank line). Documents exceeding 500 words will be refused.",
       value: state.raw,
       oninput: (e) => {
         state.raw = e.target.value;
         const wc = countWords(state.raw);
         const wcEl = document.querySelector(".word-count");
         if (wcEl) {
-          wcEl.textContent = `${wc.toLocaleString()} / 2,500 words`;
+          wcEl.textContent = `${wc.toLocaleString()} / 500 words`;
           wcEl.style.color = wc > MAX_WORDS ? "var(--red)" : "var(--ink-soft)";
         }
       }
     }),
     el("div", { class: "word-count" },
-      `${countWords(state.raw).toLocaleString()} / 2,500 words`),
+      `${countWords(state.raw).toLocaleString()} / 500 words`),
     state.error ? el("div", { class: "err" }, state.error) : null,
     el("div", { class: "actions" },
       el("button", {
@@ -897,7 +909,7 @@ function intakeView() {
             render(); return;
           }
           if (wc > MAX_WORDS) {
-            state.error = `Submission exceeds the 2,500-word limit by ${(wc - MAX_WORDS).toLocaleString()} words. The Ministry refuses oversized documents. Reduce length and resubmit.`;
+            state.error = `Submission exceeds the 500-word limit by ${(wc - MAX_WORDS).toLocaleString()} words. The Ministry refuses oversized documents. Reduce length and resubmit.`;
             render(); return;
           }
           const paras = splitIntoParagraphs(state.raw);
