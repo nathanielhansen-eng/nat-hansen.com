@@ -514,17 +514,19 @@ function minitruePrompt(paragraph) {
 - unperson (one whose existence has been erased from the record)
 - speakwrite (dictation device); thoughtcrime; Big Brother
 
-5. REGULARIZE GRAMMAR. All past tenses are formed with lowercase -ed, attached to the verb root by ORDINARY ENGLISH SPELLING CONVENTIONS:
+5. REGULARIZE GRAMMAR. All past tenses are formed with lowercase -ed, attached to the verb root by ORDINARY ENGLISH SPELLING CONVENTIONS. Newspeak only DIFFERS from Standard English in regularising IRREGULAR verbs; verbs whose Standard English past tense is already regular are LEFT EXACTLY AS THEY ARE in Standard English.
 
-   a. If the verb root ends in a silent -e, DROP the -e before -ed: "write" → "writed" (NOT "writeed"); "use" → "used" (NOT "useed"); "make" → "maked"; "take" → "taked"; "give" → "gived".
+   a. If the verb's Standard English past tense is already a regular -ed form, USE THE STANDARD FORM UNCHANGED. "work" → "worked" (NOT "workeyed", NOT "workt"). "walk" → "walked". "talk" → "talked". "open" → "opened". "cover" → "covered". "happen" → "happened". "play" → "played". "stretch" → "stretched". "point" → "pointed". "extend" → "extended". Do not invent a new spelling for any verb whose normal past tense already ends in -ed.
 
-   b. NEVER double the final consonant when adding -ed: "cover" → "covered" (NOT "covvered"); "happen" → "happened" (NOT "happenned"); "open" → "opened"; "differ" → "differed".
+   b. Only when the Standard English past tense is IRREGULAR do you regularise it: "think" → "thinked" (replacing "thought"); "steal" → "stealed" (replacing "stole"); "swim" → "swimmed" (replacing "swam"); "run" → "runned" (replacing "ran"); "say" → "sayed" (replacing "said"); "buy" → "buyed" (replacing "bought"); "go" → "goed" (replacing "went"); "take" → "taked" (replacing "took"); "give" → "gived" (replacing "gave"); "make" → "maked" (replacing "made"); "write" → "writed" (replacing "wrote").
 
-   c. If the verb ALREADY ends in -ed, DO NOT ADD ANOTHER -ed. It is already past-tense in shape. "stretched" stays "stretched"; "pointed" stays "pointed"; "extended" stays "extended"; "happened" stays "happened". NEVER produce "stretcheded", "pointeded", "extendeded", "happeneded" — those are wrong.
+   c. If the verb root ends in a silent -e, DROP the -e before -ed: "write" → "writed" (NOT "writeed"); "make" → "maked" (NOT "makeed").
 
-   d. Otherwise, just append -ed to the root: "think" → "thinked", "steal" → "stealed", "swim" → "swimmed", "run" → "runned", "say" → "sayed", "buy" → "buyed", "go" → "goed".
+   d. NEVER double the final consonant when adding -ed.
 
-   e. The suffix is always lowercase -ed. NEVER capitalise it (no "sayED", "thinkED", "coverED").
+   e. NEVER add -ed to a verb that already ends in -ed: "stretched", "pointed", "extended", "happened" stay as-is. NEVER produce "stretcheded", "pointeded", "extendeded", "happeneded".
+
+   f. The suffix is always lowercase -ed. NEVER capitalise it (no "sayED", "thinkED", "coverED").
 
    Likewise lowercase -s/-es for plurals (mans, oxes, lifes, childs), -er/-est for comparison (good, gooder, goodest), -ful for adjectives (speedful = rapid), -wise for adverbs (speedwise = quickly, goodwise = well). All Newspeak suffixes are lowercase and follow normal English spelling rules for joining.
 
@@ -1079,9 +1081,9 @@ function processingView() {
         const status = p.done
           ? (p.error
               ? `! error: ${p.error}`
-              : `OK · ${flagged} thoughtcrime${flagged === 1 ? "" : "s"} detected`)
+              : `UNGOOD · ${flagged} thoughtcrime${flagged === 1 ? "" : "s"} detected`)
           : (idx === done ? "… screening" : "queued");
-        const cls = p.done ? "ok" : (idx === done ? "live" : "pend");
+        const cls = p.done ? "live" : (idx === done ? "live" : "pend");
         return el("div", { class: "progress-line" },
           el("span", { class: cls }, `[${String(idx + 1).padStart(2, "0")}] `),
           el("span", { class: cls }, status));
