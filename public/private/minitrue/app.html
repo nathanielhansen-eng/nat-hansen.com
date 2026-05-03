@@ -243,14 +243,114 @@
   }
   sup.crime-tag {
     color: var(--redact);
-    font-weight: 700;
+    font-weight: 400;
     font-size: 10px;
     margin: 0 2px 0 3px;
     vertical-align: super;
     text-decoration: none;
-    letter-spacing: 0.04em;
-    font-family: "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.08em;
+    font-family: "Michroma", "Eurostile", sans-serif;
+    cursor: pointer;
+    border-bottom: 1px dotted var(--redact);
   }
+  sup.crime-tag:hover { background: rgba(138,0,0,0.08); }
+
+  .crime-popover {
+    position: absolute;
+    z-index: 1000;
+    background: #fff;
+    border: 2px solid var(--ink);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    padding: 0;
+    max-width: 320px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .crime-popover .head {
+    background: var(--red);
+    color: #fff;
+    padding: 8px 12px;
+    font-family: "Michroma", "Eurostile", sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .crime-popover .body {
+    padding: 12px 14px;
+    font-family: "Special Elite", "Courier Prime", monospace;
+    line-height: 1.6;
+  }
+  .crime-popover .close {
+    float: right;
+    cursor: pointer;
+    color: rgba(255,255,255,0.85);
+    font-family: -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1;
+    margin-left: 12px;
+  }
+  .crime-popover .close:hover { color: #fff; }
+
+  .density-block {
+    background: #fff;
+    border: 2px solid var(--ink);
+    margin-bottom: 18px;
+  }
+  .density-block h4 {
+    margin: 0;
+    padding: 10px 14px;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #fff;
+    background: var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+  .density-rows {
+    padding: 16px 18px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 6px 14px;
+    align-items: center;
+  }
+  .density-rows .label {
+    font-family: "Michroma", "Eurostile", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--red);
+    text-transform: uppercase;
+  }
+  .density-rows .bar {
+    background: #f0eadc;
+    height: 14px;
+    position: relative;
+  }
+  .density-rows .bar > span {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: var(--red);
+    min-width: 2px;
+  }
+  .density-rows .count {
+    font-family: "Special Elite", "Courier Prime", monospace;
+    font-size: 14px;
+    color: var(--ink);
+    text-align: right;
+    min-width: 24px;
+  }
+  .density-block .total {
+    border-top: 1px solid var(--rule-soft);
+    padding: 10px 18px;
+    font-family: "Michroma", "Eurostile", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+  }
+  .density-block .total b { color: var(--red); font-weight: 400; }
 
   .assessment-block {
     background: #fff;
@@ -347,11 +447,14 @@
   @media print {
     body { background: #fff; }
     .no-print { display: none !important; }
+    .crime-popover { display: none !important; }
     .page { max-width: none; padding: 0; }
     .doc-block { border-color: #000; break-inside: avoid; }
     .stamp { break-inside: avoid; }
+    .density-block, .assessment-block { break-inside: avoid; }
     textarea { display: none; }
     button { display: none; }
+    sup.crime-tag { border-bottom: none; cursor: default; }
   }
 </style>
 </head>
@@ -438,6 +541,8 @@ const state = {
   procFlareIdx: 0,             // index into FLARES for the live ticker
   procTimer: null,             // setInterval handle for the ticker
   docRef: "",                  // generated document reference
+  docAssessment: "",           // final document-level inspector summary
+  compilingAssessment: false,  // true while the doc-level summary call is in flight
   error: ""
 };
 
@@ -453,6 +558,48 @@ function makeDocRef() {
 // -----------------------------------------------------------------------
 // Network
 // -----------------------------------------------------------------------
+
+async function callDocAssessment(paragraphs) {
+  const findings = paragraphs.map((p, i) => {
+    const n = (p.censored || []).length;
+    const a = (p.assessment || "").trim();
+    return `¶${i + 1} (${n} crime${n === 1 ? "" : "s"} flagged): ${a || "[no per-paragraph note]"}`;
+  }).join("\n");
+  const fullDoc = paragraphs.map(p => p.text).join("\n\n").slice(0, 12000);
+  const user = `Below is a document that has been screened for thoughtcrime, with per-paragraph inspector findings.
+
+DOCUMENT:
+"""
+${fullDoc}
+"""
+
+PER-PARAGRAPH FINDINGS:
+${findings}
+
+Write ONE short document-level assessment in the voice of a humourless Ministry of Truth inspector. Constraints:
+- 50–80 words. No more.
+- Cite the dominant types of thoughtcrime (crimethink, oldthink, ownlife, facecrime) detected across the document as a whole.
+- Name at most ONE concrete offence (a specific concept or phrase) as illustrative — do not enumerate.
+- Conclude with a one-clause verdict on the citizen's overall ideological reliability.
+- Plain prose only. No bullet points, no preamble, no headings, no markdown.`;
+
+  const res = await fetch("/api/orwell-workshop/workshop", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      system: MINITRUE_SYSTEM,
+      user,
+      max_tokens: 350
+    })
+  });
+  if (!res.ok) {
+    let text = "";
+    try { text = await res.text(); } catch (_) {}
+    throw new Error(`Server error ${res.status}: ${text || res.statusText}`);
+  }
+  const data = await res.json();
+  return (data.text || "").trim();
+}
 
 async function callMinitrue(paragraph) {
   const res = await fetch("/api/orwell-workshop/workshop", {
@@ -606,9 +753,11 @@ function renderRedactedParagraph(text, censored) {
   for (const s of kept) {
     if (s.start > cursor) out += escapeHtml(text.slice(cursor, s.start));
     const c = censored[s.idx];
-    out += `<span class="censored" title="${escapeHtml(c.crime + (c.note ? ' — ' + c.note : ''))}">` +
+    const tipNote = escapeHtml(c.note || "");
+    const tipCrime = escapeHtml(c.crime || "");
+    out += `<span class="censored">` +
            escapeHtml(text.slice(s.start, s.end)) +
-           `</span><sup class="crime-tag">[${escapeHtml(c.crime)}]</sup>`;
+           `</span><sup class="crime-tag" data-crime="${tipCrime}" data-note="${tipNote}" tabindex="0">[${tipCrime}]</sup>`;
     cursor = s.end;
   }
   if (cursor < text.length) out += escapeHtml(text.slice(cursor));
@@ -784,6 +933,30 @@ async function processNext() {
   clearProcTimer();
   const i = state.procIdx;
   if (i >= state.paragraphs.length) {
+    // All paragraphs screened. Compile a single document-level assessment
+    // with one final API call, then transition to the verdict.
+    state.compilingAssessment = true;
+    state.procFlareIdx = 0;
+    state.procSubProgress = 0.97;
+    // start a slow flare cycle on a different cadence for this final phase
+    state.procTimer = setInterval(() => {
+      const finalFlares = [
+        "COMPILING FINAL ASSESSMENT",
+        "CROSS-INDEXING PARAGRAPH FINDINGS",
+        "ROUTING TO INSPECTOR 482-7-X FOR SIGN-OFF",
+        "STAMPING DOCUMENT FOR CERTIFICATION"
+      ];
+      const idx = (state.procFlareIdx++) % finalFlares.length;
+      const flareEl = document.querySelector(".proc-flare");
+      if (flareEl) flareEl.textContent = `> ${finalFlares[idx]}…`;
+    }, 700);
+    try {
+      state.docAssessment = await callDocAssessment(state.paragraphs);
+    } catch (err) {
+      state.docAssessment = "[Inspector unavailable: " + err.message + "]";
+    }
+    clearProcTimer();
+    state.compilingAssessment = false;
     state.view = "verdict";
     render();
     return;
@@ -855,25 +1028,36 @@ function processingView() {
   );
 }
 
-function inspectorAssessmentBlock() {
-  const items = state.paragraphs
-    .map((p, i) => ({ i, text: (p.assessment || "").trim() }))
-    .filter(o => o.text.length > 0);
-  if (items.length === 0) {
-    return el("div", { class: "assessment-block" },
-      el("h4", null, "Inspector's Assessment"),
-      el("div", { class: "clean" },
-        "No substantive thoughtcrime detected. Citizen appears compliant. Continue under observation.")
+function densityChartBlock() {
+  const counts = state.paragraphs.map(p => (p.censored || []).length);
+  const total = counts.reduce((a, b) => a + b, 0);
+  const max = Math.max(1, ...counts);
+  const rows = [];
+  state.paragraphs.forEach((_p, i) => {
+    const n = counts[i];
+    const pct = (n / max) * 100;
+    rows.push(
+      el("span", { class: "label" }, "¶" + (i + 1)),
+      el("span", { class: "bar" }, el("span", { style: "width: " + pct + "%;" })),
+      el("span", { class: "count" }, String(n))
     );
-  }
-  return el("div", { class: "assessment-block" },
-    el("h4", null, "Inspector's Assessment — Per-Paragraph Findings"),
-    el("ol", null,
-      ...items.map(o =>
-        el("li", null,
-          el("b", null, "¶" + (o.i + 1)),
-          o.text))
+  });
+  return el("div", { class: "density-block" },
+    el("h4", null, "Thoughtcrime Density · Per Paragraph"),
+    el("div", { class: "density-rows" }, ...rows),
+    el("div", { class: "total" },
+      el("span", null, "Total Offences Detected"),
+      el("span", null, el("b", null, String(total)))
     )
+  );
+}
+
+function inspectorAssessmentBlock() {
+  const text = (state.docAssessment || "").trim();
+  return el("div", { class: "assessment-block" },
+    el("h4", null, "Inspector's Assessment"),
+    el("div", { class: "clean" },
+      text || "No substantive thoughtcrime detected. Citizen appears compliant. Continue under observation.")
   );
 }
 
@@ -886,6 +1070,7 @@ function verdictView() {
   return el("div", null,
     sealHeader({ left: "Document Ref: " + state.docRef, right: "Status: SCREENING COMPLETE" }),
 
+    densityChartBlock(),
     inspectorAssessmentBlock(),
 
     el("h3", { class: "section" }, "III.  Original Submission with Excisions"),
@@ -951,6 +1136,57 @@ function render() {
   }
   if (view) root.appendChild(view);
 }
+
+// -----------------------------------------------------------------------
+// Click-to-inspect: clicking a [crimethink] tag in the redacted original
+// pops a small explanation panel anchored under the tag. Click anywhere
+// else (or the × button) to dismiss.
+// -----------------------------------------------------------------------
+
+function dismissCrimePopover() {
+  const existing = document.querySelector(".crime-popover");
+  if (existing) existing.remove();
+}
+
+document.addEventListener("click", (ev) => {
+  const tag = ev.target.closest && ev.target.closest("sup.crime-tag");
+  if (tag) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    dismissCrimePopover();
+    const crime = tag.getAttribute("data-crime") || "crimethink";
+    const note = tag.getAttribute("data-note") || "[no inspector note recorded]";
+    const pop = document.createElement("div");
+    pop.className = "crime-popover";
+    const head = document.createElement("div");
+    head.className = "head";
+    const close = document.createElement("span");
+    close.className = "close";
+    close.textContent = "×";
+    close.addEventListener("click", (e) => { e.stopPropagation(); dismissCrimePopover(); });
+    head.appendChild(document.createTextNode(crime));
+    head.appendChild(close);
+    const body = document.createElement("div");
+    body.className = "body";
+    body.textContent = note;
+    pop.appendChild(head);
+    pop.appendChild(body);
+    document.body.appendChild(pop);
+    // Position under the tag, accounting for scroll
+    const rect = tag.getBoundingClientRect();
+    const top = rect.bottom + window.scrollY + 6;
+    let left = rect.left + window.scrollX;
+    // keep popover within viewport horizontally
+    const maxLeft = document.documentElement.clientWidth + window.scrollX - pop.offsetWidth - 16;
+    if (left > maxLeft) left = maxLeft;
+    if (left < window.scrollX + 8) left = window.scrollX + 8;
+    pop.style.top = top + "px";
+    pop.style.left = left + "px";
+    return;
+  }
+  // click outside — dismiss any existing popover
+  if (!ev.target.closest(".crime-popover")) dismissCrimePopover();
+});
 
 render();
 </script>
