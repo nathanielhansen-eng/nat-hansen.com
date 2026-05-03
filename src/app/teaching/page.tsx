@@ -73,6 +73,24 @@ export default function TeachingPage() {
             ))}
           </div>
         </section>
+
+        <section className="mt-12">
+          <h2 className="text-sm text-stone-500 mb-6 uppercase tracking-wider">
+            Writing Tools
+          </h2>
+          <Link
+            href="/tools"
+            className="block border border-stone-300 rounded-lg p-5 hover:border-stone-400 transition-colors"
+          >
+            <h3 className={`${betania.className} text-2xl sm:text-3xl text-stone-800`}>
+              Tools
+            </h3>
+            <p className="text-stone-500 text-sm mt-2">
+              Interactive writing tools for students — currently the Orwell
+              Workshop.
+            </p>
+          </Link>
+        </section>
       </main>
 
       {/* Footer */}

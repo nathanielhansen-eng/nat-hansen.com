@@ -1,0 +1,3377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>orwell-tutor</title>
+<style>
+  :root {
+    --bg-deep:    #1c1c1c;
+    --bg:         #1e1e1e;
+    --bg-soft:    #262626;
+    --bg-input:   #0d0d0d;
+    --fg:         #e8e8e8;
+    --fg-soft:    #c8c8c8;
+    --comment:    #6c7086;
+    --green:      #4afa57;
+    --green-soft: #4afa5722;
+    --yellow:     #f1fa8c;
+    --orange:     #ffb86c;
+    --pink:       #ff79c6;
+    --red:        #ff6b6b;
+    --blue:       #62b1ff;
+    --purple:     #bd93f9;
+    --rule:       #3a3a3a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #353535 0%, #2a2a2a 40%, #1f1f1f 100%);
+    font-family: "Menlo", "Monaco", "SF Mono", "Courier New", monospace;
+    min-height: 100vh;
+    padding: 28px 14px 60px;
+    color: var(--fg);
+  }
+  .window {
+    max-width: 820px;
+    margin: 0 auto;
+    background: var(--bg);
+    border-radius: 9px;
+    box-shadow:
+      0 30px 70px rgba(0,0,0,0.55),
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 0 0 1px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  .titlebar {
+    background: linear-gradient(to bottom, #3c3c3c, #2c2c2c);
+    border-bottom: 1px solid #000;
+    padding: 7px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+  }
+  .dots { display: flex; gap: 8px; }
+  .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.4);
+  }
+  .dot.red    { background: #ff605c; }
+  .dot.yellow { background: #ffbd44; }
+  .dot.green  { background: #00ca4e; }
+  .title {
+    flex: 1; text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    font-size: 12px; color: #cccccc; font-weight: 500;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  .body {
+    background: var(--bg);
+    color: var(--fg);
+    padding: 18px 22px 26px;
+    font-family: "Menlo", "Monaco", "SF Mono", "Courier New", monospace;
+    font-size: 13px;
+    line-height: 1.65;
+    min-height: 480px;
+  }
+  .body p { margin: 0.6em 0; }
+  .body a { color: var(--blue); }
+  .stage-label {
+    color: var(--comment);
+    font-size: 11px;
+    margin-bottom: 10px;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+  .stage-label::before { content: "# "; color: #555; }
+  .heading {
+    color: var(--yellow);
+    font-weight: normal;
+    margin: 16px 0 8px;
+    font-size: 13px;
+  }
+  .heading::before { content: "## "; color: var(--comment); }
+  h2 {
+    color: var(--fg);
+    font-weight: normal;
+    font-size: 14px;
+    margin: 6px 0 8px;
+  }
+  h2::before { content: "# "; color: var(--comment); }
+  blockquote {
+    margin: 12px 0;
+    padding: 9px 14px;
+    background: var(--bg-soft);
+    border-left: 2px solid var(--orange);
+    color: var(--fg);
+  }
+  blockquote.real    { border-left-color: var(--green); }
+  blockquote.original{ border-left-color: var(--purple); }
+  blockquote.student { border-left-color: var(--blue); }
+  blockquote.epigraph{ border-left-color: var(--comment); background: transparent; padding: 4px 14px; font-style: italic; color: var(--fg-soft); margin: 0 0 14px; }
+  blockquote.epigraph .src { color: var(--comment); font-style: normal; }
+  blockquote .src {
+    display: block; margin-top: 8px;
+    font-size: 11px; color: var(--comment);
+  }
+  .rule-quote {
+    color: var(--yellow);
+    background: var(--bg-soft);
+    border-left: 2px solid var(--yellow);
+    padding: 9px 14px;
+    margin: 10px 0;
+  }
+  .rule-quote .num {
+    color: var(--green);
+    font-weight: bold;
+    margin-right: 0.6em;
+  }
+  /* Click-or-drag phrase flagging */
+  .taggable {
+    margin: 12px 0;
+    padding: 12px 14px;
+    background: var(--bg-soft);
+    border-left: 2px solid var(--orange);
+    line-height: 2.1;
+    font-size: 14px;
+  }
+  .taggable .lead {
+    display: block;
+    color: var(--comment);
+    font-size: 11px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .sentence-container {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+  }
+  .word {
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.08s;
+    padding: 1px 0;
+  }
+  .word:hover { background: rgba(255,184,108,0.18); }
+  .word.flagged {
+    background: var(--orange);
+    color: #1c1c1c;
+  }
+  .word.flagged:hover { background: #ffa44a; }
+  .ws { padding: 1px 0; }
+  .ws.flagged { background: var(--orange); }
+  ::selection { background: rgba(255,184,108,0.35); }
+  .flag-count {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--comment);
+  }
+  textarea, input[type="text"], input[type="password"], select {
+    background: var(--bg-input);
+    color: var(--fg);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    font-family: "Menlo", "Monaco", "SF Mono", "Courier New", monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    width: 100%;
+    line-height: 1.55;
+  }
+  textarea {
+    min-height: 110px;
+    resize: vertical;
+  }
+  textarea:focus, input:focus, select:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 1px var(--green);
+  }
+  ::placeholder { color: #666; }
+  button {
+    background: transparent;
+    color: var(--green);
+    border: 1px solid var(--green);
+    border-radius: 3px;
+    font-family: "Menlo", "Monaco", "SF Mono", "Courier New", monospace;
+    font-size: 13px;
+    padding: 6px 14px;
+    cursor: pointer;
+    text-transform: lowercase;
+  }
+  button:hover { background: var(--green-soft); }
+  button:disabled {
+    color: #555;
+    border-color: #555;
+    cursor: not-allowed;
+    background: transparent;
+  }
+  button.secondary {
+    color: var(--comment);
+    border-color: var(--comment);
+  }
+  button.secondary:hover { background: rgba(108,113,134,0.15); }
+  button.danger {
+    color: var(--red);
+    border-color: var(--red);
+  }
+  button.danger:hover { background: rgba(255,107,107,0.12); }
+  .actions {
+    display: flex; gap: 10px; margin-top: 14px;
+    align-items: center; flex-wrap: wrap;
+  }
+  .actions .spacer { flex: 1; }
+  .feedback {
+    background: var(--bg-soft);
+    border-left: 2px solid var(--blue);
+    padding: 12px 16px;
+    margin: 12px 0;
+    color: var(--fg);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .feedback p { margin: 0.5em 0; }
+  .feedback strong { color: var(--yellow); }
+  .feedback em { color: var(--orange); font-style: normal; }
+  .error {
+    color: var(--red);
+    border-left: 2px solid var(--red);
+    padding: 8px 12px;
+    margin: 10px 0;
+    background: rgba(255,107,107,0.06);
+  }
+  .error::before { content: "error: "; color: var(--red); }
+  .grade-block {
+    text-align: center;
+    margin: 16px 0;
+    padding: 18px;
+    background: var(--bg-soft);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    position: relative;
+  }
+  .grade-bar {
+    height: 6px;
+    background: #111;
+    border-radius: 3px;
+    margin: 16px 24px 4px;
+    overflow: hidden;
+  }
+  .grade-bar-fill {
+    height: 100%;
+    transition: width 0.6s cubic-bezier(0.2, 0.7, 0.3, 1.0);
+  }
+  .grade-num {
+    font-size: 56px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-family: "Menlo", "Monaco", "SF Mono", "Courier New", monospace;
+    display: inline-block;
+  }
+  .grade-num.low  { color: var(--red); }
+  .grade-num.mid  { color: var(--yellow); }
+  .grade-num.high { color: var(--green); }
+  .grade-num.celebrate { animation: celebrate 0.9s cubic-bezier(0.34, 1.56, 0.64, 1.0); }
+  @keyframes celebrate {
+    0%   { transform: scale(0.7); opacity: 0; }
+    60%  { transform: scale(1.18); opacity: 1; }
+    100% { transform: scale(1.0); opacity: 1; }
+  }
+  .grade-num .star {
+    color: var(--yellow);
+    font-size: 36px;
+    margin: 0 8px;
+    vertical-align: 6px;
+    display: inline-block;
+    animation: spin 1.4s ease-out;
+  }
+  @keyframes spin {
+    0% { transform: rotate(-180deg) scale(0); opacity: 0; }
+    60% { transform: rotate(20deg) scale(1.2); opacity: 1; }
+    100% { transform: rotate(0deg) scale(1); opacity: 1; }
+  }
+  .grade-label {
+    font-size: 11px;
+    color: var(--comment);
+    margin-top: 8px;
+    text-transform: lowercase;
+  }
+  .grade-explanation {
+    margin-top: 14px;
+    text-align: left;
+    color: var(--fg);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .reveal-block {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: rgba(189,147,249,0.06);
+    border-left: 2px solid var(--purple);
+    border-radius: 3px;
+  }
+  /* Idea Catalyst — a small brainstorming nudge above the textarea */
+  .catalyst-block {
+    margin: 10px 0 12px;
+    padding: 10px 14px;
+    background: rgba(241,250,140,0.05);
+    border-left: 2px solid var(--yellow);
+    border-radius: 3px;
+    color: var(--fg);
+    line-height: 1.6;
+    font-size: 12.5px;
+  }
+  .catalyst-block .catalyst-label {
+    color: var(--yellow);
+    font-size: 11px;
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .catalyst-block .catalyst-label::before { content: "## "; color: var(--comment); }
+  .catalyst-block p { margin: 0.3em 0; }
+  button.catalyst {
+    color: var(--yellow);
+    border-color: var(--yellow);
+  }
+  button.catalyst:hover { background: rgba(241,250,140,0.10); }
+  .reveal-block .reveal-label {
+    color: var(--purple);
+    font-size: 11px;
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .reveal-block .reveal-label::before { content: "## "; color: var(--comment); }
+  .reveal-block blockquote {
+    border-left-color: var(--purple);
+    margin: 6px 0 8px;
+  }
+  .choices {
+    display: flex; flex-direction: column;
+    gap: 8px; margin: 12px 0;
+  }
+  .choice {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 10px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    cursor: pointer;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  .choice:hover {
+    background: var(--bg-soft);
+    border-color: #555;
+  }
+  .choice.selected {
+    border-color: var(--green);
+    background: rgba(74,250,87,0.06);
+  }
+  .choice input { display: none; }
+  .choice .marker {
+    color: var(--green);
+    font-weight: bold;
+    min-width: 20px;
+  }
+  .choice .label-rule { color: var(--yellow); }
+  .choice .small { color: var(--comment); font-size: 12px; line-height: 1.4; }
+  .loading { color: var(--comment); }
+  .statusline {
+    background: #0a0a0a;
+    border-top: 1px solid #000;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--comment);
+    display: flex;
+    justify-content: space-between;
+    font-family: "Menlo", "Monaco", "SF Mono", monospace;
+  }
+  .small { font-size: 12px; color: var(--comment); }
+  .setup-note {
+    background: rgba(241,250,140,0.06);
+    border-left: 2px solid var(--yellow);
+    padding: 10px 14px;
+    margin: 12px 0;
+    color: var(--fg-soft);
+    font-size: 12.5px;
+  }
+  .setup-note code {
+    color: var(--orange);
+    background: var(--bg-input);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+  /* Boot sequence */
+  .boot-screen {
+    cursor: pointer;
+    min-height: 280px;
+    padding: 4px 0;
+  }
+  .boot-text {
+    font-family: "Menlo", "Monaco", "SF Mono", monospace;
+    font-size: 13px;
+    color: var(--green);
+    line-height: 1.7;
+    margin: 0;
+    white-space: pre-wrap;
+  }
+  .boot-text .cursor::after {
+    content: "▍";
+    color: var(--green);
+    animation: blink 1s steps(1, end) infinite;
+    margin-left: 1px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .boot-hint {
+    margin-top: 18px;
+    color: var(--comment);
+    font-size: 11px;
+    opacity: 0.7;
+  }
+  .done-msg { text-align: center; padding: 30px 12px; }
+  @media (max-width: 600px) {
+    body { font-size: 13px; padding: 12px 8px 30px; }
+    .body { padding: 14px 14px 22px; font-size: 12.5px; }
+    .grade-num { font-size: 44px; }
+    .grade-num .star { font-size: 28px; }
+    .taggable { font-size: 13px; line-height: 2.0; }
+  }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="titlebar">
+    <div class="dots">
+      <div class="dot red"></div>
+      <div class="dot yellow"></div>
+      <div class="dot green"></div>
+    </div>
+    <div class="title" id="windowTitle">orwell-tutor</div>
+  </div>
+  <div class="body" id="root"></div>
+  <div class="statusline">
+    <span id="statusLeft">orwell-tutor</span>
+    <span id="statusRight">[boot]</span>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+// =======================================================================
+// HOUSE RULE
+// =======================================================================
+// NO DOLLAR SIGNS in user-facing strings. This codebase does not use the
+// `$ ` shell-prompt aesthetic in any button label, placeholder, stage
+// label, status line, boot line, error prefix, or anywhere else a user
+// might read it. Template literals (`${...}`) and JS regex back-refs
+// (`$1`, `$2`) are fine; literal `$` characters in displayed text are
+// not. If you find yourself typing `"$ "` in front of a string, stop.
+// =======================================================================
+
+// =======================================================================
+// CONFIGURATION
+// =======================================================================
+const EMBEDDED_API_KEY = "";
+const DEFAULT_MODEL = "claude-sonnet-4-5";
+const MODEL_OPTIONS = [
+  ["claude-sonnet-4-5",         "claude-sonnet-4-5 (recommended)"],
+  ["claude-sonnet-4-6",         "claude-sonnet-4-6 (latest)"],
+  ["claude-opus-4-6",           "claude-opus-4-6 (highest quality, slower)"],
+  ["claude-haiku-4-5-20251001", "claude-haiku-4-5 (fast, cheaper)"]
+];
+
+// =======================================================================
+// CONTENT
+// =======================================================================
+
+const RULES = [
+  { num: 1, short: "metaphors",
+    quote: "Never use a metaphor, simile or other figure of speech which you are used to seeing in print." },
+  { num: 2, short: "long words",
+    quote: "Never use a long word where a short one will do." },
+  { num: 3, short: "cut every word",
+    quote: "If it is possible to cut a word out, always cut it out." },
+  { num: 4, short: "active voice",
+    quote: "Never use the passive where you can use the active." },
+  { num: 5, short: "plain English",
+    quote: "Never use a foreign phrase, a scientific word or a jargon word if you can think of an everyday English equivalent." }
+];
+
+// Stage 1 corrupted exemplifiers. Each rule has 12 examples drawn from
+// Orwell's own best sentences. The corruption strategy is:
+// introduce EXACTLY ONE rule violation per sentence, hitting the
+// strongest part of Orwell's line — the fresh image, the punchy verb,
+// the specific concrete detail — so the student can hear exactly
+// where the life went out of it. Never two violations. Never three.
+const STAGE1_EXAMPLES = {
+  1: [
+    {
+      corrupted: "The thick blood welled out of him like there was no tomorrow, but still he did not die.",
+      sourceOriginal: "The thick blood welled out of him like red velvet, but still he did not die.",
+      sourceCitation: "'Shooting an Elephant', 1936",
+      offenders: "The fresh image — 'like red velvet' — has been replaced by the dying-metaphor cliché 'like there was no tomorrow.'"
+    },
+    {
+      corrupted: "Near the ceiling long lines of bugs marched all day thick as thieves, and at night came down ravenously hungry.",
+      sourceOriginal: "Near the ceiling long lines of bugs marched all day like columns of soldiers, and at night came down ravenously hungry.",
+      sourceCitation: "Down and Out in Paris and London, 1933",
+      offenders: "Orwell's fresh comparison — 'like columns of soldiers' — has been replaced by the cliché 'thick as thieves.'"
+    },
+    {
+      corrupted: "Hanging from the ceiling there was a heavy glass chandelier that had clearly seen better days.",
+      sourceOriginal: "Hanging from the ceiling there was a heavy glass chandelier on which the dust was so thick that it was like fur.",
+      sourceCitation: "The Road to Wigan Pier, 1937",
+      offenders: "The fresh figure 'so thick that it was like fur' has been replaced by the stale idiom 'seen better days.'"
+    },
+    {
+      corrupted: "On the top shelves near the ceiling the quarto volumes of extinct encyclopedias were gathering dust on their sides.",
+      sourceOriginal: "On the top shelves near the ceiling the quarto volumes of extinct encyclopedias slumbered on their sides in piles like the tiered coffins in common graves.",
+      sourceCitation: "Keep the Aspidistra Flying, 1936",
+      offenders: "The fresh image — books as 'tiered coffins in common graves,' which makes obsolescence and burial the same act — has been replaced by the cliché 'gathering dust.'"
+    },
+    {
+      corrupted: "It struck downwards through the leaves of the limes, and a spray of leaves in the doorway gleamed with a green that was a sight for sore eyes.",
+      sourceOriginal: "It struck downwards through the leaves of the limes, and a spray of leaves in the doorway gleamed with a transient, matchless green, greener than jade or emerald or Atlantic waters.",
+      sourceCitation: "A Clergyman's Daughter, 1935",
+      offenders: "The escalating ladder of greens — jade, emerald, Atlantic waters — has been replaced by the tired phrase 'a sight for sore eyes.'"
+    },
+    {
+      corrupted: "He was one of those people with a chip on his shoulder.",
+      sourceOriginal: "He was one of those people who can chew their grievances like a cud.",
+      sourceCitation: "The Road to Wigan Pier, 1937",
+      offenders: "Orwell's invented figure — resentment as rumination — has been replaced by the most worn idiom in English for the same idea: 'a chip on his shoulder.'"
+    },
+    {
+      corrupted: "He wears a mask, and pretends to be someone he's not.",
+      sourceOriginal: "He wears a mask, and his face grows to fit it.",
+      sourceCitation: "'Shooting an Elephant', 1936",
+      offenders: "The arresting image — the face that grows into the mask — has been replaced by 'pretends to be someone he's not,' a phrase any commencement speaker could deliver in their sleep."
+    },
+    {
+      corrupted: "Up in the zenith, so high that it dazzled one to look at them, a few vultures were biding their time.",
+      sourceOriginal: "Up in the zenith, so high that it dazzled one to look at them, a few vultures circled without the quiver of a wing.",
+      sourceCitation: "Burmese Days, 1934",
+      offenders: "The vivid stillness — 'circled without the quiver of a wing' — has been replaced by the melodrama-novel cliché 'biding their time.'"
+    },
+    {
+      corrupted: "It is simply an affirmation of naked power; contained in it, quite consciously and intentionally, is the iron fist of tyranny.",
+      sourceOriginal: "It is simply an affirmation of naked power; contained in it, quite consciously and intentionally, is the vision of a boot crashing down on a face.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The visualisable image — 'a boot crashing down on a face' — has been replaced by the dying metaphor 'the iron fist of tyranny,' which calls up no picture at all."
+    },
+    {
+      corrupted: "The chimney was crooked and therefore perpetually half choked, and the fire, before it would light, demanded a cupful of kerosene at the drop of a hat.",
+      sourceOriginal: "The chimney was crooked and therefore perpetually half choked, and the fire, before it would light, expected to be dosed with a cupful of kerosene, like a drunkard's morning nip of gin.",
+      sourceCitation: "A Clergyman's Daughter, 1935",
+      offenders: "The simile that does the comic work — kerosene as 'a drunkard's morning nip of gin' — has been replaced by the cliché 'at the drop of a hat.'"
+    },
+    {
+      corrupted: "It was a very narrow street — a row of tall houses that had clearly seen better days.",
+      sourceOriginal: "It was a very narrow street — a ravine of tall, leprous houses, lurching towards one another in queer attitudes, as though they had all been frozen in the act of collapse.",
+      sourceCitation: "Down and Out in Paris and London, 1933",
+      offenders: "The houses' specific posture — leprous, lurching, frozen mid-collapse — has been replaced by the dying-metaphor 'seen better days.'"
+    },
+    {
+      corrupted: "Revolution as he sees it is merely a Pandora's box, begotten by tyranny.",
+      sourceOriginal: "Revolution as he sees it is merely a monster that is begotten by tyranny and always ends by devouring its own instruments.",
+      sourceCitation: "'Charles Dickens', 1940",
+      offenders: "The single sustained figure — a monster begotten by tyranny that devours its own instruments — has been swapped for the cliché 'Pandora's box,' which destroys the picture."
+    },
+    {
+      corrupted: "He was dangling with his toes pointed straight downwards, very slowly revolving, as dead as a doornail.",
+      sourceOriginal: "He was dangling with his toes pointed straight downwards, very slowly revolving, as dead as a stone.",
+      sourceCitation: "'A Hanging', 1931",
+      offenders: "The fresh closer — 'as dead as a stone,' which the precision of 'very slowly revolving' has just earned — has been replaced by the most worn idiom in the language: 'as dead as a doornail.'"
+    },
+    {
+      corrupted: "Through the mist that wreathed the hillside St Athelstan's Church loomed dimly, like a sentinel, its single bell tolling funereally boom! boom! boom!",
+      sourceOriginal: "Through the mist that wreathed the hillside St Athelstan's Church loomed dimly, like a leaden sphinx, its single bell tolling funereally boom! boom! boom!",
+      sourceCitation: "A Clergyman's Daughter, 1935",
+      offenders: "The fresh figure 'like a leaden sphinx' — invented for this church and no other — has been replaced by the cliché 'like a sentinel,' which would fit any tower in any novel."
+    },
+    {
+      corrupted: "To the left, just within sight from the door, stood a great elm-tree, leafless now, its multitudinous twigs reaching for the sky like skeletal fingers.",
+      sourceOriginal: "To the left, just within sight from the door, stood a great elm-tree, leafless now, its multitudinous twigs making sepia-coloured lace against the sky.",
+      sourceCitation: "Keep the Aspidistra Flying, 1936",
+      offenders: "The invented image — twigs making 'sepia-coloured lace against the sky' — has been replaced by the standard winter-tree cliché 'reaching for the sky like skeletal fingers.'"
+    },
+    {
+      corrupted: "Imaginative writing is, as it were, the back door to positions that are impregnable from the front.",
+      sourceOriginal: "Imaginative writing is as it were a flank-attack upon positions that are impregnable from the front.",
+      sourceCitation: "'New Words', 1940",
+      offenders: "The military figure — a 'flank-attack,' precise and visualisable — has been replaced by the dying metaphor 'the back door,' which calls up no military picture at all."
+    },
+    {
+      corrupted: "Our criminal law is as out-of-date as the dinosaurs.",
+      sourceOriginal: "Our criminal law is as out-of-date as the muskets in the Tower.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "Orwell's specific exhibit of antiquity — 'the muskets in the Tower' — has been replaced by the absolute cliché of antiquity: 'the dinosaurs.'"
+    },
+    {
+      corrupted: "More than either it resembles a family, a rather stuffy Victorian family, with not many black sheep in it but with plenty of skeletons in the closet.",
+      sourceOriginal: "More than either it resembles a family, a rather stuffy Victorian family, with not many black sheep in it but with all its cupboards bursting with skeletons.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The fresh extension — 'cupboards bursting with skeletons,' which itself is a fresh figure — has been replaced by the dictionary cliché 'skeletons in the closet,' losing both the picture and the bursting."
+    },
+    {
+      corrupted: "Like a leopard that hasn't changed its spots, the upper fringe of English society is still almost what it was in the mid-nineteenth century.",
+      sourceOriginal: "Like the knife which has had two new blades and three new handles, the upper fringe of English society is still almost what it was in the mid-nineteenth century.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The Ship-of-Theseus knife — Orwell's invented domestic figure for unchanged identity — has been replaced by the cliché 'a leopard that hasn't changed its spots,' which is the opposite of what the sentence wants."
+    },
+    {
+      corrupted: "The yellow gun-flashes are lighting the sky, the splinters are rattling on the housetops, and the city is going to hell in a handbasket.",
+      sourceOriginal: "The yellow gun-flashes are lighting the sky, the splinters are rattling on the housetops, and London Bridge is falling down, falling down, falling down.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The closing nursery-rhyme echo — 'London Bridge is falling down, falling down, falling down' — has been replaced by the cliché 'going to hell in a handbasket,' losing both the music and the child's-song undertow."
+    },
+    {
+      corrupted: "War, for all its evil, is at any rate an unanswerable test of strength — the proof of the pudding.",
+      sourceOriginal: "War, for all its evil, is at any rate an unanswerable test of strength, like a try-your-grip machine.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The fairground figure — 'a try-your-grip machine,' which reduces grand abstraction to a concrete penny game — has been replaced by the dying metaphor 'the proof of the pudding.'"
+    },
+    {
+      corrupted: "His thoughts are simply a jumble, a mixed bag.",
+      sourceOriginal: "His thoughts are simply a jumble, a rag-bag.",
+      sourceCitation: "'Tolstoy and Shakespeare', 1941",
+      offenders: "The vivid Saxon noun 'rag-bag' has been replaced by the cliché 'a mixed bag,' which is the conventional phrase Orwell was avoiding."
+    },
+    {
+      corrupted: "Each national radio is a sort of totalitarian world of its own, beating the drum of propaganda night and day to people who can listen to nothing else.",
+      sourceOriginal: "Each national radio is a sort of totalitarian world of its own, braying propaganda night and day to people who can listen to nothing else.",
+      sourceCitation: "'As I Please', 1944",
+      offenders: "The single Saxon verb that does the moral work — 'braying' — has been replaced by the dying metaphor 'beating the drum of.'"
+    },
+    {
+      corrupted: "The creature who rides in a gilded coach behind soldiers in steel breast-plates is really nothing more than a paper tiger.",
+      sourceOriginal: "The creature who rides in a gilded coach behind soldiers in steel breast-plates is really a waxwork.",
+      sourceCitation: "London Letter, 1944",
+      offenders: "The museum image — a 'waxwork,' which deflates pomp by a single vivid object — has been replaced by the cliché 'a paper tiger.'"
+    }
+  ],
+  2: [
+    {
+      corrupted: "It was in Burma, a precipitation-saturated morning of the rains.",
+      sourceOriginal: "It was in Burma, a sodden morning of the rains.",
+      sourceCitation: "'A Hanging', 1931",
+      offenders: "The single Saxon word that carried the climate — 'sodden' — has been replaced by 'precipitation-saturated.'"
+    },
+    {
+      corrupted: "It was a beastly January morning, with a discoloured yellowish-grey sky.",
+      sourceOriginal: "It was a beastly January morning, with a dirty yellowish-grey sky.",
+      sourceCitation: "Coming Up for Air, 1939",
+      offenders: "One blunt Saxon adjective — 'dirty' — has been replaced by 'discoloured.'"
+    },
+    {
+      corrupted: "Nothing would induce Henri to converse.",
+      sourceOriginal: "Nothing would induce Henri to talk.",
+      sourceCitation: "Down and Out in Paris and London, 1933",
+      offenders: "One Saxon verb — 'talk' — has been replaced by the Latinate 'converse.'"
+    },
+    {
+      corrupted: "He registered not the slightest notice of the crowd's approach.",
+      sourceOriginal: "He took not the slightest notice of the crowd's approach.",
+      sourceCitation: "'Shooting an Elephant', 1936",
+      offenders: "The plain Saxon verb 'took' has been replaced by the Latinate 'registered.'"
+    },
+    {
+      corrupted: "What I most admired about Old Jack was that he never solicited.",
+      sourceOriginal: "What I most admired about Old Jack was that he never cadged.",
+      sourceCitation: "The Road to Wigan Pier, 1937",
+      offenders: "The vivid Saxon verb 'cadged' has been replaced by the colourless Latinate 'solicited.'"
+    },
+    {
+      corrupted: "Their next meal is never quite secure, and so they cannot contemplate anything except the next meal.",
+      sourceOriginal: "Their next meal is never quite secure, and so they cannot think of anything except the next meal.",
+      sourceCitation: "'The Spike', 1931",
+      offenders: "The plain Saxon phrase 'think of' has been replaced by the Latinate 'contemplate.'"
+    },
+    {
+      corrupted: "Dirt is a phenomenon people make too much fuss about.",
+      sourceOriginal: "Dirt is a thing people make too much fuss about.",
+      sourceCitation: "Homage to Catalonia, 1938",
+      offenders: "The plain Saxon noun 'thing' has been replaced by the Latinate 'phenomenon.'"
+    },
+    {
+      corrupted: "I mention this Italian militiaman because he has persisted vividly in my memory.",
+      sourceOriginal: "I mention this Italian militiaman because he has stuck vividly in my memory.",
+      sourceCitation: "Homage to Catalonia, 1938",
+      offenders: "The bodily Saxon verb 'stuck' has been replaced by the Latinate 'persisted.'"
+    },
+    {
+      corrupted: "As I write, highly civilised human beings are flying overhead, trying to terminate me.",
+      sourceOriginal: "As I write, highly civilised human beings are flying overhead, trying to kill me.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The plain Saxon verb 'kill' has been replaced by the Latinate 'terminate.'"
+    },
+    {
+      corrupted: "He was a Hindu, a diminutive wisp of a man, with a shaven head and vague liquid eyes.",
+      sourceOriginal: "He was a Hindu, a puny wisp of a man, with a shaven head and vague liquid eyes.",
+      sourceCitation: "'A Hanging', 1931",
+      offenders: "The vivid Saxon adjective 'puny' has been replaced by 'diminutive.'"
+    },
+    {
+      corrupted: "Bullets hurt, corpses stink, men under fire are often so frightened that they urinate.",
+      sourceOriginal: "Bullets hurt, corpses stink, men under fire are often so frightened that they wet their trousers.",
+      sourceCitation: "'Looking Back on the Spanish War', 1942/3",
+      offenders: "The blunt Saxon idiom 'wet their trousers' has been replaced by the medical-form Latinate 'urinate.'"
+    },
+    {
+      corrupted: "The first sound in the mornings was the percussion of the mill-girls' clogs down the cobbled street.",
+      sourceOriginal: "The first sound in the mornings was the clumping of the mill-girls' clogs down the cobbled street.",
+      sourceCitation: "The Road to Wigan Pier, 1937",
+      offenders: "The audible Saxon noun 'clumping' has been replaced by the abstracted Latinate 'percussion.'"
+    },
+    {
+      corrupted: "Forty-nine of us, forty-eight men and one woman, lay on the green awaiting the spike to open.",
+      sourceOriginal: "Forty-nine of us, forty-eight men and one woman, lay on the green waiting for the spike to open.",
+      sourceCitation: "'The Spike', 1931",
+      offenders: "The plain Saxon 'waiting for' has been replaced by the Latinate 'awaiting.'"
+    },
+    {
+      corrupted: "Littered on the grass, we appeared dingy, urban riff-raff.",
+      sourceOriginal: "Littered on the grass, we seemed dingy, urban riff-raff.",
+      sourceCitation: "'The Spike', 1931",
+      offenders: "The plain Saxon verb 'seemed' has been replaced by 'appeared.'"
+    },
+    {
+      corrupted: "The Rue du Coq d'Or, Paris, the seventh hour of the morning.",
+      sourceOriginal: "The Rue du Coq d'Or, Paris, seven in the morning.",
+      sourceCitation: "Down and Out in Paris and London, 1933",
+      offenders: "The blunt Saxon time-stamp 'seven in the morning' has been replaced by the long-winded Latinate 'the seventh hour of the morning.'"
+    },
+    {
+      corrupted: "I used to wash one day and shave the next; there was never sufficient water for both.",
+      sourceOriginal: "I used to wash one day and shave the next; there was never enough water for both.",
+      sourceCitation: "Homage to Catalonia, 1938",
+      offenders: "The plain Saxon word 'enough' has been replaced by 'sufficient.'"
+    },
+    {
+      corrupted: "Dickens is not a humbug, except in minor matters, and the strongest single impression one carries away from his books is that of an aversion to tyranny.",
+      sourceOriginal: "Dickens is not a humbug, except in minor matters, and the strongest single impression one carries away from his books is that of a hatred of tyranny.",
+      sourceCitation: "'Charles Dickens', 1940",
+      offenders: "The Saxon noun 'hatred' has been replaced by the cooler Latinate 'aversion.'"
+    },
+    {
+      corrupted: "Even the burial of his body in Westminster Abbey was a species of larceny, if you come to think of it.",
+      sourceOriginal: "Even the burial of his body in Westminster Abbey was a species of theft, if you come to think of it.",
+      sourceCitation: "'Charles Dickens', 1940",
+      offenders: "The Saxon noun 'theft' has been replaced by the legal-Latinate 'larceny.'"
+    },
+    {
+      corrupted: "From Dickens's point of view 'good' society is simply a coterie of village idiots.",
+      sourceOriginal: "From Dickens's point of view 'good' society is simply a collection of village idiots.",
+      sourceCitation: "'Charles Dickens', 1940",
+      offenders: "The plain word 'collection' has been replaced by the French 'coterie.'"
+    },
+    {
+      corrupted: "Few Europeans can endure inhabiting England, and even Americans often feel more at home in Europe.",
+      sourceOriginal: "Few Europeans can endure living in England, and even Americans often feel more at home in Europe.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The Saxon phrase 'living in' has been replaced by the Latinate 'inhabiting.'"
+    },
+    {
+      corrupted: "They are not wicked, or not altogether wicked; they are merely incorrigible.",
+      sourceOriginal: "They are not wicked, or not altogether wicked; they are merely unteachable.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The blunt Saxon verdict 'unteachable' — three syllables more damning than the alternatives — has been replaced by the Latinate 'incorrigible.'"
+    },
+    {
+      corrupted: "Even the fact that Englishmen have inferior dentition can tell one something about the realities of English life.",
+      sourceOriginal: "Even the fact that Englishmen have bad teeth can tell one something about the realities of English life.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The plain phrase 'bad teeth' has been replaced by the dental-textbook 'inferior dentition.'"
+    },
+    {
+      corrupted: "A louse is a louse and a bomb is a bomb, even though the cause you are fighting for happens to be righteous.",
+      sourceOriginal: "A louse is a louse and a bomb is a bomb, even though the cause you are fighting for happens to be just.",
+      sourceCitation: "'Looking Back on the Spanish War', 1942/3",
+      offenders: "The plain Saxon adjective 'just' has been replaced by the Latinate 'righteous.'"
+    },
+    {
+      corrupted: "The most thrilling battle-poem in English is about a brigade of cavalry which charged in the wrong direction.",
+      sourceOriginal: "The most stirring battle-poem in English is about a brigade of cavalry which charged in the wrong direction.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The Saxon adjective 'stirring' has been replaced by the Latinate 'thrilling.'"
+    }
+  ],
+  3: [
+    {
+      corrupted: "Beside the cold, generally speaking, the other discomforts seemed petty.",
+      sourceOriginal: "Beside the cold the other discomforts seemed petty.",
+      sourceCitation: "Homage to Catalonia, 1938",
+      offenders: "One padding phrase — 'generally speaking' — interrupts the eight-word compression and earns nothing."
+    },
+    {
+      corrupted: "Dickens is, by and large, very sure that revolution is a monster.",
+      sourceOriginal: "Dickens is very sure that revolution is a monster.",
+      sourceCitation: "'Charles Dickens', 1940",
+      offenders: "One padding phrase — 'by and large' — interrupts a nine-word maxim that needed nothing of the kind."
+    },
+    {
+      corrupted: "Poverty, broadly speaking, frees them from ordinary standards of behaviour, just as money frees people from work.",
+      sourceOriginal: "Poverty frees them from ordinary standards of behaviour, just as money frees people from work.",
+      sourceCitation: "Down and Out in Paris and London, 1933",
+      offenders: "One padding phrase — 'broadly speaking' — has been added; the parallel survives, but the sharpness has gone."
+    },
+    {
+      corrupted: "He was simply, all things considered, a hole in the air.",
+      sourceOriginal: "He was simply a hole in the air.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "One padding phrase — 'all things considered' — has been wedged into a seven-word figure that depended on its bareness."
+    },
+    {
+      corrupted: "We have become, on the whole, too civilised to grasp the obvious.",
+      sourceOriginal: "We have become too civilised to grasp the obvious.",
+      sourceCitation: "'Looking Back on the Spanish War', 1942/3",
+      offenders: "One padding phrase — 'on the whole' — softens a verdict that needed no softening."
+    },
+    {
+      corrupted: "A dictator taller than five feet six inches is, generally speaking, a very great rarity.",
+      sourceOriginal: "A dictator taller than five feet six inches is a very great rarity.",
+      sourceCitation: "'As I Please', 1944",
+      offenders: "One padding phrase — 'generally speaking' — has been wedged into a sentence whose comedy depended on its bluntness."
+    },
+    {
+      corrupted: "War is evil, and it is, on the whole, the lesser evil.",
+      sourceOriginal: "War is evil, and it is often the lesser evil.",
+      sourceCitation: "'Looking Back on the Spanish War', 1942/3",
+      offenders: "The single short word 'often' has been replaced by the wordier 'on the whole.'"
+    },
+    {
+      corrupted: "Loyalty is involved, and so pity, more often than not, ceases to function.",
+      sourceOriginal: "Loyalty is involved, and so pity ceases to function.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "The padding phrase 'more often than not' has been parenthesised into the maxim, costing it its bite."
+    },
+    {
+      corrupted: "Nationalism is, in essence, power hunger tempered by self-deception.",
+      sourceOriginal: "Nationalism is power hunger tempered by self-deception.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "The hedge 'in essence' has been added to a definition that didn't need hedging."
+    },
+    {
+      corrupted: "A good bad poem is, in many ways, a graceful monument to the obvious.",
+      sourceOriginal: "A good bad poem is a graceful monument to the obvious.",
+      sourceCitation: "'Rudyard Kipling', 1942",
+      offenders: "One padding phrase — 'in many ways' — has been added to a definition that didn't need hedging."
+    },
+    {
+      corrupted: "Kipling, in the final analysis, sold out to the British governing class, not financially but emotionally.",
+      sourceOriginal: "Kipling sold out to the British governing class, not financially but emotionally.",
+      sourceCitation: "'Rudyard Kipling', 1942",
+      offenders: "One padding phrase — 'in the final analysis' — interrupts a verdict that worked because it was direct."
+    },
+    {
+      corrupted: "Dickens is, on the whole, one of those writers who are well worth stealing.",
+      sourceOriginal: "Dickens is one of those writers who are well worth stealing.",
+      sourceCitation: "'Charles Dickens', 1940",
+      offenders: "The hedge 'on the whole' has been wedged into a sentence whose force depended on its directness."
+    },
+    {
+      corrupted: "Their key-phrase, when one comes to consider it, is 'not done'.",
+      sourceOriginal: "Their key-phrase is 'not done'.",
+      sourceCitation: "'Raffles and Miss Blandish', 1944",
+      offenders: "Six padding words ('when one comes to consider it') have been wedged into a five-word sentence whose entire effect depended on its bareness."
+    },
+    {
+      corrupted: "Turn-ups have no function, generally speaking, except to collect dust, and no virtue except that when you clean them out you occasionally find a sixpence there.",
+      sourceOriginal: "Turn-ups have no function except to collect dust, and no virtue except that when you clean them out you occasionally find a sixpence there.",
+      sourceCitation: "'As I Please', 1944",
+      offenders: "One padding phrase — 'generally speaking' — has been wedged into the middle of a sentence whose comedy depends on its decisiveness."
+    },
+    {
+      corrupted: "There is, in the final analysis, no limit to the follies that can be swallowed if one is under the influence of feelings of this kind.",
+      sourceOriginal: "There is no limit to the follies that can be swallowed if one is under the influence of feelings of this kind.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "One padding phrase — 'in the final analysis' — has been added to a flat diagnostic sentence."
+    },
+    {
+      corrupted: "The aim of the modern political dialect is, on the whole, to make lies sound truthful and murder respectable.",
+      sourceOriginal: "The aim of the modern political dialect is to make lies sound truthful and murder respectable.",
+      sourceCitation: "'As I Please', 1944",
+      offenders: "One hedge — 'on the whole' — has been wedged into a sentence whose force depended on its absence of qualification."
+    },
+    {
+      corrupted: "Everyone, by and large, believes in the atrocities of the enemy and disbelieves in those of his own side, without ever bothering to examine the evidence.",
+      sourceOriginal: "Everyone believes in the atrocities of the enemy and disbelieves in those of his own side, without ever bothering to examine the evidence.",
+      sourceCitation: "'Looking Back on the Spanish War', 1942/3",
+      offenders: "One padding phrase — 'by and large' — has been wedged into a sentence whose symmetry depended on starting with the bare 'Everyone.'"
+    },
+    {
+      corrupted: "It was the pro-Nazis of yesterday who were, more often than not, repeating horror stories, while the anti-Nazis suddenly found themselves doubting whether the Gestapo really existed.",
+      sourceOriginal: "It was the pro-Nazis of yesterday who were repeating horror stories, while the anti-Nazis suddenly found themselves doubting whether the Gestapo really existed.",
+      sourceCitation: "'Looking Back on the Spanish War', 1942/3",
+      offenders: "One padding phrase — 'more often than not' — has been wedged into the first half of a chiasmus that worked because it didn't pause."
+    },
+    {
+      corrupted: "It would apply pretty accurately, generally speaking, to several countries today.",
+      sourceOriginal: "It would apply pretty accurately to several countries today.",
+      sourceCitation: "'Charles Dickens', 1940",
+      offenders: "One padding phrase — 'generally speaking' — has been added to a sentence whose deadpan effect depended on its plainness."
+    },
+    {
+      corrupted: "He was always moving, more or less, with incredible slowness from one hated job to another.",
+      sourceOriginal: "He was always moving with incredible slowness from one hated job to another.",
+      sourceCitation: "The Road to Wigan Pier, 1937",
+      offenders: "One padding phrase — 'more or less' — has been wedged in where 'always' had already done the calibrating."
+    },
+    {
+      corrupted: "The four names which have, by and large, really engraved themselves on the popular memory are Mons, Ypres, Gallipoli and Passchendaele, every time a disaster.",
+      sourceOriginal: "The four names which have really engraved themselves on the popular memory are Mons, Ypres, Gallipoli and Passchendaele, every time a disaster.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "One padding phrase — 'by and large' — has been added to a sentence whose 'really' had already done the qualifying."
+    },
+    {
+      corrupted: "To survive you often have to fight, and to fight, sooner or later, you have to dirty yourself.",
+      sourceOriginal: "To survive you often have to fight, and to fight you have to dirty yourself.",
+      sourceCitation: "'Looking Back on the Spanish War', 1942/3",
+      offenders: "One padding phrase — 'sooner or later' — has been wedged into the second half of a parallel that worked because both halves were stripped to the bone."
+    },
+    {
+      corrupted: "War is, by and large, of its nature barbarous, it is better to admit that.",
+      sourceOriginal: "War is of its nature barbarous, it is better to admit that.",
+      sourceCitation: "'As I Please', 1944",
+      offenders: "One hedge — 'by and large' — has been added to a sentence whose effect depended on its refusal to qualify."
+    },
+    {
+      corrupted: "If liberty means anything at all, it means, in the final analysis, the right to tell people what they do not want to hear.",
+      sourceOriginal: "If liberty means anything at all, it means the right to tell people what they do not want to hear.",
+      sourceCitation: "'The Freedom of the Press' (Animal Farm preface), 1945",
+      offenders: "One padding phrase — 'in the final analysis' — has been wedged into a definition whose force depended on its directness."
+    }
+  ],
+  4: [
+    {
+      corrupted: "Bunches of grass were being torn up by him, and he beat them against his knees to clean them and stuffed them into his mouth.",
+      sourceOriginal: "He was tearing up bunches of grass, beating them against his knees to clean them and stuffing them into his mouth.",
+      sourceCitation: "'Shooting an Elephant', 1936",
+      offenders: "The first of three live verbs — 'tearing up' — has been flipped to the passive 'were being torn up by him,' so the elephant stops being the agent of his own meal."
+    },
+    {
+      corrupted: "When the trigger was pulled by me I did not hear the bang or feel the kick — one never does when a shot goes home.",
+      sourceOriginal: "When I pulled the trigger I did not hear the bang or feel the kick — one never does when a shot goes home.",
+      sourceCitation: "'Shooting an Elephant', 1936",
+      offenders: "The active opener 'When I pulled the trigger' has been flipped to 'When the trigger was pulled by me,' moving the writer to the back of his own action."
+    },
+    {
+      corrupted: "Quarrels, and the desolate cries of street hawkers, and the shouts of children chasing orange-peel over the cobbles, and at night loud singing and the sour reek of the refuse-carts: by all of this the atmosphere of the street was made up.",
+      sourceOriginal: "Quarrels, and the desolate cries of street hawkers, and the shouts of children chasing orange-peel over the cobbles, and at night loud singing and the sour reek of the refuse-carts, made up the atmosphere of the street.",
+      sourceCitation: "Down and Out in Paris and London, 1933",
+      offenders: "The catalogue's emphatic active landing — 'made up the atmosphere of the street' — has been flipped to 'by all of this the atmosphere of the street was made up,' which tilts the whole sentence backwards."
+    },
+    {
+      corrupted: "Down the hill I was being marched, looking and feeling a fool, with the rifle over my shoulder and an ever-growing army of people jostling at my heels.",
+      sourceOriginal: "I marched down the hill, looking and feeling a fool, with the rifle over my shoulder and an ever-growing army of people jostling at my heels.",
+      sourceCitation: "'Shooting an Elephant', 1936",
+      offenders: "The active opener — 'I marched' — has been flipped to 'I was being marched,' as though someone else were doing the marching."
+    },
+    {
+      corrupted: "The little ones are wiped out by the big gangsters as mercilessly as a pike gobbling up the little fish in a pond.",
+      sourceOriginal: "The big gangsters wipe out the little ones as mercilessly as a pike gobbling up the little fish in a pond.",
+      sourceCitation: "'Raffles and Miss Blandish', 1944",
+      offenders: "The first half of the comparison has been flipped: 'The big gangsters wipe out' has become 'are wiped out by the big gangsters,' so the predator becomes a thing the prey is acted upon by."
+    },
+    {
+      corrupted: "He looked suddenly stricken, shrunken, immensely old, as though he had been paralysed by the frightful impact of the bullet without knocking him down.",
+      sourceOriginal: "He looked suddenly stricken, shrunken, immensely old, as though the frightful impact of the bullet had paralysed him without knocking him down.",
+      sourceCitation: "'Shooting an Elephant', 1936",
+      offenders: "The bullet was the agent — it 'paralysed him' — and now it has been demoted to the agent of a passive: 'he had been paralysed by … the bullet.'"
+    },
+    {
+      corrupted: "Maxton, the ILP MP, twenty years ago an inflammatory orator who was hated like poison by the ruling classes, is now the pet of the House.",
+      sourceOriginal: "Maxton, the ILP MP, twenty years ago an inflammatory orator whom the ruling classes hated like poison, is now the pet of the House.",
+      sourceCitation: "London Letter, 1944",
+      offenders: "The active 'whom the ruling classes hated like poison' — which puts the ruling classes squarely in the dock — has been flipped to 'who was hated like poison by the ruling classes.'"
+    },
+    {
+      corrupted: "These things could be believed by him because his hatred of the British ruling class forbade him to admit that British plans could succeed.",
+      sourceOriginal: "He could believe these things because his hatred of the British ruling class forbade him to admit that British plans could succeed.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "The active opener — 'He could believe' — has been flipped to 'These things could be believed by him,' moving the believer to the end of the clause."
+    },
+    {
+      corrupted: "Individual crumbs were got to be known by me by sight, and I used to watch their progress up and down the table from day to day.",
+      sourceOriginal: "I used to get to know individual crumbs by sight and watch their progress up and down the table from day to day.",
+      sourceCitation: "The Road to Wigan Pier, 1937",
+      offenders: "The active 'I used to get to know individual crumbs' has been flipped to 'Individual crumbs were got to be known by me,' which deletes the patient observer from the front of his own observation."
+    },
+    {
+      corrupted: "A fine shout of 'Good night, boys!' was given to us by Old Jack as he crawled up the stairs to his bed somewhere under the rafters.",
+      sourceOriginal: "Old Jack used to give us all a fine shout of 'Good night, boys!' as he crawled up the stairs to his bed somewhere under the rafters.",
+      sourceCitation: "The Road to Wigan Pier, 1937",
+      offenders: "Old Jack — the man giving the shout — has been moved out of the subject position: 'Old Jack used to give us' has become 'was given to us by Old Jack.'"
+    },
+    {
+      corrupted: "This book was begun by me to the tune of German bombs, and I begin this second chapter in the added racket of the barrage.",
+      sourceOriginal: "I began this book to the tune of German bombs, and I begin this second chapter in the added racket of the barrage.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The first of two parallel actives — 'I began this book' — has been flipped to 'This book was begun by me,' breaking the symmetry."
+    },
+    {
+      corrupted: "When England is returned to from any foreign country, you have immediately the sensation of breathing a different air.",
+      sourceOriginal: "When you come back to England from any foreign country, you have immediately the sensation of breathing a different air.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "The active opener — 'When you come back to England' — has been flipped to the agentless 'When England is returned to,' which deletes the 'you' the sentence was built around."
+    },
+    {
+      corrupted: "Even in the early morning when he descended into the mysterious den behind Mrs Brooker's sofa and the tripe was fished out by him, his hands were already black.",
+      sourceOriginal: "Even in the early morning when he descended into the mysterious den behind Mrs Brooker's sofa and fished out the tripe, his hands were already black.",
+      sourceCitation: "The Road to Wigan Pier, 1937",
+      offenders: "The mock-ceremonial sequence — he 'descended,' then 'fished out the tripe' — has had its second active verb flipped: 'fished out the tripe' becomes 'the tripe was fished out by him,' which loses the gesture."
+    },
+    {
+      corrupted: "Ulysses was written by Joyce in the seven years between 1914 and 1921, working away all through the war, to which he probably paid little or no attention, and earning a miserable living as a teacher of languages in Italy and Switzerland.",
+      sourceOriginal: "Joyce wrote Ulysses in the seven years between 1914 and 1921, working away all through the war, to which he probably paid little or no attention, and earning a miserable living as a teacher of languages in Italy and Switzerland.",
+      sourceCitation: "'Inside the Whale', 1940",
+      offenders: "The active opener — 'Joyce wrote Ulysses,' which puts the writer at the front of his own decade — has been flipped to 'Ulysses was written by Joyce,' which puts the book first and the man behind."
+    },
+    {
+      corrupted: "When I worked in a second-hand bookshop — so easily pictured, if you don't work in one, as a kind of paradise where charming old gentlemen browse eternally among calf-bound folios — I was chiefly struck by the rarity of really bookish people.",
+      sourceOriginal: "When I worked in a second-hand bookshop — so easily pictured, if you don't work in one, as a kind of paradise where charming old gentlemen browse eternally among calf-bound folios — the thing that chiefly struck me was the rarity of really bookish people.",
+      sourceCitation: "'Bookshop Memories', 1936",
+      offenders: "The active landing — 'the thing that chiefly struck me was' — has been flipped to 'I was chiefly struck by,' demoting both the noticing and the noticer."
+    },
+    {
+      corrupted: "Gordon — Gordon Comstock, last member of the Comstock family, aged twenty-nine and rather moth-eaten already — lounged across the table, while a four-penny packet of Player's Weights was being pushed open and shut by his thumb.",
+      sourceOriginal: "Gordon — Gordon Comstock, last member of the Comstock family, aged twenty-nine and rather moth-eaten already — lounged across the table, pushing a four-penny packet of Player's Weights open and shut with his thumb.",
+      sourceCitation: "Keep the Aspidistra Flying, 1936",
+      offenders: "The active second clause — 'pushing a four-penny packet of Player's Weights open and shut with his thumb' — has been flipped to 'a four-penny packet of Player's Weights was being pushed open and shut by his thumb,' so the man's thumb becomes the actor and the man drifts out of the sentence."
+    },
+    {
+      corrupted: "In 1927 hundreds of Communists were boiled alive by Chiang Kai-shek, and yet within ten years he had become one of the heroes of the Left.",
+      sourceOriginal: "In 1927 Chiang Kai-shek boiled hundreds of Communists alive, and yet within ten years he had become one of the heroes of the Left.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "The bald active — 'Chiang Kai-shek boiled hundreds of Communists alive' — has been flipped to 'hundreds of Communists were boiled alive by Chiang Kai-shek,' softening the man's direct agency."
+    },
+    {
+      corrupted: "A harsh criminal law is tolerated by the British public, which gets a kick out of monstrously unfair murder trials.",
+      sourceOriginal: "The British public tolerates a harsh criminal law and gets a kick out of monstrously unfair murder trials.",
+      sourceCitation: "'Raffles and Miss Blandish', 1944",
+      offenders: "The active opener — 'The British public tolerates' — has been flipped to 'A harsh criminal law is tolerated by the British public,' moving the public out of the dock."
+    },
+    {
+      corrupted: "In every one of those little stucco boxes there's some poor bastard who's NEVER free except when he's fast asleep and dreaming that he's got the boss down the bottom of a well and lumps of coal are being bunged at him.",
+      sourceOriginal: "In every one of those little stucco boxes there's some poor bastard who's NEVER free except when he's fast asleep and dreaming that he's got the boss down the bottom of a well and is bunging lumps of coal at him.",
+      sourceCitation: "Coming Up for Air, 1939",
+      offenders: "The dream's punchline — the wage-earner 'is bunging lumps of coal at him' — has been flipped to 'lumps of coal are being bunged at him,' so the bunger disappears from his own revenge."
+    },
+    {
+      corrupted: "The wretched prisoners huddling in the stinking cages of the lock-ups, the grey, cowed faces of the long-term convicts, the scarred buttocks of the men who had been flogged with bamboos — by all these I was oppressed with an intolerable sense of guilt.",
+      sourceOriginal: "The wretched prisoners huddling in the stinking cages of the lock-ups, the grey, cowed faces of the long-term convicts, the scarred buttocks of the men who had been flogged with bamboos — all these oppressed me with an intolerable sense of guilt.",
+      sourceCitation: "'Shooting an Elephant', 1936",
+      offenders: "The active landing — 'all these oppressed me' — has been flipped to 'by all these I was oppressed,' which moves the writer back into the position of patient and dilutes the catalogue's force."
+    },
+    {
+      corrupted: "I knew that I had a facility with words and a power of facing unpleasant facts, and I felt that a sort of private world was created by this in which I could get my own back for my failure in everyday life.",
+      sourceOriginal: "I knew that I had a facility with words and a power of facing unpleasant facts, and I felt that this created a sort of private world in which I could get my own back for my failure in everyday life.",
+      sourceCitation: "'Why I Write', 1946",
+      offenders: "The active 'this created a sort of private world' has been flipped to 'a sort of private world was created by this,' demoting both the cause and the world to a clause-end."
+    },
+    {
+      corrupted: "Yesterday's proved-to-the-hilt atrocity story can be turned into a ridiculous lie, merely because the political landscape has changed.",
+      sourceOriginal: "Yesterday's proved-to-the-hilt atrocity story can become a ridiculous lie, merely because the political landscape has changed.",
+      sourceCitation: "'Looking Back on the Spanish War', 1942/3",
+      offenders: "The active 'can become' has been flipped to the passive 'can be turned into,' supplying an invisible turner — and adding a syllable for nothing."
+    },
+    {
+      corrupted: "It is curious, but till that moment what it means to destroy a healthy, conscious man had never been realised by me.",
+      sourceOriginal: "It is curious, but till that moment I had never realised what it means to destroy a healthy, conscious man.",
+      sourceCitation: "'A Hanging', 1931",
+      offenders: "The belated noticing — 'I had never realised' — has been flipped to 'had never been realised by me,' moving the writer to the back of his own moral discovery."
+    },
+    {
+      corrupted: "Heaven knows how many people have been killed by our blitz on Germany and the occupied countries, but you can be quite certain it will never come anywhere near the slaughter that has happened on the Russian front.",
+      sourceOriginal: "Heaven knows how many people our blitz on Germany and the occupied countries has killed and will kill, but you can be quite certain it will never come anywhere near the slaughter that has happened on the Russian front.",
+      sourceCitation: "'As I Please', 1944",
+      offenders: "The active 'our blitz … has killed and will kill' has been flipped to 'have been killed by our blitz,' moving the agent out of the subject position and dropping the future tense's bite."
+    }
+  ],
+  5: [
+    {
+      corrupted: "In a job like that you see the moral malfeasance of Empire at close quarters.",
+      sourceOriginal: "In a job like that you see the dirty work of Empire at close quarters.",
+      sourceCitation: "'Shooting an Elephant', 1936",
+      offenders: "The Saxon punch — 'dirty work' — has been replaced by the legal-Latinate 'moral malfeasance.'"
+    },
+    {
+      corrupted: "Most of the birds of prey are killed off, ipso facto, for the sake of that enemy of England, the pheasant.",
+      sourceOriginal: "Most of the birds of prey are killed off for the sake of that enemy of England, the pheasant.",
+      sourceCitation: "'As I Please', 1944",
+      offenders: "A Latin tag — 'ipso facto' — has been pasted into a sentence whose force depended on plain English."
+    },
+    {
+      corrupted: "Poverty is what I am writing about, and I had my first contact with poverty in this milieu.",
+      sourceOriginal: "Poverty is what I am writing about, and I had my first contact with poverty in this slum.",
+      sourceCitation: "Down and Out in Paris and London, 1933",
+      offenders: "The blunt English word 'slum' has been replaced by the French 'milieu.'"
+    },
+    {
+      corrupted: "Now for a header into the cloaca.",
+      sourceOriginal: "Now for a header into the cesspool.",
+      sourceCitation: "'Raffles and Miss Blandish', 1944",
+      offenders: "The blunt Saxon noun 'cesspool' has been replaced by the scientific Latinate 'cloaca.'"
+    },
+    {
+      corrupted: "We defiled the scene, ad hoc, like sardine-tins and paper bags on the seashore.",
+      sourceOriginal: "We defiled the scene, like sardine-tins and paper bags on the seashore.",
+      sourceCitation: "'The Spike', 1931",
+      offenders: "A Latin tag — 'ad hoc' — has been wedged into a vivid simile that needed no qualification."
+    },
+    {
+      corrupted: "Atrocities are believed in or disbelieved in, qua propositions, solely on grounds of political predilection.",
+      sourceOriginal: "Atrocities are believed in or disbelieved in solely on grounds of political predilection.",
+      sourceCitation: "'Looking Back on the Spanish War', 1942/3",
+      offenders: "A Latin tag — 'qua propositions' — has been wedged into a flat diagnostic sentence."
+    },
+    {
+      corrupted: "Cricket gives expression to a well-marked trait in the English character, qua national, the tendency to value 'form' or 'style' more highly than success.",
+      sourceOriginal: "Cricket gives expression to a well-marked trait in the English character, the tendency to value 'form' or 'style' more highly than success.",
+      sourceCitation: "'Raffles and Miss Blandish', 1944",
+      offenders: "A Latin tag — 'qua national' — has been parenthesised into a calm taxonomic sentence."
+    },
+    {
+      corrupted: "All neo-Tories are anti-Russian, mutatis mutandis, but sometimes the main emphasis is anti-American.",
+      sourceOriginal: "All neo-Tories are anti-Russian, but sometimes the main emphasis is anti-American.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "A Latin tag — 'mutatis mutandis' — has been pasted into a twelve-word taxonomic claim that needed no qualification."
+    },
+    {
+      corrupted: "Bernard Shaw, on the other hand, would have said as a matter of course that the sole use of words, in propria persona, is to express exact meanings as shortly as possible.",
+      sourceOriginal: "Bernard Shaw, on the other hand, would have said as a matter of course that the sole use of words is to express exact meanings as shortly as possible.",
+      sourceCitation: "'Inside the Whale', 1940",
+      offenders: "A Latin tag — 'in propria persona' — has been wedged into a definition of clear prose that conspicuously refused such ornament."
+    },
+    {
+      corrupted: "But how many people, qua readers, before Dickens, had ever noticed such things?",
+      sourceOriginal: "But how many people, before Dickens, had ever noticed such things?",
+      sourceCitation: "'Charles Dickens', 1940",
+      offenders: "A Latin tag — 'qua readers' — has been parenthesised into a rhetorical question that needed nothing of the kind."
+    },
+    {
+      corrupted: "Fear! We swim in it. It is, ipso facto, our element.",
+      sourceOriginal: "Fear! We swim in it. It's our element.",
+      sourceCitation: "Coming Up for Air, 1939",
+      offenders: "A Latin tag — 'ipso facto' — has been parenthesised into the closing clause, where its only effect is to slow it down."
+    },
+    {
+      corrupted: "He dealt largely in platitudes, ipso facto, and since we live in a world of platitudes, much of what he said sticks.",
+      sourceOriginal: "He dealt largely in platitudes, and since we live in a world of platitudes, much of what he said sticks.",
+      sourceCitation: "'Rudyard Kipling', 1942",
+      offenders: "A Latin tag — 'ipso facto' — has been wedged into a calm parallel that depended on plainness."
+    },
+    {
+      corrupted: "The countless English intellectuals who, qua sycophants, kiss the arse of Stalin.",
+      sourceOriginal: "The countless English intellectuals who kiss the arse of Stalin.",
+      sourceCitation: "'Raffles and Miss Blandish', 1944",
+      offenders: "A Latin tag — 'qua sycophants' — has been wedged into a sentence whose effect depended on the blunt Saxon vulgarity of the verb 'kiss.'"
+    },
+    {
+      corrupted: "The Stock Exchange will be pulled down, the horse plough will give way to the tractor, the country houses will be turned into children's holiday camps, the Eton and Harrow match will be forgotten, but England, qua nation, will still be England, an everlasting animal stretching into the future and the past.",
+      sourceOriginal: "The Stock Exchange will be pulled down, the horse plough will give way to the tractor, the country houses will be turned into children's holiday camps, the Eton and Harrow match will be forgotten, but England will still be England, an everlasting animal stretching into the future and the past.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "A Latin tag — 'qua nation' — has been wedged into a closing tautology whose force depended on saying 'England' twice without academic interruption."
+    },
+    {
+      corrupted: "England is not the jewelled isle of Shakespeare's much-quoted passage, nor is it, ipso facto, the inferno depicted by Dr Goebbels.",
+      sourceOriginal: "England is not the jewelled isle of Shakespeare's much-quoted passage, nor is it the inferno depicted by Dr Goebbels.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "A Latin tag — 'ipso facto' — has been parenthesised into a sentence that already had its rhythmic balance."
+    },
+    {
+      corrupted: "Material facts are suppressed, dates altered, quotations removed from their context and, mutatis mutandis, doctored so as to change their meaning.",
+      sourceOriginal: "Material facts are suppressed, dates altered, quotations removed from their context and doctored so as to change their meaning.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "A Latin tag — 'mutatis mutandis' — has been wedged into a Saxon catalogue of bureaucratic crime, where its main effect is to look the other way."
+    },
+    {
+      corrupted: "Every nationalist is haunted, qua political subject, by the belief that the past can be altered.",
+      sourceOriginal: "Every nationalist is haunted by the belief that the past can be altered.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "A Latin tag — 'qua political subject' — has been wedged into a sentence whose ghost-figure ('haunted') depended on a single uninterrupted breath."
+    },
+    {
+      corrupted: "The clatter of clogs in the Lancashire mill towns, the to-and-fro of the lorries on the Great North Road, the queues outside the Labour Exchanges, the rattle of pin-tables in the Soho pubs, the old maids biking to Holy Communion through the mists of the autumn mornings — all these are not only fragments, but, mutatis mutandis, characteristic fragments, of the English scene.",
+      sourceOriginal: "The clatter of clogs in the Lancashire mill towns, the to-and-fro of the lorries on the Great North Road, the queues outside the Labour Exchanges, the rattle of pin-tables in the Soho pubs, the old maids biking to Holy Communion through the mists of the autumn mornings — all these are not only fragments, but characteristic fragments, of the English scene.",
+      sourceCitation: "The Lion and the Unicorn, 1941",
+      offenders: "A Latin tag — 'mutatis mutandis' — has been wedged into a national documentary that worked because everything else in it was concrete and English."
+    },
+    {
+      corrupted: "All the indecent secrets of our underwear were exposed; the grime, the rents and patches, the bits of string doing duty for buttons, the layers upon layers of fragmentary garments, some of them mere collections of holes held together, ad hoc, by dirt.",
+      sourceOriginal: "All the indecent secrets of our underwear were exposed; the grime, the rents and patches, the bits of string doing duty for buttons, the layers upon layers of fragmentary garments, some of them mere collections of holes held together by dirt.",
+      sourceCitation: "'The Spike', 1931",
+      offenders: "A Latin tag — 'ad hoc' — has been wedged into the closing image, where it works exactly against the squalor it interrupts."
+    },
+    {
+      corrupted: "By 'patriotism' I mean devotion to a particular place and a particular way of life, which one believes, qua national, to be the best in the world but has no wish to force upon other people.",
+      sourceOriginal: "By 'patriotism' I mean devotion to a particular place and a particular way of life, which one believes to be the best in the world but has no wish to force upon other people.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "A Latin tag — 'qua national' — has been wedged into a definition whose moral fulcrum ('but has no wish to force upon other people') depended on a clean, unhedged subject."
+    },
+    {
+      corrupted: "It records in memorable form — for verse is a mnemonic device, among other things — some emotion which very nearly every human being can, mutatis mutandis, share.",
+      sourceOriginal: "It records in memorable form — for verse is a mnemonic device, among other things — some emotion which very nearly every human being can share.",
+      sourceCitation: "'Rudyard Kipling', 1942",
+      offenders: "A Latin tag — 'mutatis mutandis' — has been parenthesised into a sentence whose closing claim ('every human being can share') depended on the absence of qualification."
+    },
+    {
+      corrupted: "In Moulmein, in Lower Burma, I was hated by large numbers of people — the only time in my life, in propria persona, that I have been important enough for this to happen to me.",
+      sourceOriginal: "In Moulmein, in Lower Burma, I was hated by large numbers of people — the only time in my life that I have been important enough for this to happen to me.",
+      sourceCitation: "'Shooting an Elephant', 1936",
+      offenders: "A Latin tag — 'in propria persona' — has been wedged into a self-deprecating aside whose entire wit depended on its plainness."
+    },
+    {
+      corrupted: "Nationalism, qua phenomenon, on the other hand, is inseparable from the desire for power.",
+      sourceOriginal: "Nationalism, on the other hand, is inseparable from the desire for power.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "A Latin tag — 'qua phenomenon' — has been wedged into a one-line definition whose force depended on calling its subject by its everyday name."
+    },
+    {
+      corrupted: "All nationalists, qua type, have the power of not seeing resemblances between similar sets of facts.",
+      sourceOriginal: "All nationalists have the power of not seeing resemblances between similar sets of facts.",
+      sourceCitation: "'Notes on Nationalism', 1945",
+      offenders: "A Latin tag — 'qua type' — has been wedged into a thirteen-word diagnosis whose effect depended on naming nationalists without academic distance."
+    }
+  ]
+};
+
+// Real Orwell sentences in which Orwell himself violates a rule he set
+// out in "Politics and the English Language." Two examples per rule,
+// drawn from Orwell-breaking-his-own-rules.md. The rotation is handled
+// by `pickRealBreaking` (mirrors `pickStage1Example`) so the student
+// gets a different one each cycle through.
+const REAL_BREAKING = {
+  1: [
+    {
+      sentence: "All such arguments boil down to saying that half a loaf is the same as no bread.",
+      source: "'Charles Dickens', 1940",
+      offenders: "The mild Rule 1 issue is the dying metaphor 'boil down to.' Note that 'half a loaf is the same as no bread' is NOT a careless cliché — it is Orwell's deliberate inversion of John Heywood's 1546 proverb 'better is halfe a lofe then no bread' (Dialogue of Proverbs), invoked here to dramatize what bad arguers actually claim. The proverb-flip is a knowing rhetorical move, not a Rule 1 failure.",
+      gradeNote: "IMPORTANT context for grading and rewriting: 'half a loaf is the same as no bread' is Orwell's DELIBERATE inversion of John Heywood's 1546 proverb 'better is halfe a lofe then no bread' (Dialogue of Proverbs). Orwell invokes the proverb to criticize people who argue the opposite of it. This proverb-flip is a knowing rhetorical move and should be PRESERVED in any good rewrite — do not 'fix' the proverb out of the sentence. The only mild Rule 1 issue is the worn phrase 'boil down to' (a candidate replacement: 'amount to' or 'reduce to')."
+    },
+    {
+      sentence: "We may find in the long run that tinned food is a deadlier weapon than the machine gun.",
+      source: "The Road to Wigan Pier, 1937",
+      offenders: "'In the long run' is the dying metaphor — Orwell's most-used stock figure, on the same kind of list he would later compile in 'Politics and the English Language.'"
+    }
+  ],
+  2: [
+    {
+      sentence: "Human beings have not known how to eliminate this sordid time-wasting drudgery from their daily lives.",
+      source: "'As I Please', 1944 (lightly adapted)",
+      offenders: "'Eliminate' is the Latinate verb where 'get rid of' was already available."
+    },
+    {
+      sentence: "Fright and shame seemed to have anaesthetised me.",
+      source: "'Such, Such Were the Joys', 1947",
+      offenders: "'Anaesthetised' is the Greek-rooted Latinate verb where the plain Saxon 'numbed' or 'deadened' was available."
+    }
+  ],
+  3: [
+    {
+      sentence: "Saints should always be judged guilty until they are proved innocent, but the tests that have to be applied to them are not, of course, the same in all cases.",
+      source: "'Reflections on Gandhi', 1949",
+      offenders: "Compresses to 'Saints should be judged guilty until proved innocent, but the tests differ.'"
+    },
+    {
+      sentence: "It is, therefore, not surprising that Burnham's world-view should often be noticeably close to that of the American imperialists on the one side, or to that of the isolationists on the other.",
+      source: "'James Burnham', 1946",
+      offenders: "Five words ('It is, therefore, not surprising') in front of one fact, plus 'often be noticeably close to that of' for 'often resembles.' The whole sentence collapses to about half its length."
+    }
+  ],
+  4: [
+    {
+      sentence: "It is taken for granted that this calamity will happen every time there is an exceptionally heavy fall of snow.",
+      source: "The Road to Wigan Pier, 1937",
+      offenders: "'It is taken for granted' — by whom? The agentless passive disowns the assumption."
+    },
+    {
+      sentence: "All fiction from the novels in the mushroom libraries downwards is censored in the interests of the ruling class.",
+      source: "'Boys' Weeklies', 1939",
+      offenders: "'Is censored' — by whom? The censor disappears behind an agentless passive."
+    }
+  ],
+  5: [
+    {
+      sentence: "These prejudices are rooted in the idea that every tramp, ipso facto, is a blackguard.",
+      source: "Down and Out in Paris and London, 1933",
+      offenders: "'Ipso facto' is the Latin tag where 'by definition' was already the available English."
+    },
+    {
+      sentence: "The publicists of the Party became extremely sympathetic to the Nazi Weltanschauung.",
+      source: "'The Rediscovery of Europe', 1942",
+      offenders: "'Weltanschauung' is the German tag where 'world-view' was already standard English."
+    }
+  ]
+};
+
+const STAGE2_ROUNDS = [
+  {
+    brokenRule: 1,
+    original: "The thick blood welled out of him like red velvet, but still he did not die.",
+    originalSource: "'Shooting an Elephant', 1936",
+    originalExemplifies: "fresh, exact metaphor (Rule 1)",
+    corrupted: "The blood was flowing thick and fast, and he was clinging on for dear life by the skin of his teeth, yet he refused to give up the ghost.",
+    corruptionNote: "Worn-out figures replace Orwell's single fresh image, 'like red velvet.'"
+  },
+  {
+    brokenRule: 2,
+    original: "It was in Burma, a sodden morning of the rains.",
+    originalSource: "'A Hanging', 1931",
+    originalExemplifies: "short, plain words (Rule 2)",
+    corrupted: "It was in Burma, a precipitation-saturated commencement of the monsoon period.",
+    corruptionNote: "Every short word swapped for a long one."
+  },
+  {
+    brokenRule: 3,
+    original: "When you are on a sinking ship, your thoughts will be about sinking ships.",
+    originalSource: "'Writers and Leviathan', 1948",
+    originalExemplifies: "compression (Rule 3)",
+    corrupted: "When one finds oneself, in the relevant sense, aboard a vessel that is in the process of sinking, one's thoughts will, in the fullness of time, come to be about the sinking of ships.",
+    corruptionNote: "The same maxim, padded from thirteen words to thirty-three."
+  },
+  {
+    brokenRule: 4,
+    original: "He was tearing up bunches of grass, beating them against his knees to clean them and stuffing them into his mouth.",
+    originalSource: "'Shooting an Elephant', 1936",
+    originalExemplifies: "active voice (Rule 4)",
+    corrupted: "Bunches of grass were being torn up, and after they had been beaten against his knees in order to be cleaned, they were then stuffed into his mouth.",
+    corruptionNote: "Each of Orwell's three active verbs has been reworked into the passive."
+  },
+  {
+    brokenRule: 5,
+    original: "In a job like that you see the dirty work of Empire at close quarters.",
+    originalSource: "'Shooting an Elephant', 1936",
+    originalExemplifies: "plain English (Rule 5)",
+    corrupted: "In an occupation of that genus, one observes, in propria persona, the moral malfeasance attendant upon imperial governance qua institution.",
+    corruptionNote: "Two Latin tags plus Latinate jargon replace 'dirty work of Empire.'"
+  }
+];
+
+const FULL_RUBRIC_SUMMARY = `
+ORWELL'S BROADER RULES, beyond the famous five (drawn from "Politics and the English Language"):
+
+ETHICS OF STYLE
+- Refuse to use language to defend the indefensible (no euphemism for atrocity).
+- Treat insincerity as the great enemy of clear language ("the cuttlefish squirting out ink").
+- Resist orthodoxy of any colour — orthodoxy demands lifeless prose.
+- Refuse the ready-made phrases that "anaesthetise" the brain.
+
+PROCESS
+- Put off using words; think first in pictures and sensations.
+- Let the meaning choose the word, not the other way about.
+- Don't surrender to words: don't let the existing dialect "do the job for you."
+- Ask of every sentence: What am I trying to say? What words will express it? What image or idiom will make it clearer? Is this image fresh enough to have an effect? Could I put it more shortly? Have I said anything that is avoidably ugly?
+
+IMAGERY
+- Metaphors should call up a visual picture; if they don't, they aren't doing their work.
+- Avoid "dying" metaphors — phrases that have lost the picture but kept the air of figurative speech.
+- Don't mix incompatible figures.
+
+DICTION
+- Prefer the short, Saxon-rooted word over the long, Latin-rooted one.
+- Avoid pretentious diction ("phenomenon," "element," "individual," "objective," "categorical," "promote," "constitute," "exhibit," "exploit," "utilize," "eliminate," "liquidate").
+- Avoid foreign phrases ("deus ex machina," "ad hoc," "modus vivendi," "status quo," "Weltanschauung," "ipso facto").
+- Avoid the "not un-" formation.
+- Avoid -ize/-ise coinages and "non-" coinages.
+
+SYNTAX
+- Cut every word that can be cut.
+- Active voice over passive.
+- Avoid "verbal false limbs" ("make contact with," "give rise to," "have the effect of").
+- Avoid nominalisations.
+- Avoid phrasal substitutes for prepositions ("with respect to," "by virtue of," "in view of").
+- Avoid resounding commonplaces.
+
+META-RULE
+- Break any of these rules sooner than say anything outright barbarous.
+`;
+
+// =======================================================================
+// FUN BITS
+// =======================================================================
+
+const BOOT_LINES = [
+  "./orwell-tutor --boot",
+  "[boot] checking for stale metaphors ............... 47 found",
+  "[boot] loading rules i through v .................. ok",
+  "[boot] warming up the cuttlefish detector ......... ok",
+  "[boot] tuning grader (sympathetic mode, 65% floor)  ok",
+  "[boot] orwell-tutor ready",
+  ""
+];
+
+const LOADING_MESSAGES = [
+  "consulting orwell's ghost",
+  "checking for dying metaphors",
+  "weighing the cliché count",
+  "polishing the sentences",
+  "tracking the cuttlefish",
+  "running the not-unblack-dog detector",
+  "auditing the latinate verbs",
+  "applying the sodden-morning standard",
+  "warming up the red velvet",
+  "asking the elephant for a second opinion",
+  "reading the sky for ochre-grisaille",
+  "consulting old jack about cadging"
+];
+
+function pickLoading() {
+  return LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
+}
+
+const WELCOME_QUOTES = [
+  ["The fight against bad English is not frivolous.", "Orwell, 1946"],
+  ["The great enemy of clear language is insincerity.", "Orwell, 1946"],
+  ["What is above all needed is to let the meaning choose the word, not the other way about.", "Orwell, 1946"],
+  ["Modern English, especially written English, is full of bad habits which spread by imitation and which can be avoided if one is willing to take the necessary trouble.", "Orwell, 1946"],
+  ["A scrupulous writer, in every sentence that he writes, will ask himself at least four questions.", "Orwell, 1946"]
+];
+
+function pickWelcomeQuote() {
+  return WELCOME_QUOTES[Math.floor(Math.random() * WELCOME_QUOTES.length)];
+}
+
+// =======================================================================
+// STATE
+// =======================================================================
+
+const state = {
+  view: "intro",
+  bootStep: 0,
+  apiKey: "proxy",
+  model: DEFAULT_MODEL,
+  loading: false,
+  loadingMessage: "",
+  error: "",
+  welcomeQuote: pickWelcomeQuote(),
+
+  s1RuleIdx: 0,
+  s1Cycle: "made_up",
+  s1Step: "intro",
+  s1MadeUpPicks: {},
+  s1MadeUpPhrases: {},
+  s1MadeUpDiagFb: {},
+  s1MadeUpRewrite: {},
+  s1MadeUpGradeRaw: {},
+  s1MadeUpGradeNum: {},
+  s1MadeUpCatalyst: {},
+  s1OrwellPicks: {},
+  s1OrwellPhrases: {},
+  s1OrwellDiagFb: {},
+  s1OrwellRewrite: {},
+  s1OrwellGradeRaw: {},
+  s1OrwellGradeNum: {},
+  s1OrwellCatalyst: {},
+
+  s2Round: 0,
+  s2Phase: "intro",
+  s2Selection: null,
+  s2IdentifyFeedback: "",
+  s2GotItRight: null,
+  s2Rewrite: "",
+  s2CompareFeedback: "",
+  s2Catalyst: "",
+
+  s3Phase: "intro",
+  s3Original: "",
+  s3Critique: "",
+  s3Rewrite: "",
+  s3Reassess: "",
+  s3Catalyst: "",
+
+  // Workshop mode: paste any text, walk paragraph by paragraph,
+  // suggesting concrete edits under Orwell's rubric.
+  wsPhase: "intro",          // "intro" | "working" | "done"
+  wsRaw: "",                  // the original pasted text
+  wsParagraphs: [],           // [{ text, suggestions: [{rule_num, phrase, why, suggested}], decisions: { [i]: {accepted: bool, edited: string} }, loaded: bool, error: "" }]
+  wsIdx: 0
+};
+
+try {
+  if (!state.apiKey) {
+    const stored = window.localStorage && window.localStorage.getItem("orwell_api_key");
+    if (stored) state.apiKey = stored;
+  }
+  const storedModel = window.localStorage && window.localStorage.getItem("orwell_model");
+  if (storedModel) state.model = storedModel;
+} catch (_) { /* ignore */ }
+
+// =======================================================================
+// EXAMPLE SHUFFLING
+// =======================================================================
+
+function pickStage1Example(ruleNum) {
+  const all = STAGE1_EXAMPLES[ruleNum];
+  if (!all || all.length === 0) return null;
+  const key = "orwell_s1_seen_" + ruleNum;
+  let seen = [];
+  try {
+    const raw = window.localStorage && window.localStorage.getItem(key);
+    if (raw) seen = JSON.parse(raw);
+    if (!Array.isArray(seen)) seen = [];
+  } catch (_) { seen = []; }
+  let pool = all.map((_, i) => i).filter(i => !seen.includes(i));
+  if (pool.length === 0) {
+    seen = [];
+    pool = all.map((_, i) => i);
+  }
+  const idx = pool[Math.floor(Math.random() * pool.length)];
+  seen.push(idx);
+  try { window.localStorage && window.localStorage.setItem(key, JSON.stringify(seen)); } catch (_) {}
+  return all[idx];
+}
+
+// Pick one of the per-rule REAL_BREAKING entries. Same seen-tracking
+// pattern as pickStage1Example so the student gets a different one
+// each time they cycle through.
+function pickRealBreaking(ruleNum) {
+  const all = REAL_BREAKING[ruleNum];
+  if (!all || all.length === 0) return null;
+  const key = "orwell_real_seen_" + ruleNum;
+  let seen = [];
+  try {
+    const raw = window.localStorage && window.localStorage.getItem(key);
+    if (raw) seen = JSON.parse(raw);
+    if (!Array.isArray(seen)) seen = [];
+  } catch (_) { seen = []; }
+  let pool = all.map((_, i) => i).filter(i => !seen.includes(i));
+  if (pool.length === 0) {
+    seen = [];
+    pool = all.map((_, i) => i);
+  }
+  const idx = pool[Math.floor(Math.random() * pool.length)];
+  seen.push(idx);
+  try { window.localStorage && window.localStorage.setItem(key, JSON.stringify(seen)); } catch (_) {}
+  return all[idx];
+}
+
+function ensureStage1Picks() {
+  for (let r = 1; r <= 5; r++) {
+    if (!state.s1MadeUpPicks[r]) state.s1MadeUpPicks[r] = pickStage1Example(r);
+    if (!state.s1OrwellPicks[r]) state.s1OrwellPicks[r] = pickRealBreaking(r);
+    if (!state.s1MadeUpPhrases[r]) state.s1MadeUpPhrases[r] = [];
+    if (!state.s1OrwellPhrases[r]) state.s1OrwellPhrases[r] = [];
+  }
+}
+
+// =======================================================================
+// API
+// =======================================================================
+
+function startLoading() {
+  state.loading = true;
+  state.loadingMessage = pickLoading();
+}
+function stopLoading() {
+  state.loading = false;
+  state.loadingMessage = "";
+}
+
+async function callClaude(systemPrompt, userMessage, maxTokens = 1500) {
+  const res = await fetch("/api/orwell-workshop/workshop", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      system: systemPrompt,
+      user: userMessage,
+      max_tokens: maxTokens
+    })
+  });
+  if (!res.ok) {
+    let text = "";
+    try { text = await res.text(); } catch (_) {}
+    if (res.status === 401) {
+      throw new Error("Session expired. Reload the page and sign in again.");
+    }
+    throw new Error(`server error ${res.status}: ${text || res.statusText}`);
+  }
+  const data = await res.json();
+  return (data.text || "").trim();
+}
+
+// =======================================================================
+// PROMPTS
+// =======================================================================
+
+const TUTOR_SYSTEM = `You are a tough but warm undergraduate writing tutor steeped in George Orwell's "Politics and the English Language" (1946). You are helping a philosophy student internalise Orwell's five famous rules. Your feedback is concrete, brief, and points to specific words or phrases in the student's text. You praise what the student does well and you name what they still get wrong. Never write more than 220 words unless explicitly told a longer limit. Don't use bullet points unless they make a list essentially clearer; prefer plain prose. Avoid the very habits Orwell condemns.`;
+
+function diagnoseFeedbackPrompt({ rule, sentence, expert, flaggedSentence, isReal }) {
+  const realNote = isReal
+    ? "This is a sentence by Orwell himself, breaking his own rule."
+    : "This is a parodic corruption of an exemplary Orwell line.";
+  return `Rule ${rule.num} (Orwell): "${rule.quote}"
+
+Sentence shown to student:
+"${sentence}"
+(${realNote})
+
+Expert reference (for your evaluation only):
+${expert}
+
+Student-flagged phrases appear in [[double brackets]]:
+"${flaggedSentence}"
+
+BE GENEROUS ABOUT BOUNDARIES. Any flag that overlaps the actual offender — even by one word — is RIGHT. Extra adjacent words on either side: RIGHT. Missing edge words: RIGHT. Two flags that together cover the offender: ONE correct identification. A flag is wrong ONLY if it picks out a region that does not overlap the offender at all. Never mention boundary slop.
+
+In 35–55 words, evaluate the student's diagnostic eye in this lenient spirit. Tell them: did they hit the offender (treating overlap as success — quote the underlying offender), miss it entirely, or flag the wrong region? Do NOT tell them how to rewrite. Address as "you." Plain prose, no bullets, no preamble.`;
+}
+
+function gradePrompt({ rule, sentence, studentRewrite, isReal, sourceOriginal, sourceCitation, gradeNote }) {
+  const realNote = isReal
+    ? "This sentence is by Orwell himself, breaking his own rule."
+    : "This is a parodic corruption of an exemplary Orwell line.";
+
+  // Optional context block. Used for entries that need special handling
+  // — e.g. the half-a-loaf sentence, where Orwell is intentionally
+  // inverting a proverb and should not be "corrected" out of it.
+  const gradeNoteBlock = gradeNote ? `
+
+CONTEXT NOTE — read carefully before grading or rewriting:
+${gradeNote}
+` : "";
+
+  let extraSections = "";
+  let heuristicsBlock = "";
+  if (!isReal && sourceOriginal) {
+    // Made-up cycle: include Orwell's original for the comparison.
+    extraSections = `
+
+EXTRA CONTEXT — the corruption was based on this Orwell original (the student has not yet seen it):
+"${sourceOriginal}"
+[${sourceCitation}]
+
+After the grade explanation, on a NEW LINE labeled exactly "COMPARISON:", write a single 25–40 word note comparing the student's rewrite with Orwell's original. Where, if anywhere, did the student match or beat Orwell? Where is Orwell's sharper? Quote one telling word from each. Be honest.`;
+  } else if (isReal) {
+    // Orwell-self cycle: ask Claude to produce its OWN rewrite (drawing
+    // on the heuristics) and a brief compare/contrast.
+    heuristicsBlock = `
+
+${WRITING_HEURISTICS}`;
+    extraSections = `
+
+After the grade explanation, on their own labeled lines, write:
+
+MY REWRITE: a single sentence — your own rewrite of the original, fixing the Rule ${rule.num} violation and preserving the meaning. Draw IMPLICITLY on the heuristics above (concrete particulars, fresh images, plain Saxon, active voice, omit needless words). Output the rewrite only — no preamble.
+
+COMPARISON: a single 25–40 word note comparing the student's rewrite with yours. Where did each beat the other? Quote one telling word from each. If the student's is better, say so plainly.`;
+  }
+
+  return `Rule ${rule.num} (Orwell): "${rule.quote}"
+
+Original sentence (which breaks Rule ${rule.num}):
+"${sentence}"
+(${realNote})
+${gradeNoteBlock}
+The student's rewrite, intended to obey Rule ${rule.num} and preserve the meaning:
+"${studentRewrite}"
+${heuristicsBlock}
+Grade the rewrite on a 0–100% scale. Generous to honest effort: any rewrite that captures the meaning gets at LEAST 65%.
+
+- 100% = Orwell at his best.
+- 90% = excellent undergraduate work; rule cleanly fixed; some life.
+- 80% = strong work; rule fixed; no new offences.
+- 70–75% = solid work; minor lingering problems.
+- 65% = FLOOR for any honest attempt that preserves meaning.
+
+Reserve grades BELOW 65% only when the student abandoned the task, made the prose substantially worse, or submitted garbage.
+
+Output the verdict on the FIRST LINE — no markdown:
+
+GRADE: NN%
+
+Then in 30–50 words explain the grade. Quote one or two words from their rewrite. Address as "you." Plain prose, no bullets.${extraSections}`;
+}
+
+function identifyFeedbackPrompt({ round, studentChoice, correctRule }) {
+  return `A student saw this corrupted version of an Orwell sentence:
+
+Corrupted: "${round.corrupted}"
+Orwell's original (exemplifies a DIFFERENT rule, ${round.originalExemplifies}): "${round.original}" [${round.originalSource}]
+
+The corruption breaks Rule ${correctRule.num}: "${correctRule.quote}"
+Specifically: ${round.corruptionNote}
+
+The student guessed Rule ${studentChoice.num} ("${studentChoice.short}").
+
+In 30–45 words, tell the student whether they got it right. If correct: confirm and quote one or two words from the corrupted passage that exemplify the violation. If wrong: name the actual rule (${correctRule.num}) and quote one or two words exemplifying it. No shame.
+
+Address as "you." Plain prose, no bullets, no preamble.`;
+}
+
+function comparePrompt({ round, studentRewrite }) {
+  return `A student rewrote this corrupted passage to obey Rule ${round.brokenRule}:
+
+Corrupted: "${round.corrupted}"
+Student's rewrite: "${studentRewrite}"
+Orwell's original (which the corruption was based on): "${round.original}" [${round.originalSource}]
+
+In 50–65 words, compare the student's rewrite with Orwell's. Cover, in plain prose: whether the student obeys Rule ${round.brokenRule} (cite a word); where the student matches or beats Orwell; where Orwell's still sharper. End with ONE sentence on the chief lesson.
+
+Address as "you." Quote specific words from each. No bullets, no preamble.`;
+}
+
+function critiquePrompt(paragraph) {
+  return `A philosophy undergraduate wrote the paragraph below. Read it as Orwell would, drawing on his rubric:
+
+${FULL_RUBRIC_SUMMARY}
+
+Student paragraph:
+"""
+${paragraph}
+"""
+
+In 70–100 words, identify the THREE most important problems Orwell would flag. For each, quote ONE short offending phrase, name the rule it offends, and say briefly what the live alternative would have been. End with ONE sentence on the single most important change for the rewrite.
+
+Address as "you." Plain prose, no bullets, no preamble.`;
+}
+
+// =======================================================================
+// WORKSHOP MODE — paragraph-by-paragraph application of Orwell's rules
+// =======================================================================
+// One structured call per paragraph. Returns up to ~5 suggestions, each
+// pinned to a single offending phrase, the rule it offends, why, and a
+// concrete one-line rewrite the student can accept, edit, or skip.
+
+function workshopPrompt(paragraph) {
+  return `You are a tough but warm writing tutor steeped in George Orwell's "Politics and the English Language" (1946). Apply Orwell's five rules to the paragraph below:
+
+1. Never use a metaphor, simile or other figure of speech which you are used to seeing in print.
+2. Never use a long word where a short one will do.
+3. If it is possible to cut a word out, always cut it out.
+4. Never use the passive where you can use the active.
+5. Never use a foreign phrase, a scientific word or a jargon word if you can think of an everyday English equivalent.
+
+Sixth rule: break any of these rather than say anything outright barbarous.
+
+Paragraph:
+"""
+${paragraph}
+"""
+
+Return ONLY a single JSON object, no preamble, no code fence, with this exact shape:
+
+{
+  "summary": "one short sentence on what most needs fixing in this paragraph",
+  "suggestions": [
+    {
+      "rule_num": 3,
+      "phrase": "the exact offending phrase, copied verbatim from the paragraph",
+      "why": "one short sentence — why Orwell would flag this",
+      "suggested": "your concrete rewrite of just that phrase (or, if the fix requires the whole sentence, the whole sentence)"
+    }
+  ]
+}
+
+Constraints:
+- Up to 5 suggestions; fewer if the paragraph is mostly clean. If the paragraph genuinely needs no edits, return an empty suggestions array and say so in summary.
+- "phrase" MUST appear verbatim in the paragraph, character for character.
+- "suggested" must be a real rewrite, not advice. Don't say "use a fresher metaphor"; supply one.
+- Prefer the smallest fix that works. Don't rewrite a whole sentence if striking three words does the job.
+- Don't flag the same phrase twice under different rules; pick the rule that bites hardest.
+- No markdown inside the JSON values.`;
+}
+
+function parseWorkshopResponse(raw) {
+  if (!raw) return { summary: "", suggestions: [], error: "empty response" };
+  let txt = raw.trim();
+  // strip ```json fences if the model added them despite instructions
+  txt = txt.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  // grab the first {...} block in case of stray prose
+  const first = txt.indexOf("{");
+  const last = txt.lastIndexOf("}");
+  if (first !== -1 && last !== -1) txt = txt.slice(first, last + 1);
+  try {
+    const obj = JSON.parse(txt);
+    const suggestions = Array.isArray(obj.suggestions) ? obj.suggestions
+      .filter(s => s && typeof s.phrase === "string" && typeof s.suggested === "string")
+      .map(s => ({
+        rule_num: Number(s.rule_num) || 0,
+        phrase: String(s.phrase),
+        why: String(s.why || ""),
+        suggested: String(s.suggested)
+      })) : [];
+    return { summary: String(obj.summary || ""), suggestions, error: "" };
+  } catch (e) {
+    return { summary: "", suggestions: [], error: "could not parse model response as JSON" };
+  }
+}
+
+function splitIntoParagraphs(text) {
+  return text.split(/\n\s*\n+/).map(p => p.trim()).filter(p => p.length > 0);
+}
+
+// Build the "clean version" by applying accepted edits to the original
+// paragraph in order. Edits are simple verbatim phrase replacements.
+function applyDecisions(paragraph, suggestions, decisions) {
+  let out = paragraph;
+  for (let i = 0; i < suggestions.length; i++) {
+    const d = decisions[i];
+    if (!d || !d.accepted) continue;
+    const replacement = (d.edited != null ? d.edited : suggestions[i].suggested);
+    const phrase = suggestions[i].phrase;
+    const idx = out.indexOf(phrase);
+    if (idx === -1) continue; // phrase already gone (overlapping edit); skip
+    out = out.slice(0, idx) + replacement + out.slice(idx + phrase.length);
+  }
+  return out;
+}
+
+// =======================================================================
+// IDEA CATALYST PROMPTS
+// =======================================================================
+// The catalyst's job is to push a student in the direction of writing
+// like Orwell — concrete, plain, fresh — by surfacing ONE creative
+// move from the writerly tradition Orwell sits inside. The 30
+// heuristics below are drawn from five style guides (Zinsser's On
+// Writing Well, Pinker's The Sense of Style, McPhee's Draft No. 4,
+// Strunk's The Elements of Style, Thomas & Turner's Clear and Simple
+// as the Truth) and Orwell's own rubric. The catalyst model picks one
+// or two that bear most directly on the student's case and writes a
+// single short brainstorming prompt around them, never citing the
+// source by name.
+
+const WRITING_HEURISTICS = `Heuristics drawn from seven style guides — Zinsser's "On Writing Well," Pinker's "The Sense of Style," McPhee's "Draft No. 4," Strunk's "The Elements of Style" (3rd ed.), Thomas & Turner's "Clear and Simple as the Truth," Williams's "Style: Lessons in Clarity and Grace," and Rundus's reader's guide to Joseph Mitchell — plus Orwell's own rubric.
+
+ZINSSER:
+1. Strip every sentence to its cleanest components. Every word that serves no function is a weed; pull it out — long words that could be short ones, adverbs that mean what the verb already means, passives that hide who is doing what.
+2. Write with your own voice. Don't borrow somebody else's register because it sounds more authoritative — your sentences will go dead.
+3. Write in the first person where the subject permits. Confidence is contagious; it gives the reader something to grip.
+4. Use the active voice. Force the doer onto the page so the reader can see who is doing what to whom.
+5. Prefer short, plain, Anglo-Saxon-rooted words. The Latinate one is almost never the better one when both are available.
+6. Cut adverbs that merely intensify. The right verb does what "very" or "really" or "extremely" was trying to do.
+7. Don't admire your own draft. Read it as a stranger would, and cross out anything that wouldn't survive that reading.
+
+PINKER:
+8. Show before you tell. Recruit an image — something the reader can see, hear, smell, touch — before you reach for an abstraction.
+9. Treat your prose as a window onto the world. The reader is supposed to see what's outside; you are supposed to keep the glass clean.
+10. The "curse of knowledge" is your chief enemy. Assume the reader cannot see what is in your head, and write so they could.
+11. Use coherence connectives — "because," "but," "so," "even though" — to name the logical relation between sentences. Don't make the reader guess.
+12. Long sentences earn their length only when their parts cohere. If a sentence sprawls, ask whether it has one structure or three colliding ones.
+
+MCPHEE:
+13. Structure is the underwater part of the iceberg. Find the shape of the piece before you start filling it with words.
+14. A draft is what you delete. Write more than you'll keep; then cut, and cut again. Omission — the Theory of Omission — is the writer's secret weapon.
+15. The lede announces the whole piece in miniature. If your first sentence doesn't hint at the argument, the reader is already wandering.
+16. Find the one detail that does the work of ten — a specific named object, a precise gesture — and let it carry the paragraph.
+17. Trust the verbs. Adjectives pile up as a hedge against weak verbs; find the verb that doesn't need hedging.
+18. The thesaurus exists to remind you of the word you already know but have momentarily forgotten — not to find a word you didn't know.
+
+STRUNK:
+19. Omit needless words. A sentence should contain no unnecessary words, a paragraph no unnecessary sentences. Vigorous writing is concise.
+20. Use definite, specific, concrete language. Particulars beat generalities every time; the great writers — Homer, Dante, Shakespeare — work in particulars.
+21. Place the emphatic word at the end of the sentence. The end is the position of stress.
+22. Use the active voice; the active voice gives a sentence directness and energy. The passive voice flattens.
+23. Don't overstate. A single overstatement bleeds credibility from every claim around it.
+24. Keep parallel ideas in parallel form. The reader's ear expects parallelism and notices when it is broken.
+
+THOMAS & TURNER:
+25. Adopt the classic stand: the writer has seen something and turns to show it to a competent reader. Drop the apologetic crouch — it undoes the writing.
+26. Treat your subject as something the reader can see. Stand beside the reader and point.
+27. Plain prose stands inside the scene. Jargon stands outside the scene, gesturing at it from a safe distance — choose to be inside.
+28. Define your relation to the reader before you start. Are you a guide, a witness, a colleague? The relation determines the diction.
+29. Don't treat thought and expression as separable. Clear writing is clear thinking made visible; muddy writing is a confession.
+
+WILLIAMS:
+31. Make subjects the main characters of the action; make verbs name what they do. When subjects aren't characters and verbs aren't actions, the sentence goes cloudy.
+32. Begin a sentence with familiar information; end with new information. The reader needs that bridge from old to new built into the syntax.
+33. Cluster related ideas together. Don't ask the reader to assemble the relationship from scattered parts of the sentence.
+
+MITCHELL (via Rundus):
+34. Listen before you write. The exact word a person used — the cadence, the hesitation, the digression — is almost always sharper than your paraphrase.
+35. Build a portrait from physical particulars: what they wore, what they ate, what they did with their hands. The character emerges from the inventory, not from your characterisation.
+36. Stand close enough to hear the language, but far enough back to see the subject whole. Both distances earn their place in the prose.
+
+ORWELL'S BACKSTOP:
+37. Ask of every sentence: What am I trying to say? What words will express it? What image or idiom will make it clearer? Is this image fresh enough to have an effect? Could I put it more shortly? Have I said anything that is avoidably ugly?`;
+
+const CATALYST_SYSTEM = `You are a writing tutor steeped in Orwell's "Politics and the English Language" (1946) and the wider tradition of plain-prose pedagogy (Zinsser, Pinker, McPhee, Strunk, Thomas & Turner, Williams, Mitchell). When asked, you produce ONE short, lightweight brainstorming prompt — a question or a thing to chew on — that helps a student think their way to a better rewrite. You pick ONE or TWO of the writerly heuristics provided in the user message and use them implicitly. You never cite the heuristics by number, never name the books or their authors, and never reveal Orwell's original sentence. Your prompts are subtle, never heavy-handed: a thought to ruminate on, never a checklist or instruction.`;
+
+function catalystStage1CorruptedPrompt({ rule, sentence, sourceOriginal }) {
+  return `${WRITING_HEURISTICS}
+
+A philosophy student is about to rewrite this corrupted sentence so it obeys Orwell's Rule ${rule.num}: "${rule.quote}".
+
+Corrupted sentence (the one shown to the student):
+"${sentence}"
+
+(For your reference only — DO NOT name or quote this in your prompt — the original Orwell sentence the corruption was based on is: "${sourceOriginal}".)
+
+PICK ONE OR TWO of the 37 heuristics above that bear most directly on what's wrong with the corrupted sentence and would push the student in the direction of writing like Orwell. Use them IMPLICITLY — embedded in your phrasing, not cited. Produce ONE short brainstorming prompt that helps the student think their way to a better rewrite.
+
+Constraints:
+- Take the form of a question or a small thing to chew on.
+- Do NOT reveal Orwell's original wording. Do NOT quote phrases from the original.
+- Do NOT cite Zinsser, Pinker, McPhee, Strunk, Thomas, Turner, Williams, Mitchell, or Orwell by name. Do NOT mention "the heuristics" or numbered rules.
+- Plain prose, one or two sentences. No bullets, no numbered lists, no semicolon-stitched checklists.
+- Push the student in the direction of writing like Orwell — concrete, plain, fresh, alive — without telling them how.
+- Do not start with "Try to," "You should," "Consider," or any direct command. Pose a question, or describe a thing to notice.
+
+Output ONLY the brainstorming prompt itself. No preamble, no labels, no quotation marks around it.`;
+}
+
+function catalystStage1OrwellPrompt({ rule, sentence, gradeNote }) {
+  const noteBlock = gradeNote ? `
+
+CONTEXT NOTE — read carefully:
+${gradeNote}
+` : "";
+  return `${WRITING_HEURISTICS}
+
+A philosophy student is about to rewrite this sentence by Orwell himself, in which Orwell breaks his own Rule ${rule.num}: "${rule.quote}".
+
+The sentence is:
+"${sentence}"
+${noteBlock}
+PICK ONE OR TWO of the 37 heuristics above that bear most directly on the specific Rule ${rule.num} failure in this sentence. Use them IMPLICITLY to produce ONE short brainstorming prompt that helps the student think their way to a sharper rewrite.
+
+Constraints:
+- Take the form of a question or a small thing to think about.
+- You may quote a single offending phrase from the sentence if it really helps focus the question, but keep the touch light.
+- Do NOT cite Zinsser, Pinker, McPhee, Strunk, Thomas, Turner, Williams, Mitchell, or Orwell by name. Do NOT mention "the heuristics" or numbered rules.
+- Plain prose, one or two sentences. No bullets, no numbered lists.
+- Push the student toward concrete, plain, fresh phrasing — never tell them what to write.
+- Do not start with "Try to," "You should," "Consider," or any direct command. Pose a question, or describe a thing to notice.
+
+Output ONLY the brainstorming prompt itself. No preamble, no labels.`;
+}
+
+function catalystStage2Prompt({ round }) {
+  const broken = RULES.find(r => r.num === round.brokenRule);
+  return `${WRITING_HEURISTICS}
+
+A philosophy student is about to rewrite this corrupted Orwell passage so it obeys Rule ${broken.num}: "${broken.quote}".
+
+The corrupted passage:
+"${round.corrupted}"
+
+(For your reference only — DO NOT reveal or quote — the original Orwell sentence was: "${round.original}".)
+
+PICK ONE OR TWO of the 37 heuristics above that bear most directly on what's wrong with the corrupted passage. Use them IMPLICITLY — embedded in your phrasing, not cited. Produce ONE short brainstorming prompt that pushes the student in the direction of writing like Orwell.
+
+Constraints:
+- Take the form of a question or a small thing to chew on.
+- Do NOT reveal or quote Orwell's original. Do NOT cite Zinsser, Pinker, McPhee, Strunk, Thomas, Turner, or Orwell by name.
+- Plain prose, one or two sentences. No bullets, no numbered lists.
+- Be lightweight — a thought to ruminate on, not a directive.
+- Do not start with "Try to," "You should," "Consider," or any direct command.
+
+Output ONLY the brainstorming prompt itself. No preamble, no labels.`;
+}
+
+function catalystStage3Prompt(paragraph, critique) {
+  return `${WRITING_HEURISTICS}
+
+A philosophy undergraduate has written the paragraph below and just received Orwell-style feedback on it. They are about to rewrite. Your job is to give them ONE short brainstorming prompt — two or three sentences, no more — that pushes them in the direction of writing like Orwell.
+
+The student's paragraph:
+"""
+${paragraph}
+"""
+
+The Orwell-style critique they just received:
+"""
+${critique}
+"""
+
+PICK ONE OR TWO of the 37 heuristics above that bear most directly on this student's specific paragraph. Use them IMPLICITLY — woven into your phrasing, never cited.
+
+Constraints:
+- Tie the prompt to a SPECIFIC feature of THIS student's paragraph. Quote one short phrase from their paragraph if it sharpens the question.
+- Treat the critique above as a starting point, but go beyond what it already says — open up a creative angle on the prose, not a checklist.
+- Do NOT cite Zinsser, Pinker, McPhee, Strunk, Thomas, Turner, Williams, Mitchell, or Orwell by name. Do NOT mention "the heuristics" or numbered rules.
+- Plain prose. Two or three sentences max. No bullets, no numbered lists, no "do X / do Y" instructions.
+- Push the student toward concrete, plain, fresh, alive prose — without telling them what to write.
+- Do not start with "Try to," "You should," "Consider," or any direct command.
+
+Output ONLY the brainstorming prompt itself. No preamble, no labels.`;
+}
+
+function reassessPrompt(original, rewrite) {
+  return `A philosophy undergraduate received Orwell-style feedback and rewrote their paragraph. Assess the rewrite drawing on Orwell's rubric:
+
+${FULL_RUBRIC_SUMMARY}
+
+Original:
+"""
+${original}
+"""
+
+Rewrite:
+"""
+${rewrite}
+"""
+
+In 80–110 words, do all of: name what they fixed (quote a word from each version); name any new problems or unfixed old ones; if they kept something Orwell would have cut but the choice was right, say so briefly (Orwell's own Rule vi); give an overall verdict on a 0–10 scale and ONE further change you would suggest.
+
+Address as "you." Quote specific words. Plain prose, no bullets, no preamble.`;
+}
+
+// =======================================================================
+// HELPERS
+// =======================================================================
+
+function el(tag, attrs, ...children) {
+  const e = document.createElement(tag);
+  if (attrs) {
+    for (const k of Object.keys(attrs)) {
+      const v = attrs[k];
+      if (v == null || v === false) continue;
+      if (k === "class") e.className = v;
+      else if (k === "html") e.innerHTML = v;
+      else if (k.startsWith("on") && typeof v === "function") {
+        e.addEventListener(k.slice(2).toLowerCase(), v);
+      } else if (k === "value") e.value = v;
+      else if (k === "checked") { if (v) e.checked = true; }
+      else if (k === "disabled") { if (v) e.setAttribute("disabled", ""); }
+      else if (k === "selected") { if (v) e.selected = true; }
+      else e.setAttribute(k, v);
+    }
+  }
+  for (const c of children.flat()) {
+    if (c == null || c === false) continue;
+    if (typeof c === "string") e.appendChild(document.createTextNode(c));
+    else e.appendChild(c);
+  }
+  return e;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function formatFeedback(text) {
+  if (!text) return "";
+  let safe = escapeHtml(text);
+  safe = safe.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  safe = safe.replace(/(^|\s)_([^_]+)_/g, "$1<em>$2</em>");
+  safe = safe.replace(/\n\n+/g, "</p><p>").replace(/\n/g, "<br>");
+  return "<p>" + safe + "</p>";
+}
+
+function parseGrade(text) {
+  if (!text) return null;
+  const m = text.match(/GRADE\s*:\s*(\d{1,3})\s*%?/i);
+  if (m) return Math.min(100, Math.max(0, parseInt(m[1], 10)));
+  const m2 = text.match(/(\d{1,3})\s*%/);
+  if (m2) return Math.min(100, Math.max(0, parseInt(m2[1], 10)));
+  return null;
+}
+
+function stripGradeLine(text) {
+  if (!text) return "";
+  return text.replace(/^[^\n]*GRADE\s*:\s*\d{1,3}\s*%?[^\n]*\n+/i, "").trim();
+}
+
+// Split a Claude grade response into the main explanation and the
+// optional COMPARISON: paragraph.
+function splitGradeResponse(raw) {
+  if (!raw) return { main: "", myRewrite: "", comparison: "" };
+  const stripped = stripGradeLine(raw);
+
+  // Find MY REWRITE: and COMPARISON: anchors. Either, both, or neither
+  // may be present.
+  const myRewriteIdx = stripped.search(/(?:^|\n)\s*(?:#+\s*|\*+\s*)?MY\s*REWRITE\s*:?\s*/i);
+  const comparisonIdx = stripped.search(/(?:^|\n)\s*(?:#+\s*|\*+\s*)?COMPARISON\s*:?\s*/i);
+
+  // The main explanation runs from the start to whichever anchor comes first.
+  let mainEnd = stripped.length;
+  if (myRewriteIdx >= 0 && (comparisonIdx < 0 || myRewriteIdx < comparisonIdx)) {
+    mainEnd = myRewriteIdx;
+  } else if (comparisonIdx >= 0) {
+    mainEnd = comparisonIdx;
+  }
+  const main = stripped.slice(0, mainEnd).trim();
+
+  let myRewrite = "";
+  let comparison = "";
+  if (myRewriteIdx >= 0) {
+    const rewriteEnd = (comparisonIdx > myRewriteIdx) ? comparisonIdx : stripped.length;
+    myRewrite = stripped.slice(myRewriteIdx, rewriteEnd)
+      .replace(/^\s*(?:#+\s*|\*+\s*)?MY\s*REWRITE\s*:?\s*\n?/i, "")
+      .replace(/^["']|["']$/g, "")
+      .trim();
+  }
+  if (comparisonIdx >= 0) {
+    const compEnd = (myRewriteIdx > comparisonIdx) ? myRewriteIdx : stripped.length;
+    comparison = stripped.slice(comparisonIdx, compEnd)
+      .replace(/^\s*(?:#+\s*|\*+\s*)?COMPARISON\s*:?\s*\n?/i, "")
+      .trim();
+  }
+  return { main, myRewrite, comparison };
+}
+
+function gradeColorClass(num) {
+  if (num == null) return "mid";
+  if (num < 70) return "low";
+  if (num < 85) return "mid";
+  return "high";
+}
+
+function gradeBarColor(num) {
+  if (num == null) return "#666";
+  if (num < 70) return "var(--red)";
+  if (num < 85) return "var(--yellow)";
+  return "var(--green)";
+}
+
+function tokenize(sentence) {
+  return sentence.split(/(\s+)/);
+}
+
+// Phrase flagging
+function addPhrase(phrases, newPhrase) {
+  const overlapping = [];
+  for (const p of phrases) {
+    if (newPhrase.start <= p.end && newPhrase.end >= p.start) overlapping.push(p);
+  }
+  if (overlapping.length === 0) {
+    phrases.push(newPhrase);
+    return;
+  }
+  let mergedStart = newPhrase.start, mergedEnd = newPhrase.end;
+  for (const p of overlapping) {
+    mergedStart = Math.min(mergedStart, p.start);
+    mergedEnd = Math.max(mergedEnd, p.end);
+    const idx = phrases.indexOf(p);
+    if (idx >= 0) phrases.splice(idx, 1);
+  }
+  phrases.push({ start: mergedStart, end: mergedEnd });
+}
+
+function findPhraseIdx(phrases, wordIdx) {
+  for (let i = 0; i < phrases.length; i++) {
+    if (wordIdx >= phrases[i].start && wordIdx <= phrases[i].end) return i;
+  }
+  return -1;
+}
+
+// Read the current text selection. If it overlaps any .word spans inside
+// `sc`, fire onUpdate to add the corresponding phrase, clear the
+// selection, and return true. Returns false if there is no usable
+// selection in `sc`.
+//
+// Used in three places:
+//   1. The mouseup listener on the sentence-container itself.
+//   2. A document-level mouseup listener that catches drags whose mouseup
+//      lands outside the container (a common UX failure mode — e.g. the
+//      user releases the mouse below the box).
+//   3. A safety net inside the "submit diagnosis" button: if the user
+//      somehow still has an active selection that hasn't been processed,
+//      pick it up before complaining about an empty flag list.
+function extractSelectionPhrase(sc, onUpdate) {
+  if (!sc) return false;
+  let included = [];
+  try {
+    const sel = window.getSelection && window.getSelection();
+    if (!sel || sel.rangeCount === 0) return false;
+    const range = sel.getRangeAt(0);
+    if (!range || range.collapsed) return false;
+    sc.querySelectorAll(".word").forEach(span => {
+      try {
+        if (range.intersectsNode && range.intersectsNode(span)) {
+          included.push(parseInt(span.getAttribute("data-i"), 10));
+        }
+      } catch (_) {}
+    });
+  } catch (_) { return false; }
+  if (included.length === 0) return false;
+  onUpdate({
+    action: "add",
+    phrase: { start: Math.min(...included), end: Math.max(...included) }
+  });
+  try { window.getSelection().removeAllRanges(); } catch (_) {}
+  return true;
+}
+
+// One global mouseup catcher. Registered exactly once, at module load.
+// Catches drags that mouseup outside the sentence-container (which is the
+// most common reason the in-container handler misses a selection).
+function installGlobalSelectionCatcher() {
+  if (window.__orwellSelectionCatcherInstalled) return;
+  window.__orwellSelectionCatcherInstalled = true;
+  document.addEventListener("mouseup", () => {
+    // Only act in the diagnose step — otherwise selections elsewhere on
+    // the page (the rewrite textarea, etc.) shouldn't be turned into
+    // flags.
+    if (state.view !== "stage1" || state.s1Step !== "diagnose") return;
+    const sc = document.getElementById("sentenceContainer");
+    if (!sc) return;
+    const ruleNum = RULES[state.s1RuleIdx].num;
+    const phrasesKey = state.s1Cycle === "made_up" ? "s1MadeUpPhrases" : "s1OrwellPhrases";
+    const phrases = state[phrasesKey][ruleNum];
+    if (!phrases) return;
+    const added = extractSelectionPhrase(sc, (action) => {
+      if (action.action === "add") addPhrase(phrases, action.phrase);
+    });
+    if (added) render();
+  });
+}
+
+function renderTaggable(sentence, phrases, onUpdate) {
+  const wrapper = el("div", { class: "taggable" },
+    el("span", { class: "lead" },
+      "Drag across a phrase to flag it. Click a single word to flag just that word. Click anywhere in a flagged phrase to remove it."
+    )
+  );
+  const tokens = tokenize(sentence);
+  let wordIdx = 0;
+  const tokenInfo = tokens.map((tok, ti) => {
+    if (/^\s+$/.test(tok)) return { type: "ws", text: tok, ti };
+    return { type: "word", text: tok, wordIdx: wordIdx++, ti };
+  });
+  const wordToPhrase = new Map();
+  phrases.forEach((p, pi) => {
+    for (let i = p.start; i <= p.end; i++) wordToPhrase.set(i, pi);
+  });
+
+  const sc = el("div", { class: "sentence-container", id: "sentenceContainer" });
+  tokenInfo.forEach((info, idx) => {
+    if (info.type === "word") {
+      const flagged = wordToPhrase.has(info.wordIdx);
+      sc.appendChild(el("span", {
+        class: "word" + (flagged ? " flagged" : ""),
+        "data-i": String(info.wordIdx)
+      }, info.text));
+    } else {
+      let prevWord = null;
+      for (let k = idx - 1; k >= 0; k--) if (tokenInfo[k].type === "word") { prevWord = tokenInfo[k]; break; }
+      let nextWord = null;
+      for (let k = idx + 1; k < tokenInfo.length; k++) if (tokenInfo[k].type === "word") { nextWord = tokenInfo[k]; break; }
+      let flagged = false;
+      if (prevWord && nextWord) {
+        const a = wordToPhrase.get(prevWord.wordIdx);
+        const b = wordToPhrase.get(nextWord.wordIdx);
+        flagged = a !== undefined && a === b;
+      }
+      sc.appendChild(el("span", { class: "ws" + (flagged ? " flagged" : "") }, info.text));
+    }
+  });
+
+  sc.addEventListener("mouseup", (e) => {
+    // Try to process a text-selection drag first.
+    if (extractSelectionPhrase(sc, onUpdate)) return;
+    // Otherwise: click-on-word toggles a single-word flag.
+    let target = e.target;
+    while (target && target !== sc && !(target.classList && target.classList.contains("word"))) target = target.parentNode;
+    if (!target || !target.classList || !target.classList.contains("word")) return;
+    const wi = parseInt(target.getAttribute("data-i"), 10);
+    if (isNaN(wi)) return;
+    const pi = findPhraseIdx(phrases, wi);
+    if (pi >= 0) onUpdate({ action: "remove", index: pi });
+    else onUpdate({ action: "add", phrase: { start: wi, end: wi } });
+  });
+
+  let touchStartIdx = null;
+  sc.addEventListener("touchstart", (e) => {
+    let target = e.target;
+    while (target && !(target.classList && target.classList.contains("word"))) target = target.parentNode;
+    touchStartIdx = (target && target.classList && target.classList.contains("word"))
+      ? parseInt(target.getAttribute("data-i"), 10) : null;
+  }, { passive: true });
+  sc.addEventListener("touchend", (e) => {
+    if (touchStartIdx == null) return;
+    const t = e.changedTouches && e.changedTouches[0];
+    if (!t) return;
+    let endTarget = document.elementFromPoint(t.clientX, t.clientY);
+    while (endTarget && !(endTarget.classList && endTarget.classList.contains("word"))) endTarget = endTarget.parentNode;
+    if (!endTarget) { touchStartIdx = null; return; }
+    const endIdx = parseInt(endTarget.getAttribute("data-i"), 10);
+    if (isNaN(endIdx)) { touchStartIdx = null; return; }
+    if (endIdx === touchStartIdx) {
+      const pi = findPhraseIdx(phrases, endIdx);
+      if (pi >= 0) onUpdate({ action: "remove", index: pi });
+      else onUpdate({ action: "add", phrase: { start: endIdx, end: endIdx } });
+    } else {
+      onUpdate({ action: "add", phrase: { start: Math.min(touchStartIdx, endIdx), end: Math.max(touchStartIdx, endIdx) } });
+    }
+    touchStartIdx = null;
+  });
+
+  wrapper.appendChild(sc);
+  const count = phrases.length;
+  wrapper.appendChild(el("div", { class: "flag-count" },
+    count === 0 ? "no phrases flagged yet"
+                : `${count} phrase${count === 1 ? "" : "s"} flagged`));
+  return wrapper;
+}
+
+function bracketed(sentence, phrases) {
+  if (!phrases || phrases.length === 0) return sentence;
+  const sorted = [...phrases].sort((a, b) => a.start - b.start);
+  const tokens = tokenize(sentence);
+  let wordIdx = 0, phraseI = 0, inPhrase = false, result = "";
+  for (const tok of tokens) {
+    if (/^\s+$/.test(tok)) { result += tok; }
+    else {
+      const wi = wordIdx++;
+      if (!inPhrase && phraseI < sorted.length && wi === sorted[phraseI].start) {
+        result += "[["; inPhrase = true;
+      }
+      result += tok;
+      if (inPhrase && wi === sorted[phraseI].end) {
+        result += "]]"; inPhrase = false; phraseI++;
+      }
+    }
+  }
+  return result;
+}
+
+function showError() {
+  if (!state.error) return null;
+  return el("div", { class: "error" }, state.error);
+}
+
+// Render a catalyst block above the textarea. Returns null if no catalyst.
+function renderCatalyst(text) {
+  if (!text) return null;
+  return el("div", { class: "catalyst-block" },
+    el("div", { class: "catalyst-label" }, "idea catalyst"),
+    el("div", { html: formatFeedback(text) })
+  );
+}
+
+// Build a catalyst-button element with the standard wiring. The caller
+// provides a function that builds the prompt to send to Claude, plus a
+// getter / setter for where to store the resulting text.
+function catalystButton({ buildPrompt, getStored, setStored, label }) {
+  const stored = getStored();
+  return el("button", {
+    class: "catalyst",
+    onclick: async () => {
+      state.error = ""; startLoading(); render();
+      try {
+        const text = await callClaude(CATALYST_SYSTEM, buildPrompt(), 400);
+        setStored(text);
+      } catch (err) { state.error = err.message; }
+      stopLoading(); render();
+    },
+    disabled: state.loading
+  }, state.loading
+       ? state.loadingMessage + "…"
+       : (stored ? "another idea catalyst" : (label || "idea catalyst")));
+}
+
+function setTitleBar() {
+  const t = document.getElementById("windowTitle");
+  if (t) t.textContent = "orwell-tutor";
+  const sl = document.getElementById("statusLeft");
+  const sr = document.getElementById("statusRight");
+  if (!sl || !sr) return;
+  let right = "[setup]";
+  if (state.view === "boot")        right = "[boot]";
+  else if (state.view === "setup")  right = "[stage 0/3]";
+  else if (state.view === "stage1") right = `[stage 1/3 · rule ${state.s1RuleIdx + 1}/5 · ${state.s1Cycle}]`;
+  else if (state.view === "stage2") right = `[stage 2/3 · round ${state.s2Round + 1}/5]`;
+  else if (state.view === "stage3") right = "[stage 3/3]";
+  else if (state.view === "done")   right = "[complete]";
+  sl.textContent = "orwell-tutor";
+  sr.textContent = right;
+}
+
+// =======================================================================
+// VIEWS
+// =======================================================================
+
+function bootView() {
+  const lines = BOOT_LINES.slice(0, state.bootStep + 1);
+  // Schedule next step (or transition to setup at end)
+  if (state.bootStep < BOOT_LINES.length - 1) {
+    setTimeout(() => {
+      if (state.view === "boot" && state.bootStep < BOOT_LINES.length - 1) {
+        state.bootStep += 1;
+        render();
+      }
+    }, 240);
+  } else {
+    setTimeout(() => {
+      if (state.view === "boot") {
+        state.view = "setup";
+        render();
+      }
+    }, 700);
+  }
+
+  const isTyping = state.bootStep < BOOT_LINES.length - 1;
+  const text = lines.join("\n");
+  return el("div", {
+    class: "boot-screen",
+    onclick: () => {
+      state.view = "setup";
+      render();
+    }
+  },
+    el("pre", { class: "boot-text" + (isTyping ? " cursor" : "") }, text),
+    el("div", { class: "boot-hint" }, "click anywhere to skip")
+  );
+}
+
+function setupView() {
+  const [quote, attrib] = state.welcomeQuote;
+  return el("div", null,
+    el("blockquote", { class: "epigraph" },
+      `"${quote}"`,
+      el("span", { class: "src" }, " — " + attrib)
+    ),
+    el("div", { class: "stage-label" }, "orwell-tutor --setup"),
+    el("h2", null, "Welcome"),
+    el("p", null,
+      "Paste any prose — an essay, a chapter, an email — and walk through it paragraph by paragraph. For each paragraph you'll see concrete edits drawn from the five rules George Orwell sets out in \"Politics and the English Language\" (1946), and you can accept, edit, or skip each one. At the end you get a clean version you can download."
+    ),
+    el("div", { class: "setup-note" },
+      "API key required. To talk to Claude, this page needs an Anthropic API key. Paste one below to begin. The key is stored only in your browser. For class use, your instructor may have already configured a key for the page."
+    ),
+    el("p", { class: "small" }, "anthropic API key"),
+    el("input", {
+      type: "password", id: "apiKeyInput",
+      placeholder: "sk-ant-api03-…",
+      value: state.apiKey,
+      oninput: (e) => { state.apiKey = e.target.value; }
+    }),
+    el("p", { class: "small" }, "model"),
+    el("select", {
+      id: "modelInput", value: state.model,
+      onchange: (e) => { state.model = e.target.value; }
+    },
+      MODEL_OPTIONS.map(([val, label]) => {
+        const opt = el("option", { value: val }, label);
+        if (val === state.model) opt.selected = true;
+        return opt;
+      })
+    ),
+    showError(),
+    el("div", { class: "actions" },
+      el("button", {
+        onclick: async () => {
+          if (!state.apiKey) { state.error = "please enter an API key."; render(); return; }
+          state.error = ""; startLoading(); render();
+          try {
+            await callClaude("You are a friendly assistant.", "Reply with one word: ready.", 30);
+            try {
+              window.localStorage && window.localStorage.setItem("orwell_api_key", state.apiKey);
+              window.localStorage && window.localStorage.setItem("orwell_model", state.model);
+            } catch (_) {}
+            state.view = "workshop"; stopLoading(); state.error = "";
+          } catch (err) { stopLoading(); state.error = err.message; }
+          render();
+        },
+        disabled: state.loading
+      }, state.loading ? state.loadingMessage + "…" : "begin"),
+      el("button", {
+        class: "secondary",
+        onclick: async () => {
+          if (!state.apiKey) { state.error = "please enter an API key."; render(); return; }
+          state.error = ""; startLoading(); render();
+          try {
+            await callClaude("You are a friendly assistant.", "Reply with one word: ready.", 30);
+            try {
+              window.localStorage && window.localStorage.setItem("orwell_api_key", state.apiKey);
+              window.localStorage && window.localStorage.setItem("orwell_model", state.model);
+            } catch (_) {}
+            ensureStage1Picks();
+            state.view = "stage1"; stopLoading(); state.error = "";
+          } catch (err) { stopLoading(); state.error = err.message; }
+          render();
+        },
+        disabled: state.loading
+      }, "run the rules tutorial instead")
+    )
+  );
+}
+
+function gradeBlock(num, mainText, opts) {
+  opts = opts || {};
+  const showCelebrate = num != null && num >= 90;
+  const colorClass = gradeColorClass(num);
+  const inner = [];
+  if (showCelebrate) inner.push(el("span", { class: "star" }, "★"));
+  inner.push(num != null ? num + "%" : "—");
+  if (showCelebrate) inner.push(el("span", { class: "star" }, "★"));
+  return el("div", { class: "grade-block" },
+    el("div", { class: "grade-num " + colorClass + (showCelebrate ? " celebrate" : "") }, ...inner),
+    el("div", { class: "grade-bar" },
+      el("div", { class: "grade-bar-fill",
+                  style: `width: ${num != null ? num : 0}%; background: ${gradeBarColor(num)};` })
+    ),
+    el("div", { class: "grade-label" },
+      "rewrite grade · 100% = orwell at his best · 65% = floor for honest attempts"),
+    el("div", { class: "grade-explanation feedback", html: formatFeedback(mainText) })
+  );
+}
+
+function stage1View() {
+  ensureStage1Picks();
+  const rule = RULES[state.s1RuleIdx];
+  const cycle = state.s1Cycle;
+  const step = state.s1Step;
+  const ruleNum = rule.num;
+
+  let exObj, sentence, expertNote, sourceCit, sourceOriginal;
+  if (cycle === "made_up") {
+    exObj = state.s1MadeUpPicks[ruleNum];
+    sentence = exObj.corrupted;
+    expertNote = exObj.offenders;
+    sourceCit = null;
+    sourceOriginal = exObj.sourceOriginal;
+  } else {
+    if (!state.s1OrwellPicks[ruleNum]) state.s1OrwellPicks[ruleNum] = pickRealBreaking(ruleNum);
+    exObj = state.s1OrwellPicks[ruleNum];
+    sentence = exObj.sentence;
+    expertNote = exObj.offenders;
+    sourceCit = exObj.source;
+    sourceOriginal = null;
+  }
+
+  const phrasesKey = cycle === "made_up" ? "s1MadeUpPhrases" : "s1OrwellPhrases";
+  const fbKey      = cycle === "made_up" ? "s1MadeUpDiagFb"   : "s1OrwellDiagFb";
+  const reKey      = cycle === "made_up" ? "s1MadeUpRewrite"  : "s1OrwellRewrite";
+  const grKey      = cycle === "made_up" ? "s1MadeUpGradeRaw" : "s1OrwellGradeRaw";
+  const numKey     = cycle === "made_up" ? "s1MadeUpGradeNum" : "s1OrwellGradeNum";
+
+  if (!state[phrasesKey][ruleNum]) state[phrasesKey][ruleNum] = [];
+  const phrases = state[phrasesKey][ruleNum];
+
+  const partLabel = cycle === "made_up"
+    ? "part 1 · corrupted exemplifier"
+    : "part 2 · orwell himself";
+
+  const headerBlock = el("div", null,
+    el("div", { class: "stage-label" },
+      `stage 1 · rule ${rule.num} of 5 · ${partLabel}`),
+    el("div", { class: "rule-quote" },
+      el("span", { class: "num" }, `Rule ${rule.num}.`),
+      `"${rule.quote}"`)
+  );
+
+  function plainSentence() {
+    return el("blockquote", { class: cycle === "orwell" ? "real" : "" },
+      `"${sentence}"`,
+      sourceCit ? el("span", { class: "src" }, sourceCit) : null
+    );
+  }
+
+  if (step === "intro") {
+    return el("div", null,
+      headerBlock,
+      el("div", { class: "heading" },
+        cycle === "made_up" ? "Sentence" : "Sentence (Orwell)"),
+      plainSentence(),
+      el("p", null, `This sentence breaks Rule ${rule.num}. Your job: identify the offending phrase or phrases.`),
+      el("div", { class: "actions" },
+        el("button", { onclick: () => { state.s1Step = "diagnose"; render(); } },
+          "diagnose this sentence")
+      )
+    );
+  }
+
+  if (step === "diagnose" || step === "diagnose_fb") {
+    const onUpdate = (action) => {
+      if (action.action === "add") addPhrase(phrases, action.phrase);
+      else if (action.action === "remove") phrases.splice(action.index, 1);
+      render();
+    };
+    return el("div", null,
+      headerBlock,
+      el("div", { class: "heading" }, "Flag the offending phrases"),
+      renderTaggable(sentence, phrases, onUpdate),
+      step === "diagnose_fb"
+        ? el("div", null,
+            el("div", { class: "heading" }, "Feedback on your diagnosis"),
+            el("div", { class: "feedback", html: formatFeedback(state[fbKey][ruleNum] || "") }))
+        : null,
+      showError(),
+      el("div", { class: "actions" },
+        step === "diagnose"
+          ? el("button", {
+              onclick: async () => {
+                // Safety net: if the user has an active text selection
+                // that hasn't been turned into a phrase yet (e.g. they
+                // released the mouse outside the box), pick it up now.
+                extractSelectionPhrase(
+                  document.getElementById("sentenceContainer"),
+                  (action) => { if (action.action === "add") addPhrase(phrases, action.phrase); }
+                );
+                if (phrases.length === 0) { state.error = "flag at least one phrase before submitting."; render(); return; }
+                state.error = ""; startLoading(); render();
+                try {
+                  const fb = await callClaude(TUTOR_SYSTEM, diagnoseFeedbackPrompt({
+                    rule, sentence, expert: expertNote,
+                    flaggedSentence: bracketed(sentence, phrases),
+                    isReal: cycle === "orwell"
+                  }), 400);
+                  state[fbKey][ruleNum] = fb;
+                  state.s1Step = "diagnose_fb";
+                } catch (err) { state.error = err.message; }
+                stopLoading(); render();
+              },
+              disabled: state.loading
+            }, state.loading ? state.loadingMessage + "…" : "submit diagnosis")
+          : el("button", { onclick: () => { state.s1Step = "rewrite"; render(); } },
+              "continue to rewrite"),
+        step === "diagnose_fb"
+          ? el("button", { class: "secondary",
+              onclick: () => { delete state[fbKey][ruleNum]; state.s1Step = "diagnose"; render(); }
+            }, "revise flagging")
+          : (step === "diagnose" && phrases.length > 0
+              ? el("button", { class: "secondary",
+                  onclick: () => { state[phrasesKey][ruleNum] = []; render(); }
+                }, "clear all flags")
+              : null)
+      )
+    );
+  }
+
+  if (step === "rewrite" || step === "grade") {
+    const rewriteText = state[reKey][ruleNum] || "";
+    const gradeNum = state[numKey][ruleNum];
+    const gradeRaw = state[grKey][ruleNum] || "";
+    const catKey = cycle === "made_up" ? "s1MadeUpCatalyst" : "s1OrwellCatalyst";
+    const catalystText = state[catKey][ruleNum] || "";
+
+    const advance = () => {
+      // Reset the catalyst as we move on; catalysts are tied to the
+      // particular sentence the student is rewriting.
+      delete state[catKey][ruleNum];
+      if (cycle === "made_up") { state.s1Cycle = "orwell"; state.s1Step = "intro"; }
+      else if (state.s1RuleIdx < 4) { state.s1RuleIdx += 1; state.s1Cycle = "made_up"; state.s1Step = "intro"; }
+      else { state.view = "stage2"; state.s2Round = 0; state.s2Phase = "intro"; }
+      render();
+    };
+
+    let advanceLabel;
+    if (cycle === "made_up") advanceLabel = "continue to part 2 · orwell";
+    else if (state.s1RuleIdx < 4) advanceLabel = `continue to rule ${state.s1RuleIdx + 2}`;
+    else advanceLabel = "continue to stage 2";
+
+    let gradeUI = null;
+    if (step === "grade") {
+      if (cycle === "made_up" && sourceOriginal) {
+        const split = splitGradeResponse(gradeRaw);
+        gradeUI = el("div", null,
+          gradeBlock(gradeNum, split.main),
+          el("div", { class: "reveal-block" },
+            el("div", { class: "reveal-label" }, "Reveal · the original Orwell sentence"),
+            el("blockquote", { class: "original" },
+              `"${sourceOriginal}"`,
+              el("span", { class: "src" }, exObj.sourceCitation || "")
+            ),
+            split.comparison
+              ? el("div", null,
+                  el("div", { class: "reveal-label" }, "Compared with your rewrite"),
+                  el("div", { class: "feedback", html: formatFeedback(split.comparison) }))
+              : null
+          )
+        );
+      } else {
+        // Orwell-cycle grade — Claude has produced its own rewrite plus
+        // a brief compare/contrast against the student's. Show them.
+        const split = splitGradeResponse(gradeRaw);
+        gradeUI = el("div", null,
+          gradeBlock(gradeNum, split.main),
+          (split.myRewrite || split.comparison)
+            ? el("div", { class: "reveal-block" },
+                split.myRewrite
+                  ? el("div", null,
+                      el("div", { class: "reveal-label" }, "My rewrite"),
+                      el("blockquote", { class: "original" }, `"${split.myRewrite}"`))
+                  : null,
+                split.comparison
+                  ? el("div", null,
+                      el("div", { class: "reveal-label" }, "Compared with yours"),
+                      el("div", { class: "feedback", html: formatFeedback(split.comparison) }))
+                  : null
+              )
+            : null
+        );
+      }
+    }
+
+    const catalystBtn = step === "rewrite"
+      ? catalystButton({
+          buildPrompt: () => cycle === "made_up"
+            ? catalystStage1CorruptedPrompt({ rule, sentence, sourceOriginal })
+            : catalystStage1OrwellPrompt({ rule, sentence, gradeNote: exObj.gradeNote }),
+          getStored: () => state[catKey][ruleNum],
+          setStored: (t) => { state[catKey][ruleNum] = t; }
+        })
+      : null;
+
+    return el("div", null,
+      headerBlock,
+      el("div", { class: "heading" },
+        cycle === "made_up" ? "Sentence" : "Sentence (Orwell)"),
+      plainSentence(),
+      el("div", { class: "heading" }, "Your rewrite"),
+      el("p", null, `Rewrite the sentence so it obeys Rule ${rule.num}. Keep the meaning intact.`),
+      step === "rewrite" ? renderCatalyst(catalystText) : null,
+      el("textarea", {
+        id: "s1Rewrite_" + ruleNum + "_" + cycle,
+        placeholder: "your rewrite…",
+        value: rewriteText,
+        oninput: (e) => { state[reKey][ruleNum] = e.target.value; }
+      }),
+      gradeUI,
+      showError(),
+      el("div", { class: "actions" },
+        step === "rewrite"
+          ? el("button", {
+              onclick: async () => {
+                const rew = state[reKey][ruleNum] || "";
+                if (!rew.trim()) { state.error = "please type your rewrite first."; render(); return; }
+                state.error = ""; startLoading(); render();
+                try {
+                  const raw = await callClaude(TUTOR_SYSTEM, gradePrompt({
+                    rule, sentence,
+                    studentRewrite: rew,
+                    isReal: cycle === "orwell",
+                    sourceOriginal,
+                    sourceCitation: exObj.sourceCitation,
+                    gradeNote: cycle === "orwell" ? exObj.gradeNote : undefined
+                  }), 700);
+                  state[grKey][ruleNum] = raw;
+                  state[numKey][ruleNum] = parseGrade(raw);
+                  state.s1Step = "grade";
+                } catch (err) { state.error = err.message; }
+                stopLoading(); render();
+              },
+              disabled: state.loading
+            }, state.loading ? state.loadingMessage + "…" : "submit for grading")
+          : el("button", { onclick: advance }, advanceLabel),
+        catalystBtn,
+        step === "grade"
+          ? el("button", { class: "secondary",
+              onclick: () => {
+                delete state[grKey][ruleNum]; delete state[numKey][ruleNum];
+                state.s1Step = "rewrite"; render();
+              }
+            }, "try a different rewrite")
+          : null
+      )
+    );
+  }
+
+  return null;
+}
+
+function stage2View() {
+  const round = STAGE2_ROUNDS[state.s2Round];
+  const phase = state.s2Phase;
+  const headerBlock = el("div", null,
+    el("div", { class: "stage-label" },
+      `stage 2 · round ${state.s2Round + 1} of 5 · identify the broken rule`),
+    el("h2", null, "Stage 2 · Diagnosis")
+  );
+
+  if (phase === "intro") {
+    return el("div", null,
+      headerBlock,
+      el("p", null, "I have taken a real Orwell sentence and corrupted it so that it now breaks one — and only one — of his five rules. Read it, then tell me which rule it breaks. After that you'll rewrite it, and we'll compare your rewrite with Orwell's original."),
+      el("blockquote", null, `"${round.corrupted}"`),
+      el("div", { class: "actions" },
+        el("button", { onclick: () => { state.s2Phase = "identify"; render(); } },
+          "show me the rule choices")
+      )
+    );
+  }
+
+  if (phase === "identify" || phase === "identify_feedback") {
+    return el("div", null,
+      headerBlock,
+      el("div", { class: "heading" }, "Corrupted passage"),
+      el("blockquote", null, `"${round.corrupted}"`),
+      el("div", { class: "heading" }, "Which Orwell rule does this passage break?"),
+      el("div", { class: "choices" },
+        RULES.map((r, i) => {
+          const sel = state.s2Selection === r.num;
+          return el("label", { class: "choice" + (sel ? " selected" : "") },
+            el("input", {
+              type: "radio", name: "rule",
+              value: r.num,
+              checked: sel,
+              onchange: () => { state.s2Selection = r.num; render(); }
+            }),
+            el("div", { class: "marker" }, `[${i + 1}]`),
+            el("div", null,
+              el("div", null,
+                el("span", { class: "label-rule" }, `Rule ${r.num}.`),
+                " ", r.short),
+              el("div", { class: "small" }, r.quote)
+            )
+          );
+        })
+      ),
+      showError(),
+      phase === "identify_feedback"
+        ? el("div", null,
+            el("div", { class: "heading" },
+              state.s2GotItRight ? "Correct" : "Not quite"),
+            el("div", { class: "feedback", html: formatFeedback(state.s2IdentifyFeedback) }))
+        : null,
+      el("div", { class: "actions" },
+        phase === "identify"
+          ? el("button", {
+              onclick: async () => {
+                if (state.s2Selection == null) { state.error = "pick one of the five rules."; render(); return; }
+                state.error = ""; startLoading(); render();
+                try {
+                  const choice = RULES.find(r => r.num === state.s2Selection);
+                  const correct = RULES.find(r => r.num === round.brokenRule);
+                  state.s2GotItRight = state.s2Selection === round.brokenRule;
+                  const fb = await callClaude(TUTOR_SYSTEM, identifyFeedbackPrompt({
+                    round, studentChoice: choice, correctRule: correct
+                  }), 400);
+                  state.s2IdentifyFeedback = fb;
+                  state.s2Phase = "identify_feedback";
+                } catch (err) { state.error = err.message; }
+                stopLoading(); render();
+              },
+              disabled: state.loading
+            }, state.loading ? state.loadingMessage + "…" : "submit guess")
+          : el("button", { onclick: () => { state.s2Phase = "rewrite"; render(); } },
+              "now rewrite the passage")
+      )
+    );
+  }
+
+  if (phase === "rewrite" || phase === "compare") {
+    const broken = RULES.find(r => r.num === round.brokenRule);
+    const catalystBtn = phase === "rewrite"
+      ? catalystButton({
+          buildPrompt: () => catalystStage2Prompt({ round }),
+          getStored: () => state.s2Catalyst,
+          setStored: (t) => { state.s2Catalyst = t; }
+        })
+      : null;
+    return el("div", null,
+      headerBlock,
+      el("div", { class: "heading" }, "Corrupted passage"),
+      el("blockquote", null, `"${round.corrupted}"`),
+      el("p", { class: "small" },
+        `(breaks Rule ${broken.num}: "${broken.quote}")`
+      ),
+      el("div", { class: "heading" }, "Your rewrite"),
+      el("p", null, `Rewrite the corrupted passage so it obeys Rule ${broken.num}. Don't try to recover Orwell's exact words — write your own.`),
+      phase === "rewrite" ? renderCatalyst(state.s2Catalyst) : null,
+      el("textarea", {
+        id: "s2Rewrite",
+        placeholder: "your rewrite…",
+        value: state.s2Rewrite,
+        oninput: (e) => { state.s2Rewrite = e.target.value; }
+      }),
+      showError(),
+      phase === "compare"
+        ? el("div", null,
+            el("div", { class: "heading" }, "Orwell's original"),
+            el("blockquote", { class: "real" },
+              `"${round.original}"`,
+              el("span", { class: "src" }, round.originalSource)
+            ),
+            el("div", { class: "heading" }, "How your rewrite stacks up"),
+            el("div", { class: "feedback", html: formatFeedback(state.s2CompareFeedback) })
+          )
+        : null,
+      el("div", { class: "actions" },
+        phase === "rewrite"
+          ? el("button", {
+              onclick: async () => {
+                if (!state.s2Rewrite.trim()) { state.error = "type your rewrite first."; render(); return; }
+                state.error = ""; startLoading(); render();
+                try {
+                  const fb = await callClaude(TUTOR_SYSTEM, comparePrompt({
+                    round, studentRewrite: state.s2Rewrite
+                  }), 500);
+                  state.s2CompareFeedback = fb;
+                  state.s2Phase = "compare";
+                } catch (err) { state.error = err.message; }
+                stopLoading(); render();
+              },
+              disabled: state.loading
+            }, state.loading ? state.loadingMessage + "…" : "compare with orwell")
+          : el("button", {
+              onclick: () => {
+                if (state.s2Round < 4) {
+                  state.s2Round += 1; state.s2Phase = "intro"; state.s2Selection = null;
+                  state.s2IdentifyFeedback = ""; state.s2Rewrite = ""; state.s2CompareFeedback = "";
+                  state.s2Catalyst = "";
+                } else { state.view = "stage3"; state.s3Phase = "intro"; }
+                render();
+              }
+            }, state.s2Round < 4 ? `continue to round ${state.s2Round + 2}` : "continue to stage 3"),
+        catalystBtn,
+        phase === "compare"
+          ? el("button", { class: "secondary",
+              onclick: () => { state.s2CompareFeedback = ""; state.s2Phase = "rewrite"; render(); }
+            }, "try a different rewrite")
+          : null
+      )
+    );
+  }
+  return null;
+}
+
+function stage3View() {
+  const phase = state.s3Phase;
+  const headerBlock = el("div", null,
+    el("div", { class: "stage-label" }, "stage 3 · your own writing"),
+    el("h2", null, "Stage 3 · A paragraph of your own")
+  );
+
+  if (phase === "intro") {
+    return el("div", null,
+      headerBlock,
+      el("p", null, "Now we work on your own prose. Paste a paragraph from a paper, an essay draft, an email — anything you've written. I'll read it through Orwell's full rubric (the famous five rules and the broader rules behind them) and identify the problems Orwell would have flagged. Then you'll rewrite, and I'll judge how much it has improved — with the freedom to disagree with Orwell where the disagreement earns its keep."),
+      el("textarea", {
+        id: "s3Original",
+        placeholder: "paste a paragraph (one to four sentences is plenty)…",
+        value: state.s3Original,
+        oninput: (e) => { state.s3Original = e.target.value; }
+      }),
+      showError(),
+      el("div", { class: "actions" },
+        el("button", {
+          onclick: async () => {
+            if (state.s3Original.trim().split(/\s+/).length < 12) {
+              state.error = "please paste at least a sentence or two (12+ words).";
+              render(); return;
+            }
+            state.error = ""; startLoading(); render();
+            try {
+              const fb = await callClaude(TUTOR_SYSTEM, critiquePrompt(state.s3Original), 700);
+              state.s3Critique = fb;
+              state.s3Phase = "critique";
+            } catch (err) { state.error = err.message; }
+            stopLoading(); render();
+          },
+          disabled: state.loading
+        }, state.loading ? state.loadingMessage + "…" : "run orwell's rubric")
+      )
+    );
+  }
+
+  if (phase === "critique" || phase === "rewrite") {
+    const catalystBtn = catalystButton({
+      buildPrompt: () => catalystStage3Prompt(state.s3Original, state.s3Critique),
+      getStored: () => state.s3Catalyst,
+      setStored: (t) => { state.s3Catalyst = t; }
+    });
+    return el("div", null,
+      headerBlock,
+      el("div", { class: "heading" }, "Your paragraph"),
+      el("blockquote", null, `"${state.s3Original}"`),
+      el("div", { class: "heading" }, "Orwell's objections"),
+      el("div", { class: "feedback", html: formatFeedback(state.s3Critique) }),
+      el("div", { class: "heading" }, "Your rewrite"),
+      el("p", null, "Now rewrite the paragraph in light of the critique above. Take what is useful and ignore what isn't — you can defend departures from Orwell when you submit."),
+      renderCatalyst(state.s3Catalyst),
+      el("textarea", {
+        id: "s3Rewrite",
+        placeholder: "your rewritten paragraph…",
+        value: state.s3Rewrite,
+        oninput: (e) => { state.s3Rewrite = e.target.value; }
+      }),
+      showError(),
+      el("div", { class: "actions" },
+        el("button", {
+          onclick: async () => {
+            if (!state.s3Rewrite.trim()) { state.error = "type your rewrite first."; render(); return; }
+            state.error = ""; startLoading(); render();
+            try {
+              const fb = await callClaude(TUTOR_SYSTEM, reassessPrompt(state.s3Original, state.s3Rewrite), 800);
+              state.s3Reassess = fb;
+              state.s3Phase = "reassess";
+            } catch (err) { state.error = err.message; }
+            stopLoading(); render();
+          },
+          disabled: state.loading
+        }, state.loading ? state.loadingMessage + "…" : "assess my rewrite"),
+        catalystBtn
+      )
+    );
+  }
+
+  if (phase === "reassess") {
+    return el("div", null,
+      headerBlock,
+      el("div", { class: "heading" }, "Original"),
+      el("blockquote", { class: "original" }, `"${state.s3Original}"`),
+      el("div", { class: "heading" }, "Rewrite"),
+      el("blockquote", { class: "student" }, `"${state.s3Rewrite}"`),
+      el("div", { class: "heading" }, "Verdict"),
+      el("div", { class: "feedback", html: formatFeedback(state.s3Reassess) }),
+      el("div", { class: "actions" },
+        el("button", { class: "secondary",
+          onclick: () => { state.s3Reassess = ""; state.s3Phase = "rewrite"; render(); }
+        }, "try another rewrite"),
+        el("div", { class: "spacer" }),
+        el("button", { onclick: () => { state.view = "done"; render(); } }, "finish")
+      )
+    );
+  }
+  return null;
+}
+
+function doneView() {
+  return el("div", { class: "done-msg" },
+    el("h2", null, "Session complete."),
+    el("p", null, "You've worked through all three stages. If you want to take another paragraph through Stage 3, you can keep going. Otherwise, your homework is to apply this to the next thing you write."),
+    el("blockquote", null,
+      "\"If one gets rid of these habits one can think more clearly, and to think clearly is a necessary first step towards political regeneration: so that the fight against bad English is not frivolous and is not the exclusive concern of professional writers.\"",
+      el("span", { class: "src" }, "Orwell, 'Politics and the English Language', 1946")
+    ),
+    el("div", { class: "actions" },
+      el("button", {
+        onclick: () => {
+          state.s3Phase = "intro";
+          state.s3Original = ""; state.s3Critique = "";
+          state.s3Rewrite = ""; state.s3Reassess = "";
+          state.s3Catalyst = "";
+          state.view = "stage3"; render();
+        }
+      }, "run stage 3 on another paragraph"),
+      el("button", {
+        class: "secondary",
+        onclick: () => {
+          const key = state.apiKey, mod = state.model;
+          for (const k of Object.keys(state)) delete state[k];
+          Object.assign(state, {
+            view: "stage1", apiKey: key, model: mod,
+            loading: false, loadingMessage: "", error: "",
+            welcomeQuote: pickWelcomeQuote(),
+            bootStep: 0,
+            s1RuleIdx: 0, s1Cycle: "made_up", s1Step: "intro",
+            s1MadeUpPicks: {}, s1MadeUpPhrases: {}, s1MadeUpDiagFb: {},
+            s1MadeUpRewrite: {}, s1MadeUpGradeRaw: {}, s1MadeUpGradeNum: {},
+            s1MadeUpCatalyst: {},
+            s1OrwellPicks: {},
+            s1OrwellPhrases: {}, s1OrwellDiagFb: {},
+            s1OrwellRewrite: {}, s1OrwellGradeRaw: {}, s1OrwellGradeNum: {},
+            s1OrwellCatalyst: {},
+            s2Round: 0, s2Phase: "intro", s2Selection: null,
+            s2IdentifyFeedback: "", s2GotItRight: null,
+            s2Rewrite: "", s2CompareFeedback: "", s2Catalyst: "",
+            s3Phase: "intro", s3Original: "",
+            s3Critique: "", s3Rewrite: "", s3Reassess: "", s3Catalyst: ""
+          });
+          ensureStage1Picks();
+          render();
+        }
+      }, "start over from stage 1")
+    )
+  );
+}
+
+// =======================================================================
+// WORKSHOP VIEW
+// =======================================================================
+
+async function loadWorkshopParagraph(i) {
+  const para = state.wsParagraphs[i];
+  if (!para || para.loaded) return;
+  startLoading(); render();
+  try {
+    const raw = await callClaude(TUTOR_SYSTEM, workshopPrompt(para.text), 1400);
+    const parsed = parseWorkshopResponse(raw);
+    para.summary = parsed.summary;
+    para.suggestions = parsed.suggestions;
+    para.decisions = {};
+    para.loaded = true;
+    para.error = parsed.error;
+  } catch (err) {
+    para.error = err.message;
+  }
+  stopLoading(); render();
+}
+
+function workshopView() {
+  const headerBlock = el("div", null,
+    el("div", { class: "stage-label" }, "workshop · paragraph by paragraph"),
+    el("h2", null, "Orwell Workshop")
+  );
+
+  if (state.wsPhase === "intro") {
+    return el("div", null,
+      headerBlock,
+      el("p", null, "Paste any prose — an essay, a chapter, an email — and I'll walk through it paragraph by paragraph, applying Orwell's five rules. For each paragraph you'll see concrete suggested edits you can accept, edit, or skip. At the end you get a clean version assembled from your decisions."),
+      el("textarea", {
+        id: "wsRaw",
+        placeholder: "paste your text (separate paragraphs with a blank line)…",
+        style: "min-height: 220px;",
+        value: state.wsRaw,
+        oninput: (e) => { state.wsRaw = e.target.value; }
+      }),
+      showError(),
+      el("div", { class: "actions" },
+        el("button", {
+          onclick: async () => {
+            const paras = splitIntoParagraphs(state.wsRaw);
+            if (paras.length === 0) {
+              state.error = "paste some text first."; render(); return;
+            }
+            state.error = "";
+            state.wsParagraphs = paras.map(t => ({
+              text: t, summary: "", suggestions: [],
+              decisions: {}, loaded: false, error: ""
+            }));
+            state.wsIdx = 0;
+            state.wsPhase = "working";
+            render();
+            await loadWorkshopParagraph(0);
+          },
+          disabled: state.loading
+        }, state.loading ? state.loadingMessage + "…" : "begin workshop")
+      )
+    );
+  }
+
+  if (state.wsPhase === "working") {
+    const i = state.wsIdx;
+    const para = state.wsParagraphs[i];
+    const total = state.wsParagraphs.length;
+    const progress = el("div", { class: "stage-label" },
+      `paragraph ${i + 1} of ${total}`);
+
+    if (!para.loaded && state.loading) {
+      return el("div", null, headerBlock, progress,
+        el("blockquote", null, `"${para.text}"`),
+        el("p", { class: "small" }, state.loadingMessage + "…"));
+    }
+
+    if (para.error) {
+      return el("div", null, headerBlock, progress,
+        el("blockquote", null, `"${para.text}"`),
+        el("p", { class: "small" }, "error: " + para.error),
+        el("div", { class: "actions" },
+          el("button", { onclick: async () => {
+            para.error = ""; para.loaded = false;
+            await loadWorkshopParagraph(i);
+          }}, "retry")));
+    }
+
+    const cards = para.suggestions.map((s, idx) => {
+      const d = para.decisions[idx] || { accepted: false, skipped: false, edited: null };
+      const ruleQuote = (RULES.find(r => r.num === s.rule_num) || {}).quote || "";
+      const editingValue = d.edited != null ? d.edited : s.suggested;
+      return el("div", {
+        class: "choice",
+        style: d.skipped ? "opacity: 0.5;" : null
+      },
+        el("div", { class: "label-rule" },
+          `Rule ${s.rule_num}${ruleQuote ? " — " + ruleQuote : ""}`),
+        el("p", null,
+          el("strong", null, "flagged: "),
+          el("em", null, `"${s.phrase}"`)),
+        s.why ? el("p", { class: "small" }, s.why) : null,
+        el("p", null, el("strong", null, "suggested: ")),
+        el("textarea", {
+          style: "min-height: 60px;",
+          value: editingValue,
+          oninput: (e) => {
+            para.decisions[idx] = {
+              accepted: d.accepted,
+              edited: e.target.value === s.suggested ? null : e.target.value
+            };
+          }
+        }),
+        el("div", { class: "actions" },
+          el("button", {
+            class: d.accepted ? "" : "secondary",
+            onclick: () => {
+              const cur = para.decisions[idx] || { accepted: false, skipped: false, edited: null };
+              para.decisions[idx] = { accepted: true, skipped: false, edited: cur.edited };
+              render();
+            }
+          }, d.accepted ? "✓ accepted" : "accept"),
+          el("button", {
+            class: d.skipped ? "danger" : "secondary",
+            onclick: () => {
+              const cur = para.decisions[idx] || { accepted: false, skipped: false, edited: null };
+              para.decisions[idx] = { accepted: false, skipped: true, edited: cur.edited };
+              render();
+            }
+          }, d.skipped ? "✗ skipped" : "skip")
+        )
+      );
+    });
+
+    const preview = applyDecisions(para.text, para.suggestions, para.decisions);
+    const noChanges = preview === para.text;
+
+    return el("div", null,
+      headerBlock,
+      progress,
+      el("div", { class: "heading" }, "Original paragraph"),
+      el("blockquote", { class: "original" }, `"${para.text}"`),
+      para.summary ? el("p", { class: "small" }, para.summary) : null,
+      para.suggestions.length === 0
+        ? el("p", null, "No edits suggested for this paragraph.")
+        : el("div", { class: "heading" }, "Suggested edits"),
+      ...cards,
+      el("div", { class: "heading" }, "Working revision"),
+      el("blockquote", { class: noChanges ? "" : "student" }, `"${preview}"`),
+      showError(),
+      el("div", { class: "actions" },
+        i > 0 ? el("button", { class: "secondary",
+          onclick: () => { state.wsIdx = i - 1; render(); }
+        }, "← previous") : null,
+        el("div", { class: "spacer" }),
+        i < total - 1
+          ? el("button", {
+              onclick: async () => {
+                state.wsIdx = i + 1;
+                render();
+                await loadWorkshopParagraph(i + 1);
+              }
+            }, "next paragraph →")
+          : el("button", {
+              onclick: () => { state.wsPhase = "done"; render(); }
+            }, "finish workshop")
+      )
+    );
+  }
+
+  if (state.wsPhase === "done") {
+    const revisedParas = state.wsParagraphs
+      .map(p => applyDecisions(p.text, p.suggestions, p.decisions));
+    const cleanedMd = revisedParas.join("\n\n");
+    const accepted = state.wsParagraphs.reduce((n, p) =>
+      n + Object.values(p.decisions).filter(d => d && d.accepted).length, 0);
+    const offered = state.wsParagraphs.reduce((n, p) => n + p.suggestions.length, 0);
+    const renderParas = (paras, klass) =>
+      el("blockquote", { class: klass, style: "white-space: pre-wrap;" },
+        paras.map((t, i) => el("p", { style: i === 0 ? "margin-top: 0;" : null }, t))
+      );
+    return el("div", null,
+      headerBlock,
+      el("p", null, `You accepted ${accepted} of ${offered} suggested edits across ${state.wsParagraphs.length} paragraph${state.wsParagraphs.length === 1 ? "" : "s"}.`),
+      el("div", { class: "heading" }, "Original"),
+      renderParas(state.wsParagraphs.map(p => p.text), "original"),
+      el("div", { class: "heading" }, "Revised"),
+      renderParas(revisedParas, "student"),
+      el("div", { class: "actions" },
+        el("button", { class: "secondary",
+          onclick: () => { state.wsPhase = "working"; state.wsIdx = 0; render(); }
+        }, "back to edits"),
+        el("button", {
+          onclick: () => {
+            const blob = new Blob([cleanedMd + "\n"], { type: "text/markdown" });
+            const url = URL.createObjectURL(blob);
+            const stamp = new Date().toISOString().slice(0, 10);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `orwell-revised-${stamp}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+        }, "download .md"),
+        el("div", { class: "spacer" }),
+        el("button", {
+          onclick: () => {
+            state.wsPhase = "intro"; state.wsRaw = "";
+            state.wsParagraphs = []; state.wsIdx = 0;
+            render();
+          }
+        }, "workshop another text")
+      )
+    );
+  }
+  return null;
+}
+
+// =======================================================================
+// INTRO VIEW (hosted version)
+// =======================================================================
+
+function introView() {
+  return el("div", null,
+    el("div", { class: "stage-label" }, "orwell-tutor"),
+    el("h2", null, "Politics and the English Language"),
+    el("p", null,
+      "In 1946 George Orwell wrote a short essay arguing that the decay of language is bound up with the decay of thought — that worn-out metaphors, vague jargon, and the passive voice let writers say things they don't mean and readers absorb things they wouldn't accept if put plainly. \"If thought corrupts language,\" he wrote, \"language can also corrupt thought.\""),
+    el("p", null,
+      "At the end of the essay he offered six rules. They are deliberately blunt — the point isn't to be a stickler, it's to make you stop and notice when your sentences have gone slack."),
+    el("div", { class: "heading" }, "Orwell's six rules"),
+    el("ol", { style: "padding-left: 1.4em; margin: 8px 0 16px;" },
+      el("li", null, "Never use a metaphor, simile, or other figure of speech which you are used to seeing in print."),
+      el("li", null, "Never use a long word where a short one will do."),
+      el("li", null, "If it is possible to cut a word out, always cut it out."),
+      el("li", null, "Never use the passive where you can use the active."),
+      el("li", null, "Never use a foreign phrase, a scientific word, or a jargon word if you can think of an everyday English equivalent."),
+      el("li", null, "Break any of these rules sooner than say anything outright barbarous.")
+    ),
+    el("div", { class: "heading" }, "Two ways to use this"),
+    el("p", null,
+      el("strong", null, "Workshop "),
+      "— paste any prose you've written and walk through it paragraph by paragraph. For each paragraph you'll get concrete suggested edits drawn from the rules above; accept, edit, or skip each one, then download the revised text. This is the main attraction."),
+    el("p", null,
+      el("strong", null, "Tutorial "),
+      "— a slower, three-stage drill: practice each rule on corrupted Orwell sentences, then identify which rule a passage breaks, then run a paragraph of your own through the full rubric. Useful if you want to internalise the rules before applying them."),
+    el("div", { class: "actions" },
+      el("button", {
+        onclick: () => { state.view = "workshop"; render(); }
+      }, "begin workshop"),
+      el("button", {
+        class: "secondary",
+        onclick: () => {
+          ensureStage1Picks();
+          state.view = "stage1";
+          render();
+        }
+      }, "run the full tutorial instead")
+    )
+  );
+}
+
+// =======================================================================
+// MAIN RENDER
+// =======================================================================
+
+function render() {
+  const root = document.getElementById("root");
+  while (root.firstChild) root.removeChild(root.firstChild);
+  let view;
+  switch (state.view) {
+    case "boot":   view = bootView();   break;
+    case "setup":  view = setupView();  break;
+    case "intro":  view = introView();  break;
+    case "stage1": view = stage1View(); break;
+    case "stage2": view = stage2View(); break;
+    case "stage3": view = stage3View(); break;
+    case "workshop": view = workshopView(); break;
+    case "done":   view = doneView();   break;
+    default:       view = setupView();  break;
+  }
+  if (view) {
+    const tutorialViews = ["stage1", "stage2", "stage3", "done"];
+    if (tutorialViews.indexOf(state.view) !== -1) {
+      const back = el("a", {
+        href: "#",
+        style: "color: var(--comment); font-size: 11px; text-decoration: none; display: inline-block; margin-bottom: 12px;",
+        onclick: (e) => {
+          e.preventDefault();
+          state.view = "intro";
+          render();
+        }
+      }, "← back to main screen");
+      root.appendChild(back);
+    }
+    root.appendChild(view);
+  }
+  setTitleBar();
+}
+
+if (state.apiKey && EMBEDDED_API_KEY) state.view = "workshop";
+installGlobalSelectionCatcher();
+render();
+</script>
+</body>
+</html>
