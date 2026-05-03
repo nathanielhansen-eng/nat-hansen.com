@@ -14,6 +14,13 @@ const tools = [
       "Paste any prose — an essay, a chapter, an email — and walk through it paragraph by paragraph. For each paragraph the tool suggests concrete edits drawn from the five rules George Orwell sets out in “Politics and the English Language” (1946); accept, edit, or skip each one, then download the revised text as Markdown.",
     note: "Password required.",
   },
+  {
+    slug: "private/minitrue",
+    title: "Ministry of Truth — Document Compliance Office",
+    blurb:
+      "Submit any document to the Ministry of Truth for thoughtcrime screening. Suspect passages are excised, the text is rewritten in approved Newspeak per the Eleventh Edition of the Newspeak Dictionary, and a Certified Thoughtcrime-Free version is returned for printing. A teaching companion to the Orwell Workshop — the cure and the disease.",
+    note: "Password required.",
+  },
 ];
 
 export default function ToolsPage() {

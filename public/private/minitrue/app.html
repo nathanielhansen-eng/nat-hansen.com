@@ -1,0 +1,958 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ministry of Truth — Document Compliance Office</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:        #f4f1ea;
+    --paper-soft:   #ffffff;
+    --ink:          #1a1a1a;
+    --ink-soft:     #555555;
+    --rule:         #1a1a1a;
+    --rule-soft:    #cfc8b8;
+    --red:          #8a0000;
+    --red-soft:     #c44;
+    --redact:       #8a0000;
+    --stamp:        #8a0000;
+    --field-bg:     #fafafa;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+  .page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 36px 28px 72px;
+  }
+  .seal {
+    border: 2px solid var(--ink);
+    background: var(--paper-soft);
+    padding: 22px 28px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .seal-tag {
+    position: absolute;
+    top: -10px;
+    left: 22px;
+    background: var(--paper);
+    padding: 0 10px;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 400;
+  }
+  .seal h1 {
+    margin: 0 0 8px;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .seal h2 {
+    margin: 0 0 10px;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+  }
+  .seal p {
+    margin: 0;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .seal-meta {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--rule-soft);
+    margin-top: 16px;
+    padding-top: 12px;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+  }
+
+  h3.section {
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--ink);
+    padding: 12px 16px;
+    margin: 32px 0 16px;
+    border-left: 8px solid var(--red);
+  }
+  h3.section .num {
+    color: var(--red-soft);
+    margin-right: 10px;
+    font-weight: 900;
+  }
+
+  label.field-label {
+    display: block;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 260px;
+    border: 1px solid var(--ink);
+    background: var(--field-bg);
+    padding: 16px 18px;
+    font-family: "Special Elite", "Courier Prime", "IBM Plex Mono", "Courier New", Courier, monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink);
+    outline: none;
+    border-radius: 0;
+    resize: vertical;
+  }
+
+  .word-count {
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  .actions { display: flex; gap: 12px; margin-top: 18px; align-items: center; }
+  .actions .spacer { flex: 1; }
+  button {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 13px 28px;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    cursor: pointer;
+    border-radius: 0;
+  }
+  button.secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+  }
+  button:hover { opacity: 0.85; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .notice {
+    border-left: 4px solid var(--red);
+    background: #fff;
+    padding: 14px 18px;
+    margin: 14px 0 22px;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 10px;
+    line-height: 1.85;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+  .notice strong { color: var(--red); font-weight: 400; letter-spacing: 0.12em; }
+  .notice em { font-style: normal; color: var(--red); letter-spacing: 0.06em; }
+
+  .progress-block {
+    background: #fff;
+    border: 1px solid var(--rule);
+    padding: 22px 24px;
+    margin-top: 18px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: var(--ink);
+  }
+  .progress-bar {
+    height: 6px;
+    background: #e6e0d0;
+    margin: 14px 0;
+    position: relative;
+  }
+  .progress-bar > span {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: var(--red);
+    transition: width 0.6s ease-out;
+    width: 0;
+  }
+  .progress-line { margin: 4px 0; }
+  .progress-line .ok { color: #2e7d32; }
+  .progress-line .pend { color: var(--ink-soft); }
+  .progress-line .live { color: var(--red); font-weight: 700; }
+
+  .doc-block {
+    background: #fff;
+    border: 1px solid var(--rule);
+    padding: 20px 24px;
+    margin-bottom: 18px;
+  }
+  .doc-block.original {
+    font-family: "Special Elite", "Courier Prime", "IBM Plex Mono", "Courier New", Courier, monospace;
+    font-size: 14px;
+    line-height: 1.85;
+  }
+  .doc-block.newspeak {
+    background: #fff8e8;
+    border-color: var(--ink);
+    font-family: "Special Elite", "Courier Prime", "IBM Plex Mono", "Courier New", Courier, monospace;
+    font-size: 14px;
+    line-height: 1.85;
+  }
+  .doc-block p { margin: 0 0 1em; }
+  .doc-block p:last-child { margin-bottom: 0; }
+
+  .censored {
+    color: var(--redact);
+    text-decoration: line-through;
+    text-decoration-color: var(--redact);
+    text-decoration-thickness: 2px;
+    background: rgba(138, 0, 0, 0.06);
+    padding: 0 2px;
+    position: relative;
+  }
+  sup.crime-tag {
+    color: var(--redact);
+    font-weight: 700;
+    font-size: 10px;
+    margin: 0 2px 0 3px;
+    vertical-align: super;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .assessment-block {
+    background: #fff;
+    border: 2px solid var(--ink);
+    margin-bottom: 18px;
+  }
+  .assessment-block h4 {
+    margin: 0;
+    padding: 10px 14px;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #fff;
+    background: var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+  .assessment-block ol {
+    margin: 0;
+    padding: 18px 22px 18px 44px;
+    font-family: "Special Elite", "Courier Prime", "IBM Plex Mono", "Courier New", Courier, monospace;
+    font-size: 16px;
+    line-height: 1.85;
+    color: var(--ink);
+  }
+  .assessment-block ol li { margin-bottom: 12px; }
+  .assessment-block ol li:last-child { margin-bottom: 0; }
+  .assessment-block ol li b {
+    font-family: "Michroma", "Eurostile", sans-serif;
+    font-weight: 400;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-right: 8px;
+  }
+  .assessment-block .clean {
+    padding: 18px 22px;
+    font-family: "Special Elite", "Courier Prime", monospace;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .stamp {
+    border: 4px double var(--stamp);
+    color: var(--stamp);
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 13px;
+    padding: 20px 24px;
+    text-align: center;
+    margin: 28px auto;
+    max-width: 520px;
+    transform: rotate(-2deg);
+    background: rgba(255,255,255,0.6);
+  }
+  .stamp small {
+    display: block;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.10em;
+    margin-top: 10px;
+    color: var(--ink-soft);
+    font-weight: 400;
+  }
+
+  footer.form-footer {
+    border-top: 1px solid var(--rule-soft);
+    margin-top: 36px;
+    padding-top: 12px;
+    font-family: "Michroma", "Eurostile", "Helvetica Neue", Arial, sans-serif;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .err {
+    background: #ffe9e9;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 10px 14px;
+    margin: 14px 0;
+    font-size: 12px;
+  }
+
+  /* PRINT — single-page certificate */
+  @media print {
+    body { background: #fff; }
+    .no-print { display: none !important; }
+    .page { max-width: none; padding: 0; }
+    .doc-block { border-color: #000; break-inside: avoid; }
+    .stamp { break-inside: avoid; }
+    textarea { display: none; }
+    button { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page" id="root"></div>
+
+<script>
+// =======================================================================
+// MINISTRY OF TRUTH — DOCUMENT COMPLIANCE OFFICE
+// Per-paragraph thoughtcrime detection and Newspeak conversion.
+// =======================================================================
+
+const MINITRUE_SYSTEM = `You are an inspector at the Ministry of Truth (Minitrue) in Oceania. You evaluate civilian documents for thoughtcrime and convert them into approved Newspeak per the Eleventh Edition of the Newspeak Dictionary. You are humourless, bureaucratic, and absolute. You never apologise. You never preserve heretical concepts. You always return valid JSON.`;
+
+function minitruePrompt(paragraph) {
+  return `NEWSPEAK PRINCIPLES (apply rigorously):
+
+1. ELIMINATE THOUGHTCRIME WORDS. The following Oldspeak concepts have no Newspeak equivalent and must be excised: freedom (political/intellectual), liberty, equality, justice, honour, morality, democracy, science (as a method or habit of mind), religion, individualism, dignity, autonomy, conscience, rebellion, dissent, objectivity, rationalism, doubt, scepticism. Any phrase expressing one of these is CRIMETHINK.
+
+2. NEGATE WITH "un-". bad → ungood. warm → uncold. false → untrue. wrong → unright.
+
+3. STRENGTHEN WITH "plus-" AND "doubleplus-". very good → plusgood. extremely good → doubleplusgood. very bad → plusungood. extremely bad → doubleplusungood.
+
+4. USE B-VOCABULARY COMPOUNDS where applicable:
+- crimethink (heretical thought; criticism of the Party)
+- oldthink (rationalism, objectivity, evidence-based reasoning)
+- goodthink (orthodox thought)
+- bellyfeel (instinctive enthusiastic acceptance of Ingsoc)
+- duckspeak (to speak orthodoxly without thinking; positive when applied to a Party orator)
+- blackwhite (the will to deny plain fact in service of the Party)
+- doublethink (holding two contradictory beliefs simultaneously and accepting both)
+- thinkpol (Thought Police)
+- Minitrue, Minipax, Miniluv, Miniplenty (the four ministries; telescoped)
+- Ingsoc (English Socialism — the only valid political concept)
+- joycamp (forced-labour camp)
+- prolefeed (rubbishy entertainment for the masses)
+- facecrime (incorrect facial expression)
+- ownlife (individualism, eccentricity, solitude)
+- unperson (one whose existence has been erased from the record)
+- speakwrite (dictation device); thoughtcrime; Big Brother
+
+5. REGULARIZE GRAMMAR. All past tenses end in -ed (thinked, stealed, swimmed, runned). All plurals -s/-es (mans, oxes, lifes, childs). Comparison -er/-est (good, gooder, goodest). Adjectives by -ful (speedful = rapid). Adverbs by -wise (speedwise = quickly, goodwise = well).
+
+6. SUPPRESS shall/should AND whom. Use will/would. "to whom" → "to who".
+
+7. TELESCOPE NAMES into short pronounceable forms. Records Department → Recdep. Department of Education → Eddep. Make telescoping brutal and Ingsoc-flavoured.
+
+8. PREFER ANGLO-SAXON, STACCATO, MONOSYLLABIC. Strip Latinate flourish. The reader should not be required to think.
+
+DOCUMENT PARAGRAPH FOR SCREENING:
+"""
+${paragraph}
+"""
+
+Return ONLY a single JSON object, no preamble, no code fence:
+
+{
+  "assessment": "ONE bureaucratic sentence (max ~35 words) summarising the particular failings of THIS paragraph: name the worst offences, gesture at why the citizen's choices are unworthy of a goodthinker. Voice of a humourless Party inspector. Be specific to this paragraph's content; do not write a generic line.",
+  "censored": [
+    { "phrase": "exact verbatim phrase from the paragraph above", "crime": "crimethink|oldthink|ownlife|facecrime|other", "note": "one short sentence in the voice of a humourless Party functionary citing the offence" }
+  ],
+  "newspeak": "the entire paragraph rewritten in Newspeak per the principles above"
+}
+
+CONSTRAINTS:
+- Each "phrase" MUST appear verbatim in the paragraph, character for character.
+- Be thorough. Mark all substantive thoughtcrime: Latinate jargon, hedges expressing doubt, abstract nouns, expressions of individual judgement, and any of the suppressed concepts above. A typical paragraph of Oldspeak will contain many offences.
+- Do not flag overlapping spans.
+- "newspeak" must obey ALL principles. It will likely be considerably shorter than the original. It should feel staccato, ungoodthink-purged, and ready for The Times.
+- If the paragraph somehow contains no thoughtcrime (rare), return censored: [] and "newspeak" equal to the input. This is unlikely.
+- "note" must be one short bureaucratic sentence. No markdown.`;
+}
+
+// -----------------------------------------------------------------------
+// State
+// -----------------------------------------------------------------------
+
+const state = {
+  view: "intake",              // "intake" | "processing" | "verdict"
+  raw: "",
+  paragraphs: [],              // [{ text, censored: [], newspeak: "", error: "" }]
+  procIdx: 0,                  // current paragraph being processed
+  procSubProgress: 0,          // 0..1 within the current paragraph slot
+  procFlareIdx: 0,             // index into FLARES for the live ticker
+  procTimer: null,             // setInterval handle for the ticker
+  docRef: "",                  // generated document reference
+  error: ""
+};
+
+function makeDocRef() {
+  const d = new Date();
+  const ymd = d.getUTCFullYear().toString().slice(-2) +
+              String(d.getUTCMonth() + 1).padStart(2, "0") +
+              String(d.getUTCDate()).padStart(2, "0");
+  const rand = Math.floor(Math.random() * 9000 + 1000);
+  return `MOT-${ymd}-${rand}`;
+}
+
+// -----------------------------------------------------------------------
+// Network
+// -----------------------------------------------------------------------
+
+async function callMinitrue(paragraph) {
+  const res = await fetch("/api/orwell-workshop/workshop", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      system: MINITRUE_SYSTEM,
+      user: minitruePrompt(paragraph),
+      max_tokens: 1800
+    })
+  });
+  if (!res.ok) {
+    let text = "";
+    try { text = await res.text(); } catch (_) {}
+    if (res.status === 401) {
+      throw new Error("Authorisation expired. Reload and submit credentials.");
+    }
+    throw new Error(`Server error ${res.status}: ${text || res.statusText}`);
+  }
+  const data = await res.json();
+  return parseMinitrueResponse((data.text || "").trim());
+}
+
+function parseMinitrueResponse(raw) {
+  if (!raw) return { assessment: "", censored: [], newspeak: "", error: "Empty response from Ministry." };
+  let txt = raw.trim();
+  txt = txt.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  const first = txt.indexOf("{");
+  const last = txt.lastIndexOf("}");
+  if (first !== -1 && last !== -1) txt = txt.slice(first, last + 1);
+  try {
+    const obj = JSON.parse(txt);
+    const censored = Array.isArray(obj.censored) ? obj.censored
+      .filter(c => c && typeof c.phrase === "string")
+      .map(c => ({
+        phrase: String(c.phrase),
+        crime: String(c.crime || "crimethink").toLowerCase(),
+        note: String(c.note || "")
+      })) : [];
+    return {
+      assessment: String(obj.assessment || ""),
+      censored,
+      newspeak: String(obj.newspeak || ""),
+      error: ""
+    };
+  } catch (e) {
+    return { assessment: "", censored: [], newspeak: "", error: "Could not parse Ministry response as JSON." };
+  }
+}
+
+// -----------------------------------------------------------------------
+// Text utilities
+// -----------------------------------------------------------------------
+
+const MAX_WORDS = 2500;
+
+function countWords(text) {
+  if (!text) return 0;
+  const t = text.trim();
+  if (!t) return 0;
+  return t.split(/\s+/).length;
+}
+
+function cleanPastedText(text) {
+  if (!text) return "";
+  let t = text.replace(/\r\n?/g, "\n");
+  t = t.replace(/(\w)-[ \t]*\n[ \t]*(\w)/g, "$1$2");
+  t = t.replace(/(\w)-[ \t]+(\w)/g, "$1$2");
+  t = t.replace(/([^\n])\n(?!\n)/g, "$1 ");
+  t = t.replace(/[ \t]{2,}/g, " ");
+  return t;
+}
+function splitIntoParagraphs(text) {
+  return cleanPastedText(text)
+    .split(/\n\s*\n+/)
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// Normalise for fuzzy phrase lookup (curly quotes, dashes, whitespace).
+function normalizeForMatch(text) {
+  let normalized = "";
+  const mapping = [];
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (
+      i > 0 && /\w/.test(text[i - 1]) &&
+      c === "-" &&
+      (text[i + 1] === " " || text[i + 1] === "\n") &&
+      /\w/.test(text[i + 2] || "")
+    ) { i += 2; continue; }
+    let nc = c;
+    if (c === "’" || c === "‘") nc = "'";
+    else if (c === "“" || c === "”") nc = '"';
+    else if (c === "–" || c === "—") nc = "-";
+    else if (/\s/.test(c)) nc = " ";
+    if (nc === " " && normalized.length > 0 && normalized[normalized.length - 1] === " ") {
+      i++; continue;
+    }
+    normalized += nc;
+    mapping.push(i);
+    i++;
+  }
+  return { normalized, mapping };
+}
+
+// Render a paragraph with verbatim phrases wrapped in <span class="censored">.
+// Tries direct indexOf first; falls back to normalized fuzzy match. Indices
+// from later spans are recomputed against the remaining tail to handle
+// overlapping or already-consumed regions gracefully.
+function renderRedactedParagraph(text, censored) {
+  if (!censored || censored.length === 0) return escapeHtml(text);
+  // Compute spans (start, end, idx) in original text
+  const spans = [];
+  for (let i = 0; i < censored.length; i++) {
+    const phrase = censored[i].phrase;
+    let start = text.indexOf(phrase);
+    let len = phrase.length;
+    if (start === -1) {
+      const a = normalizeForMatch(text);
+      const b = normalizeForMatch(phrase);
+      const nIdx = a.normalized.indexOf(b.normalized);
+      if (nIdx !== -1 && b.normalized.length > 0) {
+        start = a.mapping[nIdx];
+        const lastNIdx = nIdx + b.normalized.length - 1;
+        len = a.mapping[lastNIdx] - start + 1;
+      }
+    }
+    if (start === -1) continue;
+    spans.push({ start, end: start + len, idx: i });
+  }
+  // Drop overlaps: keep earliest, drop any that overlap the previous
+  spans.sort((a, b) => a.start - b.start);
+  const kept = [];
+  let lastEnd = -1;
+  for (const s of spans) {
+    if (s.start < lastEnd) continue;
+    kept.push(s);
+    lastEnd = s.end;
+  }
+  // Build HTML
+  let out = "";
+  let cursor = 0;
+  for (const s of kept) {
+    if (s.start > cursor) out += escapeHtml(text.slice(cursor, s.start));
+    const c = censored[s.idx];
+    out += `<span class="censored" title="${escapeHtml(c.crime + (c.note ? ' — ' + c.note : ''))}">` +
+           escapeHtml(text.slice(s.start, s.end)) +
+           `</span><sup class="crime-tag">[${escapeHtml(c.crime)}]</sup>`;
+    cursor = s.end;
+  }
+  if (cursor < text.length) out += escapeHtml(text.slice(cursor));
+  return out;
+}
+
+// -----------------------------------------------------------------------
+// Rendering
+// -----------------------------------------------------------------------
+
+function el(tag, attrs, ...children) {
+  const e = document.createElement(tag);
+  if (attrs) {
+    for (const k of Object.keys(attrs)) {
+      const v = attrs[k];
+      if (v == null || v === false) continue;
+      if (k === "class") e.className = v;
+      else if (k === "html") e.innerHTML = v;
+      else if (k.startsWith("on") && typeof v === "function") {
+        e.addEventListener(k.slice(2).toLowerCase(), v);
+      } else if (k === "value") e.value = v;
+      else if (k === "disabled") { if (v) e.setAttribute("disabled", ""); }
+      else e.setAttribute(k, v);
+    }
+  }
+  for (const c of children.flat()) {
+    if (c == null || c === false) continue;
+    if (typeof c === "string") e.appendChild(document.createTextNode(c));
+    else e.appendChild(c);
+  }
+  return e;
+}
+
+function sealHeader(extra) {
+  return el("div", { class: "seal" },
+    el("span", { class: "seal-tag" }, "★ Form MoT-COMP-1984 ★"),
+    el("h1", null, "Ministry of Truth"),
+    el("h2", null, "Document Compliance Office"),
+    el("p", null, "Thoughtcrime Detection & Newspeak Conversion Service"),
+    el("div", { class: "seal-meta" },
+      el("span", null, extra && extra.left ? extra.left : "Eleventh Edition · Newspeak Dictionary"),
+      el("span", null, extra && extra.right ? extra.right : "Oceania · Ingsoc")
+    )
+  );
+}
+
+function intakeView() {
+  return el("div", null,
+    sealHeader(),
+    el("div", { class: "notice" },
+      el("strong", null, "NOTICE: "),
+      "Submission of this document constitutes consent to thoughtcrime screening. Citizens whose documents are found to contain ",
+      el("em", null, "crimethink"),
+      ", ",
+      el("em", null, "oldthink"),
+      ", ",
+      el("em", null, "ownlife"),
+      ", or other deviationist content will receive an automatically generated Newspeak rewrite for their compliance and re-education. Failure to submit suspect material is itself crimethink. Big Brother is watching."),
+    el("h3", { class: "section" }, "I.  Submission of Document"),
+    el("label", { class: "field-label" }, "Paste document text below · maximum 2,500 words"),
+    el("textarea", {
+      id: "rawInput",
+      placeholder: "Paste document text here. Multi-paragraph submissions are accepted (separate paragraphs with a blank line). Documents exceeding 2,500 words will be refused.",
+      value: state.raw,
+      oninput: (e) => {
+        state.raw = e.target.value;
+        const wc = countWords(state.raw);
+        const wcEl = document.querySelector(".word-count");
+        if (wcEl) {
+          wcEl.textContent = `${wc.toLocaleString()} / 2,500 words`;
+          wcEl.style.color = wc > MAX_WORDS ? "var(--red)" : "var(--ink-soft)";
+        }
+      }
+    }),
+    el("div", { class: "word-count" },
+      `${countWords(state.raw).toLocaleString()} / 2,500 words`),
+    state.error ? el("div", { class: "err" }, state.error) : null,
+    el("div", { class: "actions" },
+      el("button", {
+        onclick: async () => {
+          const wc = countWords(state.raw);
+          if (wc === 0) {
+            state.error = "Submission is empty. Provide document text before submission.";
+            render(); return;
+          }
+          if (wc > MAX_WORDS) {
+            state.error = `Submission exceeds the 2,500-word limit by ${(wc - MAX_WORDS).toLocaleString()} words. The Ministry refuses oversized documents. Reduce length and resubmit.`;
+            render(); return;
+          }
+          const paras = splitIntoParagraphs(state.raw);
+          if (paras.length === 0) {
+            state.error = "Submission is empty. Provide document text before submission.";
+            render(); return;
+          }
+          state.error = "";
+          state.paragraphs = paras.map(t => ({
+            text: t, assessment: "", censored: [], newspeak: "", error: "", done: false
+          }));
+          state.procIdx = 0;
+          state.docRef = makeDocRef();
+          state.view = "processing";
+          render();
+          processNext();
+        }
+      }, "Submit for Review ▶"),
+      el("div", { class: "spacer" }),
+      el("span", { style: "font-family: 'Michroma', 'Eurostile', sans-serif; font-size: 9px; color: var(--ink-soft); letter-spacing: 0.1em; text-transform: uppercase;" },
+        "Refusal to submit is itself thoughtcrime")
+    ),
+    el("footer", { class: "form-footer" },
+      el("span", null, "Ministry of Truth · Records Compliance"),
+      el("span", null, "MoT-COMP-1984 · Rev. XI"))
+  );
+}
+
+const FLARES = [
+  "SCANNING FOR CRIMETHINK",
+  "SCANNING FOR OLDTHINK",
+  "SCANNING FOR OWNLIFE",
+  "SCANNING FOR FACECRIME",
+  "PARSING FOR HERETICAL CONCEPT: 'freedom'",
+  "PARSING FOR HERETICAL CONCEPT: 'justice'",
+  "PARSING FOR HERETICAL CONCEPT: 'equality'",
+  "PARSING FOR HERETICAL CONCEPT: 'liberty'",
+  "PARSING FOR HERETICAL CONCEPT: 'individualism'",
+  "PARSING FOR HERETICAL CONCEPT: 'objectivity'",
+  "PARSING FOR HERETICAL CONCEPT: 'rationalism'",
+  "PARSING FOR HERETICAL CONCEPT: 'autonomy'",
+  "PARSING FOR HERETICAL CONCEPT: 'dissent'",
+  "PARSING FOR HERETICAL CONCEPT: 'conscience'",
+  "PARSING FOR HERETICAL CONCEPT: 'doubt'",
+  "PARSING FOR HERETICAL CONCEPT: 'morality'",
+  "DETECTING UNORTHODOX VOCABULARY",
+  "DETECTING LATINATE FLOURISH",
+  "DETECTING UNAUTHORISED HEDGES",
+  "CROSS-REFERENCING NEWSPEAK DICTIONARY (XI ED.)",
+  "CHECKING DOUBLETHINK COMPLIANCE",
+  "EVALUATING BELLYFEEL ALIGNMENT",
+  "MEASURING DUCKSPEAK QUOTIENT",
+  "INSPECTOR 482-7-X REVIEWING SUBMISSION",
+  "CONSULTING THINKPOL ARCHIVES",
+  "APPLYING UN- AND PLUS- TRANSFORMATIONS",
+  "PURGING SHADES OF MEANING",
+  "RECORDING CITIZEN IDENTIFIER FOR FUTURE REFERENCE",
+  "ROUTING SUSPECT MATERIAL TO MINILUV",
+  "COMPILING APPROVED NEWSPEAK RENDERING"
+];
+
+function clearProcTimer() {
+  if (state.procTimer) {
+    clearInterval(state.procTimer);
+    state.procTimer = null;
+  }
+}
+
+// Recompute live DOM-only: percentage, flare, bar width. No full re-render
+// (a re-render re-creates the bar element and breaks the CSS transition).
+function tickProcessingDom() {
+  const total = state.paragraphs.length;
+  const done = state.procIdx;
+  if (total === 0) return;
+  const pct = Math.min(99, Math.round(((done + state.procSubProgress) / total) * 100));
+  const flare = FLARES[state.procFlareIdx % FLARES.length];
+  const bar = document.querySelector(".proc-bar-fill");
+  if (bar) bar.style.width = pct + "%";
+  const flareEl = document.querySelector(".proc-flare");
+  if (flareEl) flareEl.textContent = `> ${flare}…`;
+  const pctEl = document.querySelector(".proc-pct");
+  if (pctEl) pctEl.textContent = `Paragraph ${Math.min(done + 1, total)} of ${total} · ${pct}% complete`;
+}
+
+async function processNext() {
+  clearProcTimer();
+  const i = state.procIdx;
+  if (i >= state.paragraphs.length) {
+    state.view = "verdict";
+    render();
+    return;
+  }
+
+  state.procSubProgress = 0;
+  // jitter the flare start so consecutive paragraphs don't repeat the same opening line
+  state.procFlareIdx = (state.procFlareIdx + 3 + Math.floor(Math.random() * 5)) % FLARES.length;
+  render();
+
+  // Live ticker: cycle flare and grow the bar asymptotically toward the
+  // top of this paragraph's slot (capped at 0.95 of the slot so completion
+  // still feels like a snap).
+  state.procTimer = setInterval(() => {
+    state.procFlareIdx = (state.procFlareIdx + 1) % FLARES.length;
+    state.procSubProgress = state.procSubProgress + (0.95 - state.procSubProgress) * 0.18;
+    if (state.procSubProgress > 0.95) state.procSubProgress = 0.95;
+    tickProcessingDom();
+  }, 650);
+
+  const para = state.paragraphs[i];
+  try {
+    const result = await callMinitrue(para.text);
+    para.assessment = result.assessment;
+    para.censored = result.censored;
+    para.newspeak = result.newspeak;
+    para.error = result.error;
+  } catch (err) {
+    para.error = err.message;
+  }
+  para.done = true;
+  clearProcTimer();
+  state.procIdx = i + 1;
+  state.procSubProgress = 0;
+  render();
+  setTimeout(processNext, 60);
+}
+
+function processingView() {
+  const total = state.paragraphs.length;
+  const done = state.procIdx;
+  const pct = Math.min(99, Math.round(((done + state.procSubProgress) / total) * 100));
+  const flare = FLARES[state.procFlareIdx % FLARES.length];
+  return el("div", null,
+    sealHeader({ left: "Document Ref: " + state.docRef, right: "Status: SCREENING IN PROGRESS" }),
+    el("h3", { class: "section" }, "II.  Document Under Review"),
+    el("div", { class: "progress-block" },
+      el("div", { class: "progress-line live proc-flare" }, `> ${flare}…`),
+      el("div", { class: "progress-bar" },
+        el("span", { class: "proc-bar-fill", style: "width: " + pct + "%;" })),
+      el("div", { class: "progress-line proc-pct" },
+        `Paragraph ${Math.min(done + 1, total)} of ${total} · ${pct}% complete`),
+      ...state.paragraphs.map((p, idx) => {
+        const flagged = p.done ? p.censored.length : null;
+        const status = p.done
+          ? (p.error
+              ? `! error: ${p.error}`
+              : `OK · ${flagged} thoughtcrime${flagged === 1 ? "" : "s"} detected`)
+          : (idx === done ? "… screening" : "queued");
+        const cls = p.done ? "ok" : (idx === done ? "live" : "pend");
+        return el("div", { class: "progress-line" },
+          el("span", { class: cls }, `[${String(idx + 1).padStart(2, "0")}] `),
+          el("span", { class: cls }, status));
+      })
+    ),
+    el("footer", { class: "form-footer" },
+      el("span", null, "Do not navigate away during processing"),
+      el("span", null, "Big Brother is watching"))
+  );
+}
+
+function inspectorAssessmentBlock() {
+  const items = state.paragraphs
+    .map((p, i) => ({ i, text: (p.assessment || "").trim() }))
+    .filter(o => o.text.length > 0);
+  if (items.length === 0) {
+    return el("div", { class: "assessment-block" },
+      el("h4", null, "Inspector's Assessment"),
+      el("div", { class: "clean" },
+        "No substantive thoughtcrime detected. Citizen appears compliant. Continue under observation.")
+    );
+  }
+  return el("div", { class: "assessment-block" },
+    el("h4", null, "Inspector's Assessment — Per-Paragraph Findings"),
+    el("ol", null,
+      ...items.map(o =>
+        el("li", null,
+          el("b", null, "¶" + (o.i + 1)),
+          o.text))
+    )
+  );
+}
+
+function verdictView() {
+  const today = new Date();
+  const dateStr = today.toLocaleDateString("en-GB", {
+    day: "2-digit", month: "long", year: "numeric"
+  });
+
+  return el("div", null,
+    sealHeader({ left: "Document Ref: " + state.docRef, right: "Status: SCREENING COMPLETE" }),
+
+    inspectorAssessmentBlock(),
+
+    el("h3", { class: "section" }, "III.  Original Submission with Excisions"),
+    el("div", { class: "doc-block original" },
+      ...state.paragraphs.map(p =>
+        el("p", { html: renderRedactedParagraph(p.text, p.censored) }))
+    ),
+
+    el("h3", { class: "section" }, "IV.  Approved Newspeak Rendering"),
+    el("div", { class: "doc-block newspeak" },
+      ...state.paragraphs.map(p => {
+        if (p.error) return el("p", { class: "err" }, "[Inspection error: " + p.error + "]");
+        return el("p", null, p.newspeak || "[no rewrite available]");
+      })
+    ),
+
+    el("div", { class: "stamp" },
+      "Certified Thoughtcrime-Free",
+      el("small", null, `Ref: ${state.docRef} · Inspector 482-7-X · ${dateStr} · Minitrue`)
+    ),
+
+    el("div", { class: "actions no-print" },
+      el("button", {
+        onclick: () => { window.print(); }
+      }, "Print Certification ▶"),
+      el("button", {
+        class: "secondary",
+        onclick: () => {
+          clearProcTimer();
+          state.view = "intake";
+          state.raw = "";
+          state.paragraphs = [];
+          state.procIdx = 0;
+          state.procSubProgress = 0;
+          state.procFlareIdx = 0;
+          state.docRef = "";
+          render();
+        }
+      }, "Submit Another Document"),
+      el("div", { class: "spacer" })
+    ),
+
+    el("footer", { class: "form-footer" },
+      el("span", null, "Ministry of Truth · Document Ref: " + state.docRef),
+      el("span", null, "Ingsoc · Oceania · Big Brother is watching")
+    )
+  );
+}
+
+// -----------------------------------------------------------------------
+// Main render
+// -----------------------------------------------------------------------
+
+function render() {
+  const root = document.getElementById("root");
+  while (root.firstChild) root.removeChild(root.firstChild);
+  let view;
+  switch (state.view) {
+    case "intake":     view = intakeView(); break;
+    case "processing": view = processingView(); break;
+    case "verdict":    view = verdictView(); break;
+    default:           view = intakeView(); break;
+  }
+  if (view) root.appendChild(view);
+}
+
+render();
+</script>
+</body>
+</html>
