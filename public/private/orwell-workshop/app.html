@@ -3181,15 +3181,27 @@ function workshopView() {
       el("p", null, "Paste any prose — an essay, a chapter, an email — and I'll walk through it paragraph by paragraph, applying Orwell's five rules. For each paragraph you'll see concrete suggested edits you can accept, edit, or skip. At the end you get a clean version assembled from your decisions."),
       el("textarea", {
         id: "wsRaw",
-        placeholder: "paste your text (separate paragraphs with a blank line)…",
+        placeholder: "paste your text (separate paragraphs with a blank line, 500 words max)…",
         style: "min-height: 220px;",
         value: state.wsRaw,
-        oninput: (e) => { state.wsRaw = e.target.value; }
+        oninput: (e) => { state.wsRaw = e.target.value; render(); }
       }),
+      (() => {
+        const wc = state.wsRaw.trim() ? state.wsRaw.trim().split(/\s+/).length : 0;
+        return el("p", {
+          class: "small",
+          style: wc > 500 ? "color: #ff8888;" : null
+        }, `${wc} / 500 words`);
+      })(),
       showError(),
       el("div", { class: "actions" },
         el("button", {
           onclick: async () => {
+            const wc = state.wsRaw.trim() ? state.wsRaw.trim().split(/\s+/).length : 0;
+            if (wc > 500) {
+              state.error = `please trim to 500 words or fewer (currently ${wc}).`;
+              render(); return;
+            }
             const paras = splitIntoParagraphs(state.wsRaw);
             if (paras.length === 0) {
               state.error = "paste some text first."; render(); return;
