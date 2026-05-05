@@ -22,7 +22,7 @@ export const minitruePerMinute = redis
 export const minitruePerDay = redis
   ? new Ratelimit({
       redis,
-      limiter: Ratelimit.slidingWindow(100, "1 d"),
+      limiter: Ratelimit.slidingWindow(25, "1 d"),
       analytics: true,
       prefix: "ratelimit:minitrue:day",
     })
