@@ -36,28 +36,28 @@ schedule:
   - time: "9:30, Foxhill House G02"
     title: Coffee
   - time: "10:00, Foxhill House G02"
-    speaker: Catherine Wheatley
-    title: "How to tell a slap from a slug: interpretation, aspect vision, and seeing violence"
+    speaker: Eileen John
+    title: "Accepting Disagreement about Art without Accepting Relativism"
     abstract: >-
-      "I know the difference between a slap and a slug!" So says Amanda Bonner
-      (Katherine Hepburn) to her husband Adam (Spencer Tracy) in George Cukor's
-      The Awful Truth, after he delivers a blow to her backside during a heated
-      conversation. This scene is a key feature of Stanley Cavell's analysis of
-      the film in Pursuits of Happiness, where he argues that Adam is redeemed
-      from what he calls "the taint of male villainy" by his ability to converse
-      with Amanda as equals, their relationship characterised by the sound of
-      "bickering" signals commitment to their community of two. And yet Amanda
-      knows that she was slugged, not slapped; that the smack had the "stink of
-      masculine brutality". It seems that Adam has failed to acknowledge the
-      physical distinctions that "expressions of friendly antagonism", according
-      to Cavell, should not violate. In this talk, I will place Cavell into
-      conversation with Jacqueline Rose, drawing in particular on her book On
-      Violence and Violence Against Women and Cavell's essay 'A Matter of
-      Meaning It' to ask two questions. Firstly: How do questions of
-      interpretation shape cinematic depictions and receptions of domestic
-      violence? And secondly, if — as Rose argues — violence in our times
-      thrives on a form of blindness, how can cinema return it to the realm of
-      the visible?
+      Suppose that we not only do, but in some sense should, disagree about
+      art. That is, suppose that disagreement in interpretation and evaluation
+      of art is appropriate. For this to be an interesting supposition, these
+      disagreements would have to be genuine disagreements. We would be
+      contesting the same meaningful claim about an artwork, rather than, say,
+      projecting meaning and value onto the work in different ways or
+      expressing our differential reactions to a work. So, it would not be a
+      matter of 'this is how I experienced it' or 'this is what I make of it',
+      or 'it pleases me but not you'. In those situations there could be an
+      appearance of conflict, and there could be tension between people who do
+      and do not take pleasure in a work, but the interesting substance of
+      conflict would probably be missing. But how could it make sense to think
+      of art as a domain in which we appropriately and genuinely disagree? This
+      talk will present one approach to this issue, arguing that artworks can
+      put us in the position of needing to develop reasons for judgement. That
+      we do not share reasons (and conclusions) in that situation is
+      appropriate, in part because of the fine-grained considerations that can
+      be relevant, and in part because of the complexity and delicacy of the
+      questions posed.
   - time: "11:15, Foxhill House G02"
     title: Break
   - time: "11:30, Foxhill House G02"
@@ -126,28 +126,28 @@ schedule:
   - time: "14:45, Foxhill House G03"
     title: Coffee Break
   - time: "15:00, Foxhill House G03"
-    speaker: Eileen John
-    title: "Accepting Disagreement about Art without Accepting Relativism"
+    speaker: Catherine Wheatley
+    title: "How to tell a slap from a slug: interpretation, aspect vision, and seeing violence"
     abstract: >-
-      Suppose that we not only do, but in some sense should, disagree about
-      art. That is, suppose that disagreement in interpretation and evaluation
-      of art is appropriate. For this to be an interesting supposition, these
-      disagreements would have to be genuine disagreements. We would be
-      contesting the same meaningful claim about an artwork, rather than, say,
-      projecting meaning and value onto the work in different ways or
-      expressing our differential reactions to a work. So, it would not be a
-      matter of 'this is how I experienced it' or 'this is what I make of it',
-      or 'it pleases me but not you'. In those situations there could be an
-      appearance of conflict, and there could be tension between people who do
-      and do not take pleasure in a work, but the interesting substance of
-      conflict would probably be missing. But how could it make sense to think
-      of art as a domain in which we appropriately and genuinely disagree? This
-      talk will present one approach to this issue, arguing that artworks can
-      put us in the position of needing to develop reasons for judgement. That
-      we do not share reasons (and conclusions) in that situation is
-      appropriate, in part because of the fine-grained considerations that can
-      be relevant, and in part because of the complexity and delicacy of the
-      questions posed.
+      "I know the difference between a slap and a slug!" So says Amanda Bonner
+      (Katherine Hepburn) to her husband Adam (Spencer Tracy) in George Cukor's
+      The Awful Truth, after he delivers a blow to her backside during a heated
+      conversation. This scene is a key feature of Stanley Cavell's analysis of
+      the film in Pursuits of Happiness, where he argues that Adam is redeemed
+      from what he calls "the taint of male villainy" by his ability to converse
+      with Amanda as equals, their relationship characterised by the sound of
+      "bickering" signals commitment to their community of two. And yet Amanda
+      knows that she was slugged, not slapped; that the smack had the "stink of
+      masculine brutality". It seems that Adam has failed to acknowledge the
+      physical distinctions that "expressions of friendly antagonism", according
+      to Cavell, should not violate. In this talk, I will place Cavell into
+      conversation with Jacqueline Rose, drawing in particular on her book On
+      Violence and Violence Against Women and Cavell's essay 'A Matter of
+      Meaning It' to ask two questions. Firstly: How do questions of
+      interpretation shape cinematic depictions and receptions of domestic
+      violence? And secondly, if — as Rose argues — violence in our times
+      thrives on a form of blindness, how can cinema return it to the realm of
+      the visible?
   - time: "16:15, Foxhill House G03"
     speaker: Zed Adams & Nat Hansen
     title: "Art Is Not A Game"
