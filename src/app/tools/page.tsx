@@ -15,11 +15,10 @@ const tools = [
     note: "Password required.",
   },
   {
-    slug: "private/minitrue",
+    slug: "minitrue",
     title: "Ministry of Truth — Document Compliance Office",
     blurb:
       "Submit any document to the Ministry of Truth for thoughtcrime screening. Suspect passages are excised, the text is rewritten in approved Newspeak per the Eleventh Edition of the Newspeak Dictionary, and a Certified Thoughtcrime-Free version is returned for printing. A teaching companion to the Orwell Workshop — the cure and the disease.",
-    note: "Password required.",
   },
 ];
 

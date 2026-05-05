@@ -1,5 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { isAuthed } from "@/lib/orwell-workshop/auth";
+import {
+  getClientIp,
+  minitruePerDay,
+  minitruePerMinute,
+} from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -13,7 +18,35 @@ type ClaudeReq = {
 };
 
 export async function POST(request: Request) {
-  if (!(await isAuthed())) return new Response("unauthorized", { status: 401 });
+  const passwordMode = process.env.MINITRUE_REQUIRE_PASSWORD === "1";
+  if (passwordMode && !(await isAuthed())) {
+    return new Response("unauthorized", { status: 401 });
+  }
+
+  // Rate limit only when the page is public (authed users bypass).
+  if (!passwordMode && minitruePerMinute && minitruePerDay) {
+    const ip = getClientIp(request);
+    const [m, d] = await Promise.all([
+      minitruePerMinute.limit(ip),
+      minitruePerDay.limit(ip),
+    ]);
+    if (!m.success || !d.success) {
+      const reset = Math.max(m.reset, d.reset);
+      const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
+      return new Response(
+        JSON.stringify({
+          error: "Submission throttled by the Ministry. Try again shortly.",
+        }),
+        {
+          status: 429,
+          headers: {
+            "content-type": "application/json",
+            "retry-after": String(retryAfter),
+          },
+        },
+      );
+    }
+  }
   const body = (await request.json()) as ClaudeReq;
   const system = (body.system ?? "").toString();
   const user = (body.user ?? "").toString();
