@@ -13,7 +13,7 @@ const redis = url && token ? new Redis({ url, token }) : null;
 export const minitruePerMinute = redis
   ? new Ratelimit({
       redis,
-      limiter: Ratelimit.slidingWindow(10, "1 m"),
+      limiter: Ratelimit.slidingWindow(5, "1 m"),
       analytics: true,
       prefix: "ratelimit:minitrue:min",
     })
