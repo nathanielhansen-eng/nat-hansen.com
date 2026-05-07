@@ -31,7 +31,7 @@ const base: Record<string, React.CSSProperties> = {
     border: `1px solid ${C.border}`,
     maxWidth: "680px",
     width: "100%",
-    padding: "52px 56px",
+    padding: "clamp(24px, 5vw, 52px) clamp(20px, 5vw, 56px)",
     boxShadow: "0 4px 40px rgba(0,0,0,0.07)",
   },
   eyebrow: {
@@ -476,12 +476,13 @@ export default function Experiment({ session }: { session: string }) {
           </p>
           <p style={base.body}>
             Occasionally a <strong>tone</strong> will sound. The instant you hear it, press the{" "}
-            <strong>space bar</strong> as fast as you can. (This is the &ldquo;interruption&rdquo;
-            manipulation — it competes for the cognitive work that would otherwise unbelieve a
-            falsehood.)
+            <strong>space bar</strong> (or, on a phone or tablet, <strong>tap the screen</strong>)
+            as fast as you can. (This is the &ldquo;interruption&rdquo; manipulation — it competes
+            for the cognitive work that would otherwise unbelieve a falsehood.)
           </p>
           <p style={{ ...base.small, fontStyle: "italic" }}>
-            Make sure your sound is on. The whole learning phase takes about three minutes — please
+            Make sure your sound is on — and on iPhone, that the silent switch is off, otherwise
+            the tone won&apos;t play. The whole learning phase takes about three minutes; please
             don&apos;t pause or switch tabs.
           </p>
           <button
@@ -507,10 +508,29 @@ export default function Experiment({ session }: { session: string }) {
 
   if (phase === "learning" && trials.length > 0 && trialIdx < trials.length) {
     const trial = trials[trialIdx];
+    const onTapInterrupt = () => {
+      if (tonePlaying && !toneRespondedRef.current) {
+        toneRespondedRef.current = true;
+        setToneResponded(true);
+      }
+    };
     return (
       <div style={base.wrap}>
         <style>{FONTS}</style>
-        <div style={{ ...base.card, textAlign: "center", minHeight: "360px" }}>
+        <div
+          onClick={onTapInterrupt}
+          style={{
+            ...base.card,
+            textAlign: "center",
+            minHeight: "360px",
+            cursor: tonePlaying && !toneResponded ? "pointer" : "default",
+            background:
+              tonePlaying && !toneResponded ? "#FFF5F0" : C.surface,
+            transition: "background 0.1s",
+            userSelect: "none",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
             <div style={base.eyebrow}>Part I — Learning</div>
             <div style={{ ...base.mono, fontSize: "12px", color: C.muted }}>
@@ -544,26 +564,34 @@ export default function Experiment({ session }: { session: string }) {
             )}
             {sub === "blank2" && <div />}
           </div>
-          <div style={{ marginTop: "24px", height: "40px" }}>
+          <div style={{ marginTop: "24px", minHeight: "60px" }}>
             {tonePlaying && !toneResponded && (
               <div
                 style={{
+                  display: "inline-block",
+                  padding: "14px 28px",
+                  border: `2px solid ${C.red}`,
+                  borderRadius: "6px",
                   fontFamily: "'Space Mono', monospace",
-                  fontSize: "14px",
+                  fontSize: "16px",
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
                   color: C.red,
+                  fontWeight: 700,
+                  background: C.surface,
                 }}
               >
-                ♪ TONE — press SPACE
+                <span style={{ fontSize: "22px", verticalAlign: "middle", marginRight: "8px" }}>♪</span>
+                TAP / SPACE
               </div>
             )}
             {tonePlaying && toneResponded && (
               <div
                 style={{
                   fontFamily: "'Space Mono', monospace",
-                  fontSize: "13px",
+                  fontSize: "20px",
                   color: C.green,
+                  fontWeight: 700,
                 }}
               >
                 ✓
