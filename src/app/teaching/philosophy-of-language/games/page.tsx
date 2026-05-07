@@ -106,6 +106,29 @@ export default function GamesPage() {
           <div className="border border-stone-300 rounded-lg p-5">
             <div className="flex items-start justify-between gap-4 mb-2">
               <h3 className={`${pressStart.className} text-xs sm:text-sm text-stone-800`}>
+                Gilbert, Krull &amp; Malone (1990)
+              </h3>
+              <Link
+                href="/teaching/philosophy-of-language/games/gilbert-unbelieving"
+                className="text-stone-500 text-sm hover:text-stone-800 transition-colors whitespace-nowrap"
+              >
+                Start experiment &rarr;
+              </Link>
+            </div>
+            <p className="text-stone-600 text-sm leading-relaxed">
+              A classroom replication of Study 1 from &ldquo;Unbelieving the Unbelievable.&rdquo;
+              Learn an invented Hopi vocabulary, get occasionally interrupted by a tone, then sit
+              the identification test. The diagnostic asymmetry &mdash; false propositions
+              misidentified as true under interruption &mdash; is what Spinoza predicts and
+              Descartes does not. (Drawn from the Speech Attacks readings.)
+            </p>
+          </div>
+        </section>
+
+        <section className="mb-12">
+          <div className="border border-stone-300 rounded-lg p-5">
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <h3 className={`${pressStart.className} text-xs sm:text-sm text-stone-800`}>
                 Measuring Conceptual Inflation
               </h3>
               <Link

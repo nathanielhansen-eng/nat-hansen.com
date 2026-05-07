@@ -1,9 +1,15 @@
 import Link from "next/link";
 import localFont from "next/font/local";
+import { Press_Start_2P } from "next/font/google";
 import type { Metadata } from "next";
 
 const betania = localFont({
   src: "../fonts/BetaniaPatmosInGDL-Regular.woff2",
+});
+
+const pressStart = Press_Start_2P({
+  weight: "400",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -73,6 +79,32 @@ export default function SpeechAttacksPage() {
                 <p className="text-stone-800 text-base">{topic}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="mb-12">
+          <h2 className="text-sm text-stone-500 mb-4 uppercase tracking-wider">
+            Games &amp; Experiments
+          </h2>
+          <div className="border border-stone-300 rounded-lg p-5">
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <h3 className={`${pressStart.className} text-xs sm:text-sm text-stone-800`}>
+                Gilbert, Krull &amp; Malone (1990)
+              </h3>
+              <Link
+                href="/teaching/philosophy-of-language/games/gilbert-unbelieving"
+                className="text-stone-500 text-sm hover:text-stone-800 transition-colors whitespace-nowrap"
+              >
+                Start experiment &rarr;
+              </Link>
+            </div>
+            <p className="text-stone-600 text-sm leading-relaxed">
+              A classroom replication of Study 1 from &ldquo;Unbelieving the Unbelievable.&rdquo;
+              Learn an invented Hopi vocabulary, get occasionally interrupted by a tone, then sit
+              the identification test. The diagnostic asymmetry &mdash; false propositions
+              misidentified as true under interruption &mdash; is what Spinoza predicts and
+              Descartes does not.
+            </p>
           </div>
         </section>
 
