@@ -470,7 +470,7 @@ export default function Experiment({ session }: { session: string }) {
           <p style={base.body}>
             On each trial you will see a proposition of the form{" "}
             <strong>&ldquo;A <em>twyrin</em> is a doctor.&rdquo;</strong> A few seconds later either
-            the word <strong>TRUE</strong> or <strong>FALSE</strong> will appear, telling you
+            the word <strong>TRUE</strong> or <strong>FALSE</strong>{" "}will appear, telling you
             whether the pairing was real Hopi or invented. On some trials the signal is missing
             entirely — those will be marked &ldquo;no info&rdquo; in the test.
           </p>
