@@ -83,6 +83,94 @@ export default function AdminDashboard() {
     return { rows, cell, total, pct, n: submissions.length };
   }, [submissions]);
 
+  // Comparison with Gilbert et al. (1990) Study 1 published rates (n=33)
+  const comparison = useMemo(() => {
+    if (submissions.length === 0) return null;
+    const correctPct = (sig: "true" | "false", intr: boolean) =>
+      agg.pct(agg.cell(sig, intr, sig as TestResponse), agg.total(sig, intr));
+    const reversalPct = (sig: "true" | "false", intr: boolean) => {
+      const opp: TestResponse = sig === "true" ? "false" : "true";
+      return agg.pct(agg.cell(sig, intr, opp), agg.total(sig, intr));
+    };
+
+    const tCorrUn = correctPct("true", false);
+    const tCorrIn = correctPct("true", true);
+    const fCorrUn = correctPct("false", false);
+    const fCorrIn = correctPct("false", true);
+    const tAsFUn = reversalPct("true", false);
+    const tAsFIn = reversalPct("true", true);
+    const fAsTUn = reversalPct("false", false);
+    const fAsTIn = reversalPct("false", true);
+
+    // Diagnostic deltas (Spinozan signature)
+    const interruptionCostFalse = fCorrUn - fCorrIn; // Gilbert ≈ 20 pts
+    const interruptionCostTrue = tCorrUn - tCorrIn;  // Gilbert ≈ -3 pts (slight reverse / null)
+    const reversalAsymmetry = fAsTIn - tAsFIn;       // Gilbert ≈ 16 pts (33 - 17)
+
+    // Gilbert reference values
+    const gilbert = {
+      tCorrUn: 55,
+      tCorrIn: 58,
+      fCorrUn: 55,
+      fCorrIn: 35,
+      tAsFUn: 22,
+      tAsFIn: 17,
+      fAsTUn: 21,
+      fAsTIn: 33,
+      interruptionCostFalse: 20,
+      interruptionCostTrue: -3,
+      reversalAsymmetry: 16,
+    };
+
+    // Verdict
+    let verdictLabel = "";
+    let verdictColor = "";
+    let verdictText = "";
+    if (reversalAsymmetry >= 10 && interruptionCostFalse >= 10 && interruptionCostTrue < interruptionCostFalse) {
+      verdictLabel = "Strong Spinozan pattern";
+      verdictColor = C.green;
+      verdictText =
+        "This session shows the diagnostic asymmetry: interruption hurts identification of FALSE propositions much more than TRUE, and false-as-true errors outpace true-as-false errors under interruption. Aligns with Gilbert et al.'s Study 1.";
+    } else if (reversalAsymmetry >= 5 || interruptionCostFalse >= 8) {
+      verdictLabel = "Weak Spinozan pattern";
+      verdictColor = "#C68A1F";
+      verdictText =
+        "The Spinozan signature is partly present but muted. The class is in the right direction, but smaller-than-published. Often a sample-size issue (Gilbert had 33 subjects).";
+    } else if (reversalAsymmetry <= -5 || interruptionCostTrue > interruptionCostFalse + 5) {
+      verdictLabel = "Reversed / Cartesian-leaning";
+      verdictColor = C.red;
+      verdictText =
+        "This session does not reproduce Spinoza's predicted asymmetry — and may show the opposite pattern. Worth discussing whether the manipulation actually interrupted comprehension here, or whether students figured out the structure.";
+    } else {
+      verdictLabel = "No clear effect";
+      verdictColor = C.muted;
+      verdictText =
+        "Interruption did not produce a clear asymmetry in this session. Could be sample size, weak interruption (look at missed-tone counts), or simply within-noise variance.";
+    }
+
+    return {
+      session: { tCorrUn, tCorrIn, fCorrUn, fCorrIn, tAsFUn, tAsFIn, fAsTUn, fAsTIn, interruptionCostFalse, interruptionCostTrue, reversalAsymmetry },
+      gilbert,
+      verdictLabel,
+      verdictColor,
+      verdictText,
+    };
+  }, [submissions, agg]);
+
+  // Per-submission stats for the breakdown
+  const perSubmission = useMemo(() => {
+    return submissions.map((s) => {
+      const crit = s.responses.filter((r) => !r.isFoil);
+      const correct = crit.filter((r) => {
+        const want = r.signal === "true" ? "true" : r.signal === "false" ? "false" : "noinfo";
+        return r.response === want;
+      }).length;
+      const fInt = crit.filter((r) => r.signal === "false" && r.interrupted);
+      const fIntAsT = fInt.filter((r) => r.response === "true").length;
+      return { ...s, correct, total: crit.length, fIntAsT, fIntTotal: fInt.length };
+    });
+  }, [submissions]);
+
   const downloadJson = () => {
     const blob = new Blob([JSON.stringify(submissions, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -278,6 +366,215 @@ export default function AdminDashboard() {
               </p>
             </div>
 
+            {comparison && (
+              <div
+                style={{
+                  background: C.surface,
+                  border: `1px solid ${C.border}`,
+                  padding: "32px",
+                  marginBottom: "32px",
+                  boxShadow: "0 4px 40px rgba(0,0,0,0.05)",
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: "11px",
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                    color: C.muted,
+                    marginBottom: "8px",
+                  }}
+                >
+                  Session assessment vs. Gilbert et al. (1990)
+                </div>
+                <div
+                  style={{
+                    display: "inline-block",
+                    padding: "6px 14px",
+                    background: comparison.verdictColor,
+                    color: "#fff",
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: "12px",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    fontWeight: 700,
+                    marginBottom: "16px",
+                  }}
+                >
+                  {comparison.verdictLabel}
+                </div>
+                <p style={{ fontSize: "16px", color: C.body, lineHeight: 1.6, marginBottom: "24px" }}>
+                  {comparison.verdictText}
+                </p>
+
+                <div style={{ overflowX: "auto", marginBottom: "20px" }}>
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <thead>
+                      <tr
+                        style={{
+                          borderBottom: `2px solid ${C.border}`,
+                          color: C.muted,
+                          fontSize: "11px",
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        <th style={{ textAlign: "left", padding: "10px 8px" }}>Measure</th>
+                        <th style={{ textAlign: "right", padding: "10px 8px" }}>This session</th>
+                        <th style={{ textAlign: "right", padding: "10px 8px" }}>Gilbert (1990)</th>
+                        <th style={{ textAlign: "right", padding: "10px 8px" }}>Δ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { k: "% correct · TRUE uninterrupted", s: comparison.session.tCorrUn, g: comparison.gilbert.tCorrUn },
+                        { k: "% correct · TRUE interrupted ♪", s: comparison.session.tCorrIn, g: comparison.gilbert.tCorrIn },
+                        { k: "% correct · FALSE uninterrupted", s: comparison.session.fCorrUn, g: comparison.gilbert.fCorrUn },
+                        { k: "% correct · FALSE interrupted ♪", s: comparison.session.fCorrIn, g: comparison.gilbert.fCorrIn, hi: true },
+                        { k: "% T-as-F · uninterrupted", s: comparison.session.tAsFUn, g: comparison.gilbert.tAsFUn, sub: true },
+                        { k: "% T-as-F · interrupted ♪", s: comparison.session.tAsFIn, g: comparison.gilbert.tAsFIn, sub: true },
+                        { k: "% F-as-T · uninterrupted", s: comparison.session.fAsTUn, g: comparison.gilbert.fAsTUn, sub: true },
+                        { k: "% F-as-T · interrupted ♪", s: comparison.session.fAsTIn, g: comparison.gilbert.fAsTIn, sub: true, hi: true },
+                      ].map((row) => {
+                        const delta = row.s - row.g;
+                        return (
+                          <tr
+                            key={row.k}
+                            style={{
+                              borderBottom: `1px solid ${C.border}`,
+                              background: row.hi ? "#FFF5F0" : "transparent",
+                            }}
+                          >
+                            <td
+                              style={{
+                                padding: "10px 8px",
+                                fontFamily: "'Crimson Pro', serif",
+                                fontSize: row.sub ? "14px" : "16px",
+                                color: row.sub ? C.muted : C.text,
+                                fontStyle: row.sub ? "italic" : "normal",
+                              }}
+                            >
+                              {row.k}
+                            </td>
+                            <td
+                              style={{
+                                textAlign: "right",
+                                padding: "10px 8px",
+                                fontWeight: row.hi ? 700 : 400,
+                                color: row.hi ? C.red : C.text,
+                              }}
+                            >
+                              {row.s.toFixed(0)}%
+                            </td>
+                            <td style={{ textAlign: "right", padding: "10px 8px", color: C.muted }}>
+                              {row.g.toFixed(0)}%
+                            </td>
+                            <td
+                              style={{
+                                textAlign: "right",
+                                padding: "10px 8px",
+                                color: Math.abs(delta) < 5 ? C.muted : delta > 0 ? C.green : C.red,
+                              }}
+                            >
+                              {delta >= 0 ? "+" : ""}
+                              {delta.toFixed(0)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      <tr style={{ borderTop: `2px solid ${C.border}`, background: "#FAFAF7" }}>
+                        <td
+                          colSpan={4}
+                          style={{
+                            padding: "10px 8px 4px",
+                            fontFamily: "'Space Mono', monospace",
+                            fontSize: "11px",
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
+                            color: C.muted,
+                          }}
+                        >
+                          Diagnostic deltas
+                        </td>
+                      </tr>
+                      {[
+                        {
+                          k: "Interruption cost · FALSE",
+                          s: comparison.session.interruptionCostFalse,
+                          g: comparison.gilbert.interruptionCostFalse,
+                          tip: "% correct uninterrupted − interrupted. Should be large.",
+                        },
+                        {
+                          k: "Interruption cost · TRUE",
+                          s: comparison.session.interruptionCostTrue,
+                          g: comparison.gilbert.interruptionCostTrue,
+                          tip: "Same, for true items. Should be near zero.",
+                        },
+                        {
+                          k: "Reversal asymmetry (F-as-T − T-as-F, interrupted)",
+                          s: comparison.session.reversalAsymmetry,
+                          g: comparison.gilbert.reversalAsymmetry,
+                          tip: "The Spinozan signature. >0 = false-as-true errors outpace true-as-false.",
+                        },
+                      ].map((row) => {
+                        const delta = row.s - row.g;
+                        return (
+                          <tr key={row.k} style={{ borderBottom: `1px solid ${C.border}`, background: "#FAFAF7" }}>
+                            <td
+                              style={{
+                                padding: "10px 8px",
+                                fontFamily: "'Crimson Pro', serif",
+                                fontSize: "16px",
+                                color: C.text,
+                              }}
+                            >
+                              {row.k}
+                              <div style={{ fontSize: "12px", color: C.muted, fontStyle: "italic", marginTop: "2px" }}>
+                                {row.tip}
+                              </div>
+                            </td>
+                            <td style={{ textAlign: "right", padding: "10px 8px", fontWeight: 700, fontSize: "16px" }}>
+                              {row.s >= 0 ? "+" : ""}
+                              {row.s.toFixed(0)}
+                            </td>
+                            <td style={{ textAlign: "right", padding: "10px 8px", color: C.muted, fontSize: "16px" }}>
+                              {row.g >= 0 ? "+" : ""}
+                              {row.g.toFixed(0)}
+                            </td>
+                            <td
+                              style={{
+                                textAlign: "right",
+                                padding: "10px 8px",
+                                color: Math.abs(delta) < 5 ? C.muted : delta > 0 ? C.green : C.red,
+                              }}
+                            >
+                              {delta >= 0 ? "+" : ""}
+                              {delta.toFixed(0)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <p style={{ fontSize: "13px", color: C.muted, fontStyle: "italic" }}>
+                  Δ shows points above (+) or below (−) the published Gilbert rate; |Δ| &lt; 5 is
+                  greyed as essentially matching. Gilbert had n=33 subjects; class samples are
+                  noisier, so the verdict is heuristic. The decisive cells are the two pink rows
+                  and the three diagnostic deltas at the bottom.
+                </p>
+              </div>
+            )}
+
             <details style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "20px 24px" }}>
               <summary style={{ cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted }}>
                 Per-submission breakdown ({submissions.length})
@@ -287,16 +584,22 @@ export default function AdminDashboard() {
                   <tr style={{ borderBottom: `1px solid ${C.border}`, color: C.muted }}>
                     <th style={{ textAlign: "left", padding: "8px" }}>Submitted</th>
                     <th style={{ textAlign: "left", padding: "8px" }}>Session</th>
-                    <th style={{ textAlign: "right", padding: "8px" }}>Trials</th>
+                    <th style={{ textAlign: "right", padding: "8px" }}>Correct</th>
+                    <th style={{ textAlign: "right", padding: "8px" }}>F-int as T</th>
                     <th style={{ textAlign: "right", padding: "8px" }}>Missed tones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {submissions.map((s, i) => (
+                  {perSubmission.map((s, i) => (
                     <tr key={i} style={{ borderBottom: `1px solid ${C.border}` }}>
                       <td style={{ padding: "8px" }}>{s.submittedAt}</td>
                       <td style={{ padding: "8px" }}>{s.session}</td>
-                      <td style={{ padding: "8px", textAlign: "right" }}>{s.responses.length}</td>
+                      <td style={{ padding: "8px", textAlign: "right" }}>
+                        {s.correct}/{s.total}
+                      </td>
+                      <td style={{ padding: "8px", textAlign: "right", color: s.fIntAsT > 0 ? C.red : C.muted, fontWeight: s.fIntAsT > 0 ? 700 : 400 }}>
+                        {s.fIntAsT}/{s.fIntTotal}
+                      </td>
                       <td style={{ padding: "8px", textAlign: "right" }}>{s.missedTones}</td>
                     </tr>
                   ))}
