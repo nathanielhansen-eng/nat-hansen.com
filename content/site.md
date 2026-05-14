@@ -15,10 +15,6 @@ links:
     href: https://www.dropbox.com/scl/fi/fq3jaysj166t9ott6y17m/CV-Hansen-2017.pdf?rlkey=d6x7m8rsxncvkd624qyj41ly1&dl=0
 
 events:
-  - title: Aesthetic Judgment, Criticism, and Conversation
-    venue: University of Reading
-    date: May 12, 2026
-    link: "/events/aesthetic-judgment"
   - title: UCL Linguistics Seminar
     venue: University College London
     date: May 20, 2026
