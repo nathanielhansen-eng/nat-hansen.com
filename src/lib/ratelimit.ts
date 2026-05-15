@@ -28,6 +28,24 @@ export const minitruePerDay = redis
     })
   : null;
 
+export const workshopPerMinute = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(30, "1 m"),
+      analytics: true,
+      prefix: "ratelimit:workshop:min",
+    })
+  : null;
+
+export const workshopPerDay = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(500, "1 d"),
+      analytics: true,
+      prefix: "ratelimit:workshop:day",
+    })
+  : null;
+
 export function getClientIp(request: Request): string {
   const fwd = request.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0]!.trim();

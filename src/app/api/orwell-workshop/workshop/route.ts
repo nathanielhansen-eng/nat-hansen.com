@@ -4,6 +4,8 @@ import {
   getClientIp,
   minitruePerDay,
   minitruePerMinute,
+  workshopPerDay,
+  workshopPerMinute,
 } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
@@ -24,11 +26,16 @@ export async function POST(request: Request) {
   }
 
   // Rate limit only when the page is public (authed users bypass).
-  if (!passwordMode && minitruePerMinute && minitruePerDay) {
+  // Workshop gets higher limits than minitrue (per-paragraph calls vs. one-shot).
+  const referer = request.headers.get("referer") ?? "";
+  const isWorkshop = referer.includes("/private/orwell-workshop");
+  const perMinute = isWorkshop ? workshopPerMinute : minitruePerMinute;
+  const perDay = isWorkshop ? workshopPerDay : minitruePerDay;
+  if (!passwordMode && perMinute && perDay) {
     const ip = getClientIp(request);
     const [m, d] = await Promise.all([
-      minitruePerMinute.limit(ip),
-      minitruePerDay.limit(ip),
+      perMinute.limit(ip),
+      perDay.limit(ip),
     ]);
     if (!m.success || !d.success) {
       const reset = Math.max(m.reset, d.reset);
