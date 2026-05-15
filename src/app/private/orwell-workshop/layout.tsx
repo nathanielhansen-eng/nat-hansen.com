@@ -13,8 +13,11 @@ export default async function OrwellWorkshopLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const ok = await isAuthed();
-  if (!ok) return <PasswordGate />;
+  // Set MINITRUE_REQUIRE_PASSWORD=1 in Vercel env to re-enable the gate.
+  if (process.env.MINITRUE_REQUIRE_PASSWORD === "1") {
+    const ok = await isAuthed();
+    if (!ok) return <PasswordGate />;
+  }
   return <>{children}</>;
 }
 
