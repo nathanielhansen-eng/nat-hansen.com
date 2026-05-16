@@ -76,6 +76,24 @@ export default function TeachingPage() {
 
         <section className="mt-12">
           <h2 className="text-sm text-stone-500 mb-6 uppercase tracking-wider">
+            Experiments
+          </h2>
+          <Link
+            href="/teaching/experiments"
+            className="block border border-stone-300 rounded-lg p-5 hover:border-stone-400 transition-colors"
+          >
+            <h3 className={`${betania.className} text-2xl sm:text-3xl text-stone-800`}>
+              Experiments
+            </h3>
+            <p className="text-stone-500 text-sm mt-2">
+              Playable versions of canonical experiments in philosophy and
+              political science.
+            </p>
+          </Link>
+        </section>
+
+        <section className="mt-12">
+          <h2 className="text-sm text-stone-500 mb-6 uppercase tracking-wider">
             Writing Tools
           </h2>
           <Link
