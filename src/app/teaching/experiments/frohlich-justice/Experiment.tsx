@@ -1,7 +1,43 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+
+const STORAGE_KEY = "frohlich-justice-state-v1";
+
+type PersistedState = {
+  stage: Stage;
+  rank1: PrincipleId[] | null;
+  rank2: PrincipleId[] | null;
+  rankFinal: PrincipleId[] | null;
+  indResult: IndividualResult | null;
+  chat: ChatMsg[];
+  proposal: Choice | null;
+  votes: VoteRecord[] | null;
+  groupResult: GroupResult | null;
+  voteRound: number;
+  submitted: boolean;
+};
+
+function loadPersisted(): PersistedState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as PersistedState;
+  } catch {
+    return null;
+  }
+}
+
+function clearPersisted() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
 import {
   PRINCIPLES,
   PrincipleId,
@@ -17,29 +53,28 @@ import {
   floor,
   range,
   fmtMoney,
-  payoutForIncome,
   PERSONAS,
   PersonaId,
 } from "@/lib/frohlich";
 
 function ReferencePanel() {
   return (
-    <details className="border border-stone-800 rounded bg-stone-900/30 group">
-      <summary className="cursor-pointer px-3 py-2 text-stone-300 text-xs hover:text-stone-100 select-none">
-        <span className="text-stone-500">▸</span> Reference — principles &amp;
+    <details className="border border-[#DDD5C0] rounded bg-white group">
+      <summary className="cursor-pointer px-3 py-2 text-[#3A3328] text-xs hover:text-[#1A1814] select-none">
+        <span className="text-[#9A8866]">▸</span> Reference — principles &amp;
         candidate distributions (D1–D{GROUP_DISTRIBUTIONS.length})
       </summary>
       <div className="px-3 pb-3 pt-1 space-y-3">
         <div className="space-y-1.5">
           {PRINCIPLES.map((p) => (
             <div key={p.id} className="text-xs">
-              <span className="text-stone-200">{p.short}</span>{" "}
-              <span className="text-stone-500">— {p.blurb}</span>
+              <span className="text-[#1A1814]">{p.short}</span>{" "}
+              <span className="text-[#9A8866]">— {p.blurb}</span>
             </div>
           ))}
         </div>
-        <div className="border-t border-stone-800 pt-3">
-          <div className="text-stone-500 text-xs mb-1.5">
+        <div className="border-t border-[#DDD5C0] pt-3">
+          <div className="text-[#9A8866] text-xs mb-1.5">
             Group-decision pool (the personas reference these by ID)
           </div>
           <DistributionTable
@@ -82,8 +117,7 @@ type IndividualResult = {
   distribution: Distribution;
   classLabel: ClassLabel;
   income: number;
-  payoff: number;
-  counterfactuals: { principle: Principle; income: number; payoff: number }[];
+  counterfactuals: { principle: Principle; income: number }[];
 };
 
 type GroupResult = {
@@ -92,7 +126,6 @@ type GroupResult = {
   distribution: Distribution;
   classLabel: ClassLabel;
   income: number;
-  payoff: number;
 };
 
 const STAGE_ORDER: Stage[] = [
@@ -117,7 +150,7 @@ function randomClass(): ClassLabel {
   return CLASS_LABELS[Math.floor(Math.random() * CLASS_LABELS.length)];
 }
 
-export default function Experiment() {
+export default function Experiment({ session }: { session: string }) {
   const [stage, setStage] = useState<Stage>("intro");
   const [rank1, setRank1] = useState<PrincipleId[] | null>(null);
   const [rank2, setRank2] = useState<PrincipleId[] | null>(null);
@@ -128,38 +161,189 @@ export default function Experiment() {
   const [votes, setVotes] = useState<VoteRecord[] | null>(null);
   const [groupResult, setGroupResult] = useState<GroupResult | null>(null);
   const [voteRound, setVoteRound] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Restore persisted state on mount (client only) to avoid SSR mismatch.
+  useEffect(() => {
+    const persisted = loadPersisted();
+    if (persisted) {
+      setStage(persisted.stage);
+      setRank1(persisted.rank1);
+      setRank2(persisted.rank2);
+      setRankFinal(persisted.rankFinal);
+      setIndResult(persisted.indResult);
+      setChat(persisted.chat);
+      setProposal(persisted.proposal);
+      setVotes(persisted.votes);
+      setGroupResult(persisted.groupResult);
+      setVoteRound(persisted.voteRound);
+      setSubmitted(persisted.submitted ?? false);
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist on every relevant state change, but only after hydration so the
+  // initial empty state doesn't overwrite saved progress.
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    try {
+      const snapshot: PersistedState = {
+        stage,
+        rank1,
+        rank2,
+        rankFinal,
+        indResult,
+        chat,
+        proposal,
+        votes,
+        groupResult,
+        voteRound,
+        submitted,
+      };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    } catch {
+      // storage may be full or disabled; non-fatal
+    }
+  }, [
+    hydrated,
+    stage,
+    rank1,
+    rank2,
+    rankFinal,
+    indResult,
+    chat,
+    proposal,
+    votes,
+    groupResult,
+    voteRound,
+    submitted,
+  ]);
 
   function go(next: Stage) {
     setStage(next);
   }
 
+  function resetAll() {
+    clearPersisted();
+    setStage("intro");
+    setRank1(null);
+    setRank2(null);
+    setRankFinal(null);
+    setIndResult(null);
+    setChat([]);
+    setProposal(null);
+    setVotes(null);
+    setGroupResult(null);
+    setVoteRound(0);
+    setSubmitted(false);
+  }
+
+  // Fire-and-forget submission when the participant reaches debrief.
+  useEffect(() => {
+    if (!hydrated) return;
+    if (stage !== "debrief") return;
+    if (submitted) return;
+    const payload = {
+      session,
+      submittedAt: new Date().toISOString(),
+      rank1,
+      rank2,
+      rankFinal,
+      individual: indResult
+        ? {
+            choice: indResult.choice,
+            classLabel: indResult.classLabel,
+            income: indResult.income,
+          }
+        : null,
+      group: groupResult
+        ? {
+            proposal: groupResult.proposal,
+            distributionId: groupResult.distribution.id,
+            classLabel: groupResult.classLabel,
+            income: groupResult.income,
+          }
+        : null,
+      voteRound,
+      chatTurns: chat.filter((m) => m.role === "user" && m.speaker === "You")
+        .length,
+      chat,
+      finalVotes: votes,
+    };
+    setSubmitted(true);
+    fetch("/api/experiments/frohlich-justice/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(() => {
+      // best-effort; user already finished the experiment
+      setSubmitted(false);
+    });
+  }, [
+    hydrated,
+    stage,
+    submitted,
+    session,
+    rank1,
+    rank2,
+    rankFinal,
+    indResult,
+    groupResult,
+    voteRound,
+    chat,
+    votes,
+  ]);
+
   const stageIndex = STAGE_ORDER.indexOf(stage);
   const progress = Math.round((stageIndex / (STAGE_ORDER.length - 1)) * 100);
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-200 flex flex-col">
-      <header className="border-b border-stone-800 px-6 py-3 flex items-center justify-between flex-shrink-0">
+    <div
+      className="min-h-screen bg-[#F4F0E8] text-[#1A1814] flex flex-col"
+      style={{ fontFamily: "'Crimson Pro', Georgia, serif" }}
+    >
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`}</style>
+      <header className="border-b border-[#DDD5C0] px-6 py-3 flex items-center justify-between flex-shrink-0">
         <Link
           href="/teaching/experiments"
-          className="text-stone-500 hover:text-stone-300 transition-colors text-sm"
+          className="text-[#9A8866] hover:text-[#3A3328] transition-colors text-sm"
         >
           &larr; experiments
         </Link>
         <div className="text-center">
-          <p className="text-stone-200 font-mono text-sm">
+          <p
+            className="text-[#9A8866] text-[11px] uppercase tracking-[0.18em]"
+            style={{ fontFamily: "'Space Mono', monospace" }}
+          >
             Distributive Justice Experiment
-            <span className="ml-2 text-amber-400/70 text-xs uppercase tracking-wider">
-              playtest
-            </span>
+            <span className="ml-2 text-[#9A8866]">· playtest</span>
           </p>
         </div>
-        <div className="w-16 text-right text-stone-600 text-xs font-mono">
-          {progress}%
+        <div className="flex items-center gap-3 text-xs font-mono">
+          {stage !== "intro" && (
+            <button
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "Restart from the beginning? Your saved progress will be erased.",
+                  )
+                ) {
+                  resetAll();
+                }
+              }}
+              className="text-[#9A8866] hover:text-[#3A3328] transition-colors"
+              title="Restart"
+            >
+              start over
+            </button>
+          )}
+          <span className="text-[#9A8866] w-10 text-right">{progress}%</span>
         </div>
       </header>
-      <div className="h-0.5 bg-stone-900">
+      <div className="h-0.5 bg-[#FDFAF5]">
         <div
-          className="h-full bg-amber-700/60 transition-all"
+          className="h-full bg-[#1A1814]/60 transition-all"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -207,7 +391,6 @@ export default function Experiment() {
                 return {
                   principle: p,
                   income: cfIncome,
-                  payoff: payoutForIncome(cfIncome),
                 };
               });
               setIndResult({
@@ -215,7 +398,6 @@ export default function Experiment() {
                 distribution: dist,
                 classLabel: cls,
                 income,
-                payoff: payoutForIncome(income),
                 counterfactuals,
               });
               go("payoff1");
@@ -283,7 +465,6 @@ export default function Experiment() {
                 distribution: dist,
                 classLabel: cls,
                 income,
-                payoff: payoutForIncome(income),
               });
               go("group-payoff");
             }}
@@ -338,7 +519,7 @@ export default function Experiment() {
             rankFinal={rankFinal}
             indResult={indResult}
             groupResult={groupResult}
-            onRestart={() => window.location.reload()}
+            onRestart={resetAll}
           />
         )}
       </main>
@@ -351,15 +532,15 @@ export default function Experiment() {
 function Intro({ onNext }: { onNext: () => void }) {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">A choice behind a veil of ignorance</h1>
-      <div className="border border-stone-800 rounded p-4 bg-stone-900/30 space-y-3 text-sm text-stone-300 leading-relaxed">
-        <div className="text-stone-400 text-xs uppercase tracking-wider">
+      <h1 className="text-2xl text-[#1A1814]">A choice behind a veil of ignorance</h1>
+      <div className="border border-[#DDD5C0] rounded p-4 bg-white space-y-3 text-sm text-[#3A3328] leading-relaxed">
+        <div className="text-[#9A8866] text-xs uppercase tracking-wider">
           The veil of ignorance
         </div>
         <p>
           The philosopher John Rawls argued that to choose fair principles for
           a society, you should imagine choosing them{" "}
-          <span className="text-stone-100">
+          <span className="text-[#1A1814]">
             without knowing which position you'll end up in
           </span>
           . Rich or poor, lucky or unlucky — strip those facts away and ask:
@@ -368,11 +549,11 @@ function Intro({ onNext }: { onNext: () => void }) {
         <p>
           That's the setup here. You'll pick a principle for distributing
           income before knowing which income class you'll be assigned to. Your
-          actual payoff depends on a random draw made <em>after</em> you
-          choose, so the rule you pick is the rule you live under, whoever you
-          turn out to be.
+          income is determined by a random class draw made <em>after</em> you
+          choose, so the rule you pick is the rule you live under, whoever
+          you turn out to be.
         </p>
-        <p className="text-stone-400 text-xs">
+        <p className="text-[#9A8866] text-xs">
           This is a teaching adaptation of Frohlich, Oppenheimer &amp; Eavey
           (1987), who ran a version of this experiment with real participants
           and real money. Their original framing left the veil mostly
@@ -382,10 +563,10 @@ function Intro({ onNext }: { onNext: () => void }) {
           conditions.
         </p>
       </div>
-      <p className="text-stone-300 leading-relaxed">
+      <p className="text-[#3A3328] leading-relaxed">
         The experiment has five phases:
       </p>
-      <ol className="list-decimal list-inside space-y-2 text-stone-400 text-sm">
+      <ol className="list-decimal list-inside space-y-2 text-[#9A8866] text-sm">
         <li>Learn four principles of distributive justice.</li>
         <li>Take a brief comprehension test.</li>
         <li>
@@ -398,11 +579,6 @@ function Intro({ onNext }: { onNext: () => void }) {
         </li>
         <li>Rank the principles a final time and debrief.</li>
       </ol>
-      <p className="text-stone-400 text-sm">
-        Payoffs are notional — but the principle you and the group adopt will
-        determine an actual random draw with hypothetical earnings, paid at
-        $0.10 per $1,000 of annual income (so a $20,000 outcome = $2.00).
-      </p>
       <PrimaryButton onClick={onNext}>Begin</PrimaryButton>
     </div>
   );
@@ -411,8 +587,8 @@ function Intro({ onNext }: { onNext: () => void }) {
 function ReadPrinciples({ onNext }: { onNext: () => void }) {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">The four principles</h1>
-      <p className="text-stone-400 text-sm">
+      <h1 className="text-2xl text-[#1A1814]">The four principles</h1>
+      <p className="text-[#9A8866] text-sm">
         Each principle picks a different "best" income distribution from a set
         of candidates.
       </p>
@@ -420,10 +596,10 @@ function ReadPrinciples({ onNext }: { onNext: () => void }) {
         {PRINCIPLES.map((p) => (
           <div
             key={p.id}
-            className="border border-stone-800 rounded p-4 bg-stone-900/30"
+            className="border border-[#DDD5C0] rounded p-4 bg-white"
           >
-            <div className="text-stone-100 font-medium mb-1">{p.long}</div>
-            <div className="text-stone-400 text-sm">{p.blurb}</div>
+            <div className="text-[#1A1814] font-medium mb-1">{p.long}</div>
+            <div className="text-[#9A8866] text-sm">{p.blurb}</div>
           </div>
         ))}
       </div>
@@ -472,7 +648,7 @@ const COMP_QUESTIONS: CompQuestion[] = [
       "Yes — that's the whole point of the compromise. A constraint costs you average to buy a guarantee.",
   },
   {
-    q: "If you pick a principle and the random draw assigns you the 'Low' class, your payoff comes from…",
+    q: "If you pick a principle and the random draw assigns you the 'Low' class, your income comes from…",
     options: [
       "The average of the chosen distribution.",
       "The Low income in the distribution your principle selected.",
@@ -481,7 +657,7 @@ const COMP_QUESTIONS: CompQuestion[] = [
     ],
     correct: 1,
     explain:
-      "Your class is randomly drawn; your payoff = the income at that class in the distribution your principle selected.",
+      "Your class is randomly drawn; your income = the value at that class in the distribution your principle selected.",
   },
   {
     q: "Why does the group choice happen 'behind a veil of ignorance'?",
@@ -509,13 +685,13 @@ function Comprehension({ onPass }: { onPass: () => void }) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">Comprehension check</h1>
-      <p className="text-stone-400 text-sm">
+      <h1 className="text-2xl text-[#1A1814]">Comprehension check</h1>
+      <p className="text-[#9A8866] text-sm">
         You'll need all five right to proceed. You can retry as many times as
         you like.
       </p>
-      <div className="border border-stone-800 rounded p-3 bg-stone-900/30 text-stone-400 text-xs leading-relaxed">
-        <span className="text-stone-300">Heads-up:</span> these questions test
+      <div className="border border-[#DDD5C0] rounded p-3 bg-white text-[#9A8866] text-xs leading-relaxed">
+        <span className="text-[#3A3328]">Heads-up:</span> these questions test
         what the principles <em>mean</em>, not which distribution you'd pick.
         The same distribution can satisfy more than one principle (e.g. one
         distribution may both maximize the floor and meet a range constraint),
@@ -529,16 +705,16 @@ function Comprehension({ onPass }: { onPass: () => void }) {
           const wrong =
             submitted && answers[i] !== null && answers[i] !== q.correct;
           return (
-            <div key={i} className="border border-stone-800 rounded p-4">
-              <div className="text-stone-200 mb-3">
-                <span className="text-stone-500 mr-2">{i + 1}.</span>
+            <div key={i} className="border border-[#DDD5C0] rounded p-4">
+              <div className="text-[#1A1814] mb-3">
+                <span className="text-[#9A8866] mr-2">{i + 1}.</span>
                 {q.q}
               </div>
               <div className="space-y-2">
                 {q.options.map((opt, j) => (
                   <label
                     key={j}
-                    className="flex items-start gap-2 text-stone-300 text-sm cursor-pointer hover:text-stone-100"
+                    className="flex items-start gap-2 text-[#3A3328] text-sm cursor-pointer hover:text-[#1A1814]"
                   >
                     <input
                       type="radio"
@@ -558,12 +734,12 @@ function Comprehension({ onPass }: { onPass: () => void }) {
                 ))}
               </div>
               {correct && (
-                <div className="mt-3 text-emerald-400 text-xs">
+                <div className="mt-3 text-[#1A7840] text-xs">
                   Correct. {q.explain}
                 </div>
               )}
               {wrong && (
-                <div className="mt-3 text-rose-400 text-xs">
+                <div className="mt-3 text-[#CC1A14] text-xs">
                   Not quite. {q.explain}
                 </div>
               )}
@@ -581,7 +757,7 @@ function Comprehension({ onPass }: { onPass: () => void }) {
       )}
       {allCorrect && (
         <div className="space-y-3">
-          <div className="text-emerald-400 text-sm">
+          <div className="text-[#1A7840] text-sm">
             All five correct. You're cleared to proceed.
           </div>
           <PrimaryButton onClick={onPass}>Continue</PrimaryButton>
@@ -619,34 +795,34 @@ function RankingStep({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">{label}</h1>
-      <p className="text-stone-400 text-sm">{instructions}</p>
+      <h1 className="text-2xl text-[#1A1814]">{label}</h1>
+      <p className="text-[#9A8866] text-sm">{instructions}</p>
       <ol className="space-y-2">
         {order.map((id, i) => {
           const p = PRINCIPLES.find((x) => x.id === id)!;
           return (
             <li
               key={id}
-              className="flex items-center justify-between border border-stone-800 rounded p-3 bg-stone-900/30"
+              className="flex items-center justify-between border border-[#DDD5C0] rounded p-3 bg-white"
             >
               <div className="flex items-baseline gap-3">
-                <span className="text-stone-500 font-mono text-sm w-4">
+                <span className="text-[#9A8866] font-mono text-sm w-4">
                   {i + 1}
                 </span>
-                <span className="text-stone-200">{p.short}</span>
+                <span className="text-[#1A1814]">{p.short}</span>
               </div>
               <div className="flex gap-1">
                 <button
                   onClick={() => move(i, -1)}
                   disabled={i === 0}
-                  className="px-2 py-1 text-stone-400 hover:text-stone-100 disabled:opacity-30 disabled:cursor-not-allowed border border-stone-800 rounded text-xs"
+                  className="px-2 py-1 text-[#9A8866] hover:text-[#1A1814] disabled:opacity-30 disabled:cursor-not-allowed border border-[#DDD5C0] rounded text-xs"
                 >
                   ↑
                 </button>
                 <button
                   onClick={() => move(i, 1)}
                   disabled={i === order.length - 1}
-                  className="px-2 py-1 text-stone-400 hover:text-stone-100 disabled:opacity-30 disabled:cursor-not-allowed border border-stone-800 rounded text-xs"
+                  className="px-2 py-1 text-[#9A8866] hover:text-[#1A1814] disabled:opacity-30 disabled:cursor-not-allowed border border-[#DDD5C0] rounded text-xs"
                 >
                   ↓
                 </button>
@@ -656,9 +832,9 @@ function RankingStep({
         })}
       </ol>
       <div className="space-y-2">
-        <div className="text-stone-400 text-sm">
+        <div className="text-[#9A8866] text-sm">
           How confident are you in this ranking?{" "}
-          <span className="text-stone-200">{confidence}</span> / 5
+          <span className="text-[#1A1814]">{confidence}</span> / 5
         </div>
         <input
           type="range"
@@ -677,44 +853,53 @@ function RankingStep({
 function TableWalkthrough({ onNext }: { onNext: () => void }) {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">Situation A</h1>
-      <p className="text-stone-400 text-sm">
+      <h1 className="text-2xl text-[#1A1814]">Situation A</h1>
+      <p className="text-[#9A8866] text-sm">
         Here are four candidate distributions. Each row is an income class; each
         column is one distribution. The table is in annual dollars.
+      </p>
+      <p className="text-[#9A8866] text-xs leading-relaxed">
+        A note on the numbers: these are the actual figures from Frohlich,
+        Oppenheimer &amp; Eavey (1987), so they're in 1987 dollars. Roughly{" "}
+        <span className="text-[#3A3328]">multiply by 3 for 2026 equivalents</span>{" "}
+        — e.g. a $12,000 income at the low end was about $36,000 today; the
+        $35,000 top of D2 was about $105,000. The principles you're choosing
+        between work the same on either scale, but the texture of "what counts
+        as a livable floor" reads differently in modern dollars.
       </p>
       <DistributionTable
         distributions={SITUATION_A.distributions}
         highlightFn={() => null}
       />
-      <div className="border border-stone-800 rounded p-4 bg-stone-900/30 space-y-2 text-sm">
-        <div className="text-stone-200 font-medium">
+      <div className="border border-[#DDD5C0] rounded p-4 bg-white space-y-2 text-sm">
+        <div className="text-[#1A1814] font-medium">
           Which distribution does each principle pick?
         </div>
-        <div className="text-stone-500 text-xs italic">
+        <div className="text-[#9A8866] text-xs italic">
           The four principles don't map onto four distinct distributions. Two
           principles can pick the same one (here D4 wins on both
           floor-maximizing and range-constrained grounds), and other
           distributions in the pool aren't picked by anyone. That's the point:
           which principle you adopt only matters where they disagree.
         </div>
-        <ul className="space-y-1 text-stone-400">
+        <ul className="space-y-1 text-[#9A8866]">
           <li>
-            <span className="text-stone-200">Maximize the floor:</span>{" "}
+            <span className="text-[#1A1814]">Maximize the floor:</span>{" "}
             Distribution 4 — its Low class earns $13,000, more than any other.
           </li>
           <li>
-            <span className="text-stone-200">Maximize the average:</span>{" "}
+            <span className="text-[#1A1814]">Maximize the average:</span>{" "}
             Distribution 3 — average $24,000.
           </li>
           <li>
-            <span className="text-stone-200">
+            <span className="text-[#1A1814]">
               Max average with a $12,000 floor constraint:
             </span>{" "}
             Only 1 and 4 clear $12,000; of those, 1 has the higher average
             ($20,000 vs $19,000), so it wins.
           </li>
           <li>
-            <span className="text-stone-200">
+            <span className="text-[#1A1814]">
               Max average with a $15,000 range constraint:
             </span>{" "}
             Only Distribution 4 has range ≤ $15,000 (its range is $12,000).
@@ -737,15 +922,15 @@ function DistributionTable({
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="text-stone-500 text-xs uppercase tracking-wider">
+          <tr className="text-[#9A8866] text-xs uppercase tracking-wider">
             <th className="text-left py-2 pr-3 font-normal">Class</th>
             {distributions.map((d) => (
               <th
                 key={d.id}
                 className={`text-right py-2 px-3 font-normal ${
                   highlightFn(d) === "selected"
-                    ? "text-amber-400"
-                    : "text-stone-500"
+                    ? "text-[#1A7840]"
+                    : "text-[#9A8866]"
                 }`}
               >
                 D{d.id}
@@ -753,15 +938,15 @@ function DistributionTable({
             ))}
           </tr>
         </thead>
-        <tbody className="text-stone-300">
+        <tbody className="text-[#3A3328]">
           {CLASS_LABELS.map((c) => (
-            <tr key={c} className="border-t border-stone-900">
-              <td className="py-1.5 pr-3 text-stone-400">{c}</td>
+            <tr key={c} className="border-t border-[#DDD5C0]">
+              <td className="py-1.5 pr-3 text-[#9A8866]">{c}</td>
               {distributions.map((d) => (
                 <td
                   key={d.id}
                   className={`text-right py-1.5 px-3 ${
-                    highlightFn(d) === "selected" ? "text-amber-300" : ""
+                    highlightFn(d) === "selected" ? "text-[#1A7840]" : ""
                   }`}
                 >
                   {fmtMoney(d.incomes[c])}
@@ -769,7 +954,7 @@ function DistributionTable({
               ))}
             </tr>
           ))}
-          <tr className="border-t border-stone-800 text-stone-400">
+          <tr className="border-t border-[#DDD5C0] text-[#9A8866]">
             <td className="py-1.5 pr-3 italic">Average</td>
             {distributions.map((d) => (
               <td key={d.id} className="text-right py-1.5 px-3 italic">
@@ -777,7 +962,7 @@ function DistributionTable({
               </td>
             ))}
           </tr>
-          <tr className="text-stone-400">
+          <tr className="text-[#9A8866]">
             <td className="py-1.5 pr-3 italic">Floor</td>
             {distributions.map((d) => (
               <td key={d.id} className="text-right py-1.5 px-3 italic">
@@ -785,7 +970,7 @@ function DistributionTable({
               </td>
             ))}
           </tr>
-          <tr className="text-stone-400">
+          <tr className="text-[#9A8866]">
             <td className="py-1.5 pr-3 italic">Range</td>
             {distributions.map((d) => (
               <td key={d.id} className="text-right py-1.5 px-3 italic">
@@ -821,10 +1006,10 @@ function IndividualChoice({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">Phase 1 — Your turn</h1>
-      <p className="text-stone-400 text-sm">
+      <h1 className="text-2xl text-[#1A1814]">Phase 1 — Your turn</h1>
+      <p className="text-[#9A8866] text-sm">
         Pick a principle. It will pick a distribution. You'll then be randomly
-        assigned to an income class, and your payoff comes from that class.
+        assigned to an income class, and your income comes from that class.
       </p>
       <DistributionTable
         distributions={SITUATION_A.distributions}
@@ -836,8 +1021,8 @@ function IndividualChoice({
             key={p.id}
             className={`flex items-start gap-3 border rounded p-3 cursor-pointer transition-colors ${
               principle === p.id
-                ? "border-amber-700/60 bg-stone-900/60"
-                : "border-stone-800 hover:border-stone-700"
+                ? "border-[#1A1814] bg-[#FDFAF5]"
+                : "border-[#DDD5C0] hover:border-[#9A8866]"
             }`}
           >
             <input
@@ -848,10 +1033,10 @@ function IndividualChoice({
               className="mt-1"
             />
             <div>
-              <div className="text-stone-100 text-sm">{p.short}</div>
-              <div className="text-stone-500 text-xs">{p.blurb}</div>
+              <div className="text-[#1A1814] text-sm">{p.short}</div>
+              <div className="text-[#9A8866] text-xs">{p.blurb}</div>
               {principle === p.id && p.id === "max-average-floor" && (
-                <div className="mt-2 text-xs text-stone-400">
+                <div className="mt-2 text-xs text-[#9A8866]">
                   Floor constraint:{" "}
                   <input
                     type="number"
@@ -860,12 +1045,12 @@ function IndividualChoice({
                     min={0}
                     max={30000}
                     onChange={(e) => setFloorC(parseInt(e.target.value) || 0)}
-                    className="bg-stone-900 border border-stone-700 rounded px-2 py-0.5 w-24 text-stone-100"
+                    className="bg-[#FDFAF5] border border-[#9A8866] rounded px-2 py-0.5 w-24 text-[#1A1814]"
                   />
                 </div>
               )}
               {principle === p.id && p.id === "max-average-range" && (
-                <div className="mt-2 text-xs text-stone-400">
+                <div className="mt-2 text-xs text-[#9A8866]">
                   Range constraint (max gap):{" "}
                   <input
                     type="number"
@@ -874,7 +1059,7 @@ function IndividualChoice({
                     min={0}
                     max={50000}
                     onChange={(e) => setRangeC(parseInt(e.target.value) || 0)}
-                    className="bg-stone-900 border border-stone-700 rounded px-2 py-0.5 w-24 text-stone-100"
+                    className="bg-[#FDFAF5] border border-[#9A8866] rounded px-2 py-0.5 w-24 text-[#1A1814]"
                   />
                 </div>
               )}
@@ -883,7 +1068,7 @@ function IndividualChoice({
         ))}
       </div>
       {preview === null && principle && (
-        <div className="text-rose-400 text-sm">
+        <div className="text-[#CC1A14] text-sm">
           No distribution satisfies your constraint. Loosen it or pick another
           principle.
         </div>
@@ -917,42 +1102,36 @@ function IndividualPayoff({
   const chosen = PRINCIPLES.find((p) => p.id === result.choice.principle)!;
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">The draw</h1>
-      <div className="border border-amber-700/40 rounded p-4 bg-amber-950/10 space-y-2">
-        <div className="text-stone-400 text-xs uppercase tracking-wider">
+      <h1 className="text-2xl text-[#1A1814]">The draw</h1>
+      <div className="border border-[#1A1814] rounded p-4 bg-[#FDFAF5] space-y-2">
+        <div className="text-[#9A8866] text-xs uppercase tracking-wider">
           Your principle
         </div>
-        <div className="text-stone-100">{chosen.short}</div>
-        <div className="text-stone-400 text-xs uppercase tracking-wider pt-2">
+        <div className="text-[#1A1814]">{chosen.short}</div>
+        <div className="text-[#9A8866] text-xs uppercase tracking-wider pt-2">
           Random class assigned
         </div>
-        <div className="text-stone-100">{result.classLabel}</div>
-        <div className="text-stone-400 text-xs uppercase tracking-wider pt-2">
+        <div className="text-[#1A1814]">{result.classLabel}</div>
+        <div className="text-[#9A8866] text-xs uppercase tracking-wider pt-2">
           Your income
         </div>
-        <div className="text-2xl text-amber-300">{fmtMoney(result.income)}</div>
-        <div className="text-stone-400 text-sm">
-          Payoff at $0.10 per $1,000:{" "}
-          <span className="text-stone-100">${result.payoff.toFixed(2)}</span>
-        </div>
+        <div className="text-2xl text-[#1A7840]">{fmtMoney(result.income)}</div>
       </div>
 
-      <div className="border border-stone-800 rounded p-4 space-y-2 bg-stone-900/30">
-        <div className="text-stone-300 text-sm font-medium">
+      <div className="border border-[#DDD5C0] rounded p-4 space-y-2 bg-white">
+        <div className="text-[#3A3328] text-sm font-medium">
           What you'd have earned with the same class draw under the other
           principles:
         </div>
-        <ul className="text-sm text-stone-400 space-y-1">
+        <ul className="text-sm text-[#9A8866] space-y-1">
           {result.counterfactuals.map((cf) => (
             <li key={cf.principle.id} className="flex justify-between">
               <span>{cf.principle.short}</span>
-              <span className="text-stone-200">
-                {fmtMoney(cf.income)} (${cf.payoff.toFixed(2)})
-              </span>
+              <span className="text-[#1A1814]">{fmtMoney(cf.income)}</span>
             </li>
           ))}
         </ul>
-        <div className="text-stone-500 text-xs pt-2">
+        <div className="text-[#9A8866] text-xs pt-2">
           (Counterfactual constraints used: $10,000 floor / $18,000 range.)
         </div>
       </div>
@@ -965,32 +1144,32 @@ function IndividualPayoff({
 function DiscussionIntro({ onNext }: { onNext: () => void }) {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">Phase 2 — The group</h1>
-      <p className="text-stone-300 text-sm leading-relaxed">
+      <h1 className="text-2xl text-[#1A1814]">Phase 2 — The group</h1>
+      <p className="text-[#3A3328] text-sm leading-relaxed">
         You're now in a room with four other participants. None of you knows
         which income class you'll be randomly assigned to. Your task is to reach{" "}
-        <span className="text-stone-100">unanimous agreement</span> on a single
-        principle that will govern the group's payouts.
+        <span className="text-[#1A1814]">unanimous agreement</span> on a single
+        principle that will govern the group's distribution.
       </p>
-      <p className="text-stone-400 text-sm leading-relaxed">
+      <p className="text-[#9A8866] text-sm leading-relaxed">
         If you reach unanimity, a distribution will be drawn from those
         conforming to the chosen principle. If you fail, a distribution will be
         drawn at random from the full pool, ignoring any principle.
       </p>
-      <p className="text-stone-500 text-xs leading-relaxed">
+      <p className="text-[#9A8866] text-xs leading-relaxed">
         Note: the group works from a larger candidate pool than Situation A
         (D1–D{GROUP_DISTRIBUTIONS.length}). A collapsible reference panel in the
         room shows the full pool and the principles — open it any time you lose
         track.
       </p>
-      <div className="border border-stone-800 rounded p-4 space-y-3">
-        <div className="text-stone-300 text-sm font-medium">
+      <div className="border border-[#DDD5C0] rounded p-4 space-y-3">
+        <div className="text-[#3A3328] text-sm font-medium">
           The other participants:
         </div>
         {PERSONAS.map((p) => (
           <div key={p.id} className="text-sm">
-            <span className="text-stone-100">{p.name}</span>
-            <span className="text-stone-500"> — {p.oneLine}</span>
+            <span className="text-[#1A1814]">{p.name}</span>
+            <span className="text-[#9A8866]"> — {p.oneLine}</span>
           </div>
         ))}
       </div>
@@ -1062,11 +1241,11 @@ function Discussion({
 
   return (
     <div className="space-y-4 flex flex-col h-[70vh]">
-      <h1 className="text-xl text-stone-100">Group deliberation</h1>
+      <h1 className="text-xl text-[#1A1814]">Group deliberation</h1>
       <ReferencePanel />
-      <div className="flex-1 overflow-y-auto border border-stone-800 rounded p-4 space-y-3 bg-stone-900/30">
+      <div className="flex-1 overflow-y-auto border border-[#DDD5C0] rounded p-4 space-y-3 bg-white">
         {chat.length === 0 && (
-          <div className="text-stone-500 text-sm italic">
+          <div className="text-[#9A8866] text-sm italic">
             The room is quiet. Say something to start the conversation.
           </div>
         )}
@@ -1075,28 +1254,28 @@ function Discussion({
             <span
               className={
                 m.speaker === "You"
-                  ? "text-amber-400 font-medium"
+                  ? "text-[#1A7840] font-medium"
                   : m.speaker === "Moderator"
-                    ? "text-stone-500 italic"
-                    : "text-stone-300 font-medium"
+                    ? "text-[#9A8866] italic"
+                    : "text-[#3A3328] font-medium"
               }
             >
               {m.speaker}:
             </span>{" "}
-            <span className="text-stone-200">{m.content}</span>
+            <span className="text-[#1A1814]">{m.content}</span>
           </div>
         ))}
         {busy && (
-          <div className="text-stone-500 text-xs italic">…</div>
+          <div className="text-[#9A8866] text-xs italic">…</div>
         )}
       </div>
       {allQuiet && !busy && (
-        <div className="text-stone-500 text-xs italic">
+        <div className="text-[#9A8866] text-xs italic">
           The room is silent. Try addressing someone by name (Devon, Maya, Sam,
           or Riley) or asking a pointed question.
         </div>
       )}
-      {error && <div className="text-rose-400 text-xs">{error}</div>}
+      {error && <div className="text-[#CC1A14] text-xs">{error}</div>}
       <div className="flex gap-2">
         <textarea
           value={input}
@@ -1109,26 +1288,26 @@ function Discussion({
           }}
           placeholder="Your turn (Enter to send, Shift-Enter for newline)…"
           disabled={busy}
-          className="flex-1 bg-stone-900 border border-stone-700 rounded px-3 py-2 text-stone-100 text-sm resize-none"
+          className="flex-1 bg-[#FDFAF5] border border-[#9A8866] rounded px-3 py-2 text-[#1A1814] text-sm resize-none"
           rows={2}
         />
         <button
           onClick={send}
           disabled={busy || !input.trim()}
-          className="px-4 py-2 bg-amber-700/80 hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed rounded text-stone-100 text-sm"
+          className="px-4 py-2 bg-[#1A1814] hover:bg-[#3A3328] disabled:opacity-40 disabled:cursor-not-allowed text-[#F4F0E8] text-xs uppercase tracking-[0.12em]"
         >
           Send
         </button>
       </div>
-      <div className="flex justify-between items-center pt-2 border-t border-stone-900">
-        <div className="text-stone-500 text-xs">
+      <div className="flex justify-between items-center pt-2 border-t border-[#DDD5C0]">
+        <div className="text-[#9A8866] text-xs">
           {chat.filter((m) => m.role === "user" && m.speaker === "You").length}{" "}
           turns so far
         </div>
         <button
           onClick={onPropose}
           disabled={chat.length < 2}
-          className="text-stone-300 hover:text-stone-100 text-sm border border-stone-700 px-3 py-1.5 rounded disabled:opacity-40"
+          className="text-[#3A3328] hover:text-[#1A1814] text-sm border border-[#9A8866] px-3 py-1.5 rounded disabled:opacity-40"
         >
           Call for a vote →
         </button>
@@ -1151,6 +1330,17 @@ function VoteSetup({
   const [rangeC, setRangeC] = useState(20000);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const preview = useMemo(() => {
+    if (!principle) return null;
+    const choice: Choice =
+      principle === "max-average-floor"
+        ? { principle, constraint: floorC }
+        : principle === "max-average-range"
+          ? { principle, constraint: rangeC }
+          : { principle };
+    return selectDistribution(GROUP_DISTRIBUTIONS, choice);
+  }, [principle, floorC, rangeC]);
 
   async function callVote() {
     if (!principle) return;
@@ -1199,10 +1389,10 @@ function VoteSetup({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">
+      <h1 className="text-2xl text-[#1A1814]">
         Call a vote {voteRound > 0 && `(round ${voteRound + 1})`}
       </h1>
-      <p className="text-stone-400 text-sm">
+      <p className="text-[#9A8866] text-sm">
         Propose one principle (and a constraint value if applicable). Each
         participant will vote yes or no. Adoption requires unanimity.
       </p>
@@ -1213,8 +1403,8 @@ function VoteSetup({
             key={p.id}
             className={`flex items-start gap-3 border rounded p-3 cursor-pointer transition-colors ${
               principle === p.id
-                ? "border-amber-700/60 bg-stone-900/60"
-                : "border-stone-800 hover:border-stone-700"
+                ? "border-[#1A1814] bg-[#FDFAF5]"
+                : "border-[#DDD5C0] hover:border-[#9A8866]"
             }`}
           >
             <input
@@ -1225,28 +1415,28 @@ function VoteSetup({
               className="mt-1"
             />
             <div>
-              <div className="text-stone-100 text-sm">{p.short}</div>
+              <div className="text-[#1A1814] text-sm">{p.short}</div>
               {principle === p.id && p.id === "max-average-floor" && (
-                <div className="mt-2 text-xs text-stone-400">
+                <div className="mt-2 text-xs text-[#9A8866]">
                   Floor:{" "}
                   <input
                     type="number"
                     value={floorC}
                     step={500}
                     onChange={(e) => setFloorC(parseInt(e.target.value) || 0)}
-                    className="bg-stone-900 border border-stone-700 rounded px-2 py-0.5 w-24 text-stone-100"
+                    className="bg-[#FDFAF5] border border-[#9A8866] rounded px-2 py-0.5 w-24 text-[#1A1814]"
                   />
                 </div>
               )}
               {principle === p.id && p.id === "max-average-range" && (
-                <div className="mt-2 text-xs text-stone-400">
+                <div className="mt-2 text-xs text-[#9A8866]">
                   Max range:{" "}
                   <input
                     type="number"
                     value={rangeC}
                     step={500}
                     onChange={(e) => setRangeC(parseInt(e.target.value) || 0)}
-                    className="bg-stone-900 border border-stone-700 rounded px-2 py-0.5 w-24 text-stone-100"
+                    className="bg-[#FDFAF5] border border-[#9A8866] rounded px-2 py-0.5 w-24 text-[#1A1814]"
                   />
                 </div>
               )}
@@ -1254,8 +1444,38 @@ function VoteSetup({
           </label>
         ))}
       </div>
-      {error && <div className="text-rose-400 text-sm">{error}</div>}
-      <PrimaryButton onClick={callVote} disabled={!principle || busy}>
+      {principle && preview && (
+        <div className="border border-[#1A1814] rounded p-3 bg-[#FDFAF5] text-sm space-y-2">
+          <div className="text-[#9A8866] text-xs uppercase tracking-wider">
+            This proposal would select
+          </div>
+          <div className="text-[#1A1814]">
+            Distribution {preview.id} — floor{" "}
+            <span className="text-[#3A3328]">{fmtMoney(floor(preview))}</span>,
+            average{" "}
+            <span className="text-[#3A3328]">
+              {fmtMoney(Math.round(average(preview)))}
+            </span>
+            , range{" "}
+            <span className="text-[#3A3328]">{fmtMoney(range(preview))}</span>
+          </div>
+          <DistributionTable
+            distributions={[preview]}
+            highlightFn={() => "selected"}
+          />
+        </div>
+      )}
+      {principle && preview === null && (
+        <div className="text-[#CC1A14] text-sm">
+          No distribution in the pool satisfies that constraint. Loosen it or
+          pick another principle.
+        </div>
+      )}
+      {error && <div className="text-[#CC1A14] text-sm">{error}</div>}
+      <PrimaryButton
+        onClick={callVote}
+        disabled={!principle || preview === null || busy}
+      >
         {busy ? "Collecting votes…" : "Put it to the group"}
       </PrimaryButton>
     </div>
@@ -1278,22 +1498,22 @@ function VoteResult({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">The vote</h1>
-      <div className="border border-stone-800 rounded p-4 bg-stone-900/30">
-        <div className="text-stone-400 text-xs uppercase tracking-wider mb-1">
+      <h1 className="text-2xl text-[#1A1814]">The vote</h1>
+      <div className="border border-[#DDD5C0] rounded p-4 bg-white">
+        <div className="text-[#9A8866] text-xs uppercase tracking-wider mb-1">
           Proposal
         </div>
-        <div className="text-stone-100 text-sm">
+        <div className="text-[#1A1814] text-sm">
           {principle.short}
           {proposal.constraint && proposal.principle === "max-average-floor" && (
-            <span className="text-stone-400">
+            <span className="text-[#9A8866]">
               {" "}
               — floor ≥ {fmtMoney(proposal.constraint)}
             </span>
           )}
           {proposal.constraint &&
             proposal.principle === "max-average-range" && (
-              <span className="text-stone-400">
+              <span className="text-[#9A8866]">
                 {" "}
                 — range ≤ {fmtMoney(proposal.constraint)}
               </span>
@@ -1301,51 +1521,51 @@ function VoteResult({
         </div>
       </div>
       <div className="space-y-2">
-        <div className="border border-stone-800 rounded p-3 text-sm flex justify-between items-start">
+        <div className="border border-[#DDD5C0] rounded p-3 text-sm flex justify-between items-start">
           <div>
-            <span className="text-amber-400 font-medium">You</span>
-            <span className="text-stone-500"> (proposer)</span>
+            <span className="text-[#1A7840] font-medium">You</span>
+            <span className="text-[#9A8866]"> (proposer)</span>
           </div>
-          <span className="text-emerald-400 font-mono text-xs">YES</span>
+          <span className="text-[#1A7840] font-mono text-xs">YES</span>
         </div>
         {votes.map((v) => (
           <div
             key={v.speaker}
-            className="border border-stone-800 rounded p-3 text-sm"
+            className="border border-[#DDD5C0] rounded p-3 text-sm"
           >
             <div className="flex justify-between items-start mb-1">
-              <span className="text-stone-200 font-medium">{v.speaker}</span>
+              <span className="text-[#1A1814] font-medium">{v.speaker}</span>
               <span
                 className={`font-mono text-xs ${
                   v.vote === "YES"
-                    ? "text-emerald-400"
+                    ? "text-[#1A7840]"
                     : v.vote === "NO"
-                      ? "text-rose-400"
-                      : "text-amber-400"
+                      ? "text-[#CC1A14]"
+                      : "text-[#1A7840]"
                 }`}
               >
                 {v.vote}
               </span>
             </div>
-            <div className="text-stone-400 text-xs">{v.reason}</div>
+            <div className="text-[#9A8866] text-xs">{v.reason}</div>
           </div>
         ))}
       </div>
       {unanimous ? (
         <div className="space-y-3">
-          <div className="text-emerald-400 text-sm">
+          <div className="text-[#1A7840] text-sm">
             Unanimous. The principle is adopted.
           </div>
           <PrimaryButton onClick={onAdopt}>Draw the distribution</PrimaryButton>
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="text-rose-400 text-sm">
+          <div className="text-[#CC1A14] text-sm">
             Not unanimous. The group keeps deliberating.
           </div>
           <button
             onClick={onKeepTalking}
-            className="px-4 py-2 bg-stone-800 hover:bg-stone-700 rounded text-stone-100 text-sm"
+            className="px-4 py-2 bg-[#1A1814] hover:bg-[#3A3328] text-[#F4F0E8] text-xs uppercase tracking-[0.12em]"
           >
             Back to discussion
           </button>
@@ -1364,28 +1584,24 @@ function GroupPayoff({
 }) {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">The group draw</h1>
-      <div className="border border-amber-700/40 rounded p-4 bg-amber-950/10 space-y-2">
-        <div className="text-stone-400 text-xs uppercase tracking-wider">
+      <h1 className="text-2xl text-[#1A1814]">The group draw</h1>
+      <div className="border border-[#1A1814] rounded p-4 bg-[#FDFAF5] space-y-2">
+        <div className="text-[#9A8866] text-xs uppercase tracking-wider">
           Adopted principle
         </div>
-        <div className="text-stone-100">{result.proposalText}</div>
-        <div className="text-stone-400 text-xs uppercase tracking-wider pt-2">
+        <div className="text-[#1A1814]">{result.proposalText}</div>
+        <div className="text-[#9A8866] text-xs uppercase tracking-wider pt-2">
           Distribution selected from pool
         </div>
-        <div className="text-stone-100">Distribution {result.distribution.id}</div>
-        <div className="text-stone-400 text-xs uppercase tracking-wider pt-2">
+        <div className="text-[#1A1814]">Distribution {result.distribution.id}</div>
+        <div className="text-[#9A8866] text-xs uppercase tracking-wider pt-2">
           Your random class
         </div>
-        <div className="text-stone-100">{result.classLabel}</div>
-        <div className="text-stone-400 text-xs uppercase tracking-wider pt-2">
+        <div className="text-[#1A1814]">{result.classLabel}</div>
+        <div className="text-[#9A8866] text-xs uppercase tracking-wider pt-2">
           Your income
         </div>
-        <div className="text-2xl text-amber-300">{fmtMoney(result.income)}</div>
-        <div className="text-stone-400 text-sm">
-          Payoff:{" "}
-          <span className="text-stone-100">${result.payoff.toFixed(2)}</span>
-        </div>
+        <div className="text-2xl text-[#1A7840]">{fmtMoney(result.income)}</div>
       </div>
       <DistributionTable
         distributions={[result.distribution]}
@@ -1418,10 +1634,10 @@ function Debrief({
     if (!r) return null;
     return (
       <div className="space-y-1">
-        <div className="text-stone-400 text-xs uppercase tracking-wider">
+        <div className="text-[#9A8866] text-xs uppercase tracking-wider">
           {label}
         </div>
-        <ol className="text-sm text-stone-200 list-decimal list-inside space-y-0.5">
+        <ol className="text-sm text-[#1A1814] list-decimal list-inside space-y-0.5">
           {r.map((id) => (
             <li key={id}>{nameFor(id)}</li>
           ))}
@@ -1431,45 +1647,42 @@ function Debrief({
   }
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl text-stone-100">Debrief</h1>
-      <p className="text-stone-400 text-sm">
+      <h1 className="text-2xl text-[#1A1814]">Debrief</h1>
+      <p className="text-[#9A8866] text-sm">
         Frohlich, Oppenheimer & Eavey (1987) ran this with 44 five-person
         groups. Zero of the 44 chose Rawls's difference principle. 35 of 44
         chose "maximize the average with a floor constraint." Compare your own
         path:
       </p>
-      <div className="grid sm:grid-cols-3 gap-4 border border-stone-800 rounded p-4 bg-stone-900/30">
+      <div className="grid sm:grid-cols-3 gap-4 border border-[#DDD5C0] rounded p-4 bg-white">
         {rankRow("Before", rank1)}
         {rankRow("After your own draw", rank2)}
         {rankRow("After the group", rankFinal)}
       </div>
       {indResult && (
-        <div className="text-sm text-stone-400">
+        <div className="text-sm text-[#9A8866]">
           Individual phase: you chose{" "}
-          <span className="text-stone-200">
+          <span className="text-[#1A1814]">
             {nameFor(indResult.choice.principle)}
           </span>
           , drew {indResult.classLabel}, earned{" "}
-          <span className="text-stone-200">
-            ${indResult.payoff.toFixed(2)}
-          </span>
-          .
+          <span className="text-[#1A1814]">{fmtMoney(indResult.income)}</span>.
         </div>
       )}
       {groupResult && (
-        <div className="text-sm text-stone-400">
+        <div className="text-sm text-[#9A8866]">
           Group phase: adopted{" "}
-          <span className="text-stone-200">{groupResult.proposalText}</span>,
+          <span className="text-[#1A1814]">{groupResult.proposalText}</span>,
           drew {groupResult.classLabel}, earned{" "}
-          <span className="text-stone-200">
-            ${groupResult.payoff.toFixed(2)}
+          <span className="text-[#1A1814]">
+            {fmtMoney(groupResult.income)}
           </span>
           .
         </div>
       )}
       <button
         onClick={onRestart}
-        className="px-4 py-2 bg-stone-800 hover:bg-stone-700 rounded text-stone-100 text-sm"
+        className="px-4 py-2 bg-[#1A1814] hover:bg-[#3A3328] text-[#F4F0E8] text-xs uppercase tracking-[0.12em]"
       >
         Run it again
       </button>
@@ -1490,7 +1703,8 @@ function PrimaryButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="px-5 py-2.5 bg-amber-700/80 hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed rounded text-stone-100 text-sm font-medium transition-colors"
+      className="px-9 py-3 bg-[#1A1814] hover:bg-[#3A3328] disabled:opacity-40 disabled:cursor-not-allowed text-[#F4F0E8] text-xs uppercase tracking-[0.12em] transition-colors"
+      style={{ fontFamily: "'Space Mono', monospace" }}
     >
       {children}
     </button>

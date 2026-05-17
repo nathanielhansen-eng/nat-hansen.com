@@ -37,9 +37,17 @@ function parseVote(raw: string): {
   // Fallback: scan the raw text for YES/NO tokens.
   const upper = raw.toUpperCase();
   const hasYes = /\bYES\b/.test(upper);
-  const hasNo = /\bNO\b/.test(upper);
+  const hasNo = /\bNO\b(?!T\b|\b\w)/.test(upper);
   if (hasYes && !hasNo) return { vote: "YES", reason: raw.slice(0, 200) };
   if (hasNo && !hasYes) return { vote: "NO", reason: raw.slice(0, 200) };
+
+  // Second fallback: detect affirmative phrasing common when the model
+  // forgets the JSON envelope but is clearly agreeing.
+  const aff =
+    /\b(i'?m good|i'?m in|let'?s vote|let'?s do it|that'?s the move|i agree|i'?ll vote yes|lock it in|sounds good)\b/i.test(
+      raw,
+    );
+  if (aff && !hasNo) return { vote: "YES", reason: raw.slice(0, 200) };
 
   return {
     vote: "ABSTAIN",
@@ -79,7 +87,7 @@ export async function POST(request: Request) {
   const client = new Anthropic();
 
   const pool =
-    "The group is choosing one principle that will govern payouts. After agreement, a distribution will be drawn from those conforming to the chosen principle, then each person will be randomly assigned a class within it. Here is the pool of candidate distributions the experimenters are working from:\n\n" +
+    "The group is choosing one principle that will govern the distribution of income. After agreement, a distribution will be drawn from those conforming to the chosen principle, then each person will be randomly assigned a class within it. Here is the pool of candidate distributions the experimenters are working from:\n\n" +
     tableContext({
       id: "pool",
       label: "Candidate pool",
@@ -135,14 +143,18 @@ or
 {"vote": "NO", "reason": "<one sentence, under 25 words, in your voice>"}`;
 
     try {
+      // Prefill the assistant turn with the start of the JSON object so the
+      // model is forced to continue with a valid value/reason and can't drop
+      // back into conversational prose.
+      const prefill = '{"vote": "';
       const voteRes = await client.messages.create({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 200,
         system: voteSystem,
-        messages: apiMessages,
+        messages: [...apiMessages, { role: "assistant", content: prefill }],
       });
       const blk = voteRes.content[0];
-      const raw = blk && blk.type === "text" ? blk.text.trim() : "";
+      const raw = blk && blk.type === "text" ? prefill + blk.text.trim() : "";
       const parsed = parseVote(raw);
       return Response.json({
         speaker: persona.name,
@@ -163,8 +175,6 @@ Other participants in the room: ${PERSONAS.filter((p) => p.id !== personaId)
 
 Context for the deliberation:
 ${pool}
-
-Pay at $0.10 per $1,000 of annual income; e.g. a $20,000 class earns $2.00.
 
 You are taking ONE turn. Stay in character as ${persona.name}. Do not write dialogue for other participants. Do not include your name as a prefix — just say what you'd say. Keep it 1–3 sentences. If you'd genuinely have nothing to add this turn, output exactly [QUIET].`;
 

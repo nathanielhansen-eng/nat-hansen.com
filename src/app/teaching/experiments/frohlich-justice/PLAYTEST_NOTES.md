@@ -24,6 +24,15 @@
 - K. wanted a choice that wasn't available: essentially "max average with floor AND range constraint" — i.e. combining principles Rawls disallows combining. Or voting on D7 directly.
 - Nat's take: keep this realistic — people *will* want to combine principles and pick a known distribution. Don't artificially restrict.
 
+## Data collection
+
+Submissions are POSTed to `/api/experiments/frohlich-justice/submit` on debrief
+and stored in Vercel Blob under `frohlich-justice/<session>/<id>.json`. Session
+is read from `?session=` (defaults to today's date).
+
+Instructor view: `/teaching/experiments/frohlich-justice/admin` — gated by
+`INSTRUCTOR_PASSWORD` cookie (same env var as the other experiments).
+
 ## TODO
 - [x] Make second-ranking screen initialize with participant's first ranking (final ranking now inherits rank2 too)
 - [x] Add framing for comprehension test (principles can overlap on distributions) — added heads-up paragraph to Comprehension stage AND italic note on TableWalkthrough explaining why D4 appears twice

@@ -8,6 +8,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function Page() {
-  return <Experiment />;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ session?: string }>;
+}) {
+  const sp = await searchParams;
+  const today = new Date().toISOString().slice(0, 10);
+  const session = (sp.session && sp.session.trim()) || today;
+  return <Experiment session={session} />;
 }
