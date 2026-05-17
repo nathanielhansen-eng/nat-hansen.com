@@ -22,6 +22,36 @@ import {
   PersonaId,
 } from "@/lib/frohlich";
 
+function ReferencePanel() {
+  return (
+    <details className="border border-stone-800 rounded bg-stone-900/30 group">
+      <summary className="cursor-pointer px-3 py-2 text-stone-300 text-xs hover:text-stone-100 select-none">
+        <span className="text-stone-500">▸</span> Reference — principles &amp;
+        candidate distributions (D1–D{GROUP_DISTRIBUTIONS.length})
+      </summary>
+      <div className="px-3 pb-3 pt-1 space-y-3">
+        <div className="space-y-1.5">
+          {PRINCIPLES.map((p) => (
+            <div key={p.id} className="text-xs">
+              <span className="text-stone-200">{p.short}</span>{" "}
+              <span className="text-stone-500">— {p.blurb}</span>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-stone-800 pt-3">
+          <div className="text-stone-500 text-xs mb-1.5">
+            Group-decision pool (the personas reference these by ID)
+          </div>
+          <DistributionTable
+            distributions={GROUP_DISTRIBUTIONS}
+            highlightFn={() => null}
+          />
+        </div>
+      </div>
+    </details>
+  );
+}
+
 type Stage =
   | "intro"
   | "read"
@@ -198,7 +228,8 @@ export default function Experiment() {
         {stage === "rank2" && (
           <RankingStep
             label="Second ranking"
-            instructions="Now that you've seen how a principle plays out in practice, re-rank the four."
+            instructions="Your first ranking is shown below. Adjust it if seeing a principle play out has changed your mind — or leave it as is."
+            initial={rank1}
             onSubmit={(r) => {
               setRank2(r);
               go("discussion-intro");
@@ -292,7 +323,8 @@ export default function Experiment() {
         {stage === "rank-final" && (
           <RankingStep
             label="Final ranking"
-            instructions="Last ranking. Did the group discussion change your view?"
+            instructions="Last ranking — your previous ranking is shown below. Did the group discussion change your view?"
+            initial={rank2 ?? rank1}
             onSubmit={(r) => {
               setRankFinal(r);
               go("debrief");
@@ -320,9 +352,38 @@ function Intro({ onNext }: { onNext: () => void }) {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl text-stone-100">A choice behind a veil of ignorance</h1>
+      <div className="border border-stone-800 rounded p-4 bg-stone-900/30 space-y-3 text-sm text-stone-300 leading-relaxed">
+        <div className="text-stone-400 text-xs uppercase tracking-wider">
+          The veil of ignorance
+        </div>
+        <p>
+          The philosopher John Rawls argued that to choose fair principles for
+          a society, you should imagine choosing them{" "}
+          <span className="text-stone-100">
+            without knowing which position you'll end up in
+          </span>
+          . Rich or poor, lucky or unlucky — strip those facts away and ask:
+          what rule would you want governing the distribution?
+        </p>
+        <p>
+          That's the setup here. You'll pick a principle for distributing
+          income before knowing which income class you'll be assigned to. Your
+          actual payoff depends on a random draw made <em>after</em> you
+          choose, so the rule you pick is the rule you live under, whoever you
+          turn out to be.
+        </p>
+        <p className="text-stone-400 text-xs">
+          This is a teaching adaptation of Frohlich, Oppenheimer &amp; Eavey
+          (1987), who ran a version of this experiment with real participants
+          and real money. Their original framing left the veil mostly
+          unexplained on purpose — to avoid priming subjects toward Rawls's
+          preferred answer. We're more upfront about it here because the point
+          is to understand the setup, not to replicate the experimental
+          conditions.
+        </p>
+      </div>
       <p className="text-stone-300 leading-relaxed">
-        You're about to take part in a small experiment about distributive
-        justice. It has five phases:
+        The experiment has five phases:
       </p>
       <ol className="list-decimal list-inside space-y-2 text-stone-400 text-sm">
         <li>Learn four principles of distributive justice.</li>
@@ -453,6 +514,15 @@ function Comprehension({ onPass }: { onPass: () => void }) {
         You'll need all five right to proceed. You can retry as many times as
         you like.
       </p>
+      <div className="border border-stone-800 rounded p-3 bg-stone-900/30 text-stone-400 text-xs leading-relaxed">
+        <span className="text-stone-300">Heads-up:</span> these questions test
+        what the principles <em>mean</em>, not which distribution you'd pick.
+        The same distribution can satisfy more than one principle (e.g. one
+        distribution may both maximize the floor and meet a range constraint),
+        and a principle may have several distributions that qualify before it
+        picks the best. That's not a trick — it's the whole reason the
+        principles disagree only sometimes.
+      </div>
       <div className="space-y-6">
         {COMP_QUESTIONS.map((q, i) => {
           const correct = submitted && answers[i] === q.correct;
@@ -524,13 +594,19 @@ function Comprehension({ onPass }: { onPass: () => void }) {
 function RankingStep({
   label,
   instructions,
+  initial,
   onSubmit,
 }: {
   label: string;
   instructions: string;
+  initial?: PrincipleId[] | null;
   onSubmit: (ranking: PrincipleId[]) => void;
 }) {
-  const [order, setOrder] = useState<PrincipleId[]>(PRINCIPLES.map((p) => p.id));
+  const [order, setOrder] = useState<PrincipleId[]>(
+    initial && initial.length === PRINCIPLES.length
+      ? initial
+      : PRINCIPLES.map((p) => p.id),
+  );
   const [confidence, setConfidence] = useState(3);
 
   function move(i: number, dir: -1 | 1) {
@@ -613,6 +689,13 @@ function TableWalkthrough({ onNext }: { onNext: () => void }) {
       <div className="border border-stone-800 rounded p-4 bg-stone-900/30 space-y-2 text-sm">
         <div className="text-stone-200 font-medium">
           Which distribution does each principle pick?
+        </div>
+        <div className="text-stone-500 text-xs italic">
+          The four principles don't map onto four distinct distributions. Two
+          principles can pick the same one (here D4 wins on both
+          floor-maximizing and range-constrained grounds), and other
+          distributions in the pool aren't picked by anyone. That's the point:
+          which principle you adopt only matters where they disagree.
         </div>
         <ul className="space-y-1 text-stone-400">
           <li>
@@ -894,6 +977,12 @@ function DiscussionIntro({ onNext }: { onNext: () => void }) {
         conforming to the chosen principle. If you fail, a distribution will be
         drawn at random from the full pool, ignoring any principle.
       </p>
+      <p className="text-stone-500 text-xs leading-relaxed">
+        Note: the group works from a larger candidate pool than Situation A
+        (D1–D{GROUP_DISTRIBUTIONS.length}). A collapsible reference panel in the
+        room shows the full pool and the principles — open it any time you lose
+        track.
+      </p>
       <div className="border border-stone-800 rounded p-4 space-y-3">
         <div className="text-stone-300 text-sm font-medium">
           The other participants:
@@ -974,6 +1063,7 @@ function Discussion({
   return (
     <div className="space-y-4 flex flex-col h-[70vh]">
       <h1 className="text-xl text-stone-100">Group deliberation</h1>
+      <ReferencePanel />
       <div className="flex-1 overflow-y-auto border border-stone-800 rounded p-4 space-y-3 bg-stone-900/30">
         {chat.length === 0 && (
           <div className="text-stone-500 text-sm italic">
@@ -1116,6 +1206,7 @@ function VoteSetup({
         Propose one principle (and a constraint value if applicable). Each
         participant will vote yes or no. Adoption requires unanimity.
       </p>
+      <ReferencePanel />
       <div className="space-y-3">
         {PRINCIPLES.map((p) => (
           <label
