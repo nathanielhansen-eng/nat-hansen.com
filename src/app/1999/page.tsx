@@ -2,6 +2,23 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import type { Metadata } from "next";
+import type { DetailedHTMLProps, HTMLAttributes } from "react";
+
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      marquee: DetailedHTMLProps<
+        HTMLAttributes<HTMLElement> & {
+          scrollamount?: number | string;
+          scrollAmount?: number | string;
+          behavior?: string;
+          direction?: string;
+        },
+        HTMLElement
+      >;
+    }
+  }
+}
 
 export const metadata: Metadata = {
   title: "Nat Hansen's Home Page",
