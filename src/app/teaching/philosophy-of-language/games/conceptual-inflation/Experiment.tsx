@@ -312,7 +312,7 @@ export default function Experiment({ session }: { session: string }) {
             Conceptual Inflation
           </h1>
           <p style={base.body}>
-            Some philosophers and commentators argue that the meaning of <em>racist</em> has &ldquo;inflated&rdquo;
+            Some philosophers and commentators argue that the meaning of <em>racist</em>{" "}has &ldquo;inflated&rdquo;
             — that it now applies to a wider range of people, or carries a different moral force, than it once
             did. This study asks two simple questions about <em>racist</em> and a set of comparison terms:{" "}
             <strong>how broadly does it apply</strong>, and <strong>how bad is it</strong> to be called one?
