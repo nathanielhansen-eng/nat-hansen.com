@@ -15,14 +15,16 @@ links:
     href: https://www.dropbox.com/scl/fi/fq3jaysj166t9ott6y17m/CV-Hansen-2017.pdf?rlkey=d6x7m8rsxncvkd624qyj41ly1&dl=0
 
 events:
-  - title: UCL Linguistics Seminar
-    venue: University College London
-    date: May 20, 2026
-    link: "https://www.ucl.ac.uk/brain-sciences/events/2026/may/linguistics-seminar-talk-nat-hansen-university-reading"
   - title: Stanley Cavell at 100
     venue: Université Paris 1 Panthéon Sorbonne
     date: June 4-6, 2026
     link: "https://www.stanleycavellat100.com/event-details/paris-cavell-conference-4-6-june-2026"
+  - title: Workshop
+    venue: University of Warsaw
+    date: September 4, 2026
+  - title: Experimental Philosophy in China
+    venue: Xiamen University
+    date: November 2026
   
 
  
