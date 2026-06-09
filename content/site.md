@@ -9,17 +9,15 @@ links:
     href: mailto:n.d.hansen@reading.ac.uk
   - label: PhilPapers
     href: https://philpeople.org/profiles/nat-hansen/
+  - label: Teaching
+    href: https://nat-hansen.com/teaching
   - label: ux-phi.com
     href: https://ux-phi.com
   - label: CV
     href: https://www.dropbox.com/scl/fi/fq3jaysj166t9ott6y17m/CV-Hansen-2017.pdf?rlkey=d6x7m8rsxncvkd624qyj41ly1&dl=0
 
 events:
-  - title: Stanley Cavell at 100
-    venue: Université Paris 1 Panthéon Sorbonne
-    date: June 4-6, 2026
-    link: "https://www.stanleycavellat100.com/event-details/paris-cavell-conference-4-6-june-2026"
-  - title: Workshop
+  - title: Workshop TBD
     venue: University of Warsaw
     date: September 4, 2026
   - title: Experimental Philosophy in China
