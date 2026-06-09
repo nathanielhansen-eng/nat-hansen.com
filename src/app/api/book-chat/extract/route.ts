@@ -8,28 +8,31 @@ export const maxDuration = 60;
 
 const EXTRACT_MODEL = "claude-opus-4-7";
 
-const EXTRACT_PROMPT = `You are helping a philosopher build lecture notes from a chat they had with the author of a book. The lecture should be MORE intelligible and relatable than the book itself — that's the whole point. The book is dense; the conversation between reader and author already did the work of making it accessible. Your job is to preserve that.
+const EXTRACT_PROMPT = `You are helping a reader build study notes from a chat they had with the author of a book. The conversation is the spine of these notes — your job is to capture and sharpen what actually came up in it, NOT to summarize or reconstruct the chapter.
 
-For each substantive argument that emerged in the conversation:
+Ground rules:
+- The CONVERSATION is your source material. Work only from the threads, examples, and arguments that the reader and author actually developed together. Do not survey the chapter or lay out its full argument.
+- The chapter/book text is provided ONLY as a reference to draw on as needed — to pull a supporting quote, pin down a term, or check a detail for something that came up in the chat. Reach into it when a point in the conversation calls for support; otherwise leave it alone. Don't import material the conversation didn't touch.
+- Better to cover the two or three things the conversation genuinely got into, well, than to pad toward full chapter coverage.
+
+For each substantive point or argument that emerged in the conversation:
 
 - **A short, plain-English title** (no jargon if avoidable)
-- **The gist** — 2-3 sentences in the conversational register of the chat. How would the author explain this to a curious friend over coffee? Use the analogies, examples, and turns of phrase that actually came up. This is what goes on the slide as the main content.
-- **In standard form** — numbered premises and a conclusion (use ∴), so the lecturer has the rigorous skeleton when they want it. Keep premises in plain language; reserve technical vocabulary for when it earns its keep.
-- **Evidence from the book** — 1-3 direct quotes (use blockquotes) that support or illustrate the argument. Pick lines that would work on a slide — vivid, compact, quotable. Note roughly where in the chapter they come from.
-- **Worries / pushback** — objections that came up in the chat, plus obvious ones a careful student would raise. Phrase them as questions a smart undergrad might ask.
-- **Lecturer notes** — what landed in the conversation, what examples to lean on, where to slow down, where students typically get stuck.
+- **The gist** — 2-3 sentences in the conversational register of the chat. How did the author actually put it? Use the analogies, examples, and turns of phrase that came up. This is the main content of the note.
+- **In standard form** — *only if the conversation actually developed an argument worth formalizing*: numbered premises and a conclusion (use ∴), in plain language. Skip this for points that were exploratory or illustrative rather than argued.
+- **Supporting quote** — 1-2 direct quotes from the chapter (use blockquotes) that back up or illustrate *this specific point from the conversation*. Only include if there's a genuinely apt line; note roughly where in the chapter it comes from. Skip if nothing fits.
+- **Worries / pushback** — objections that came up in the chat, plus the obvious one worth raising. Phrase them as sharp, answerable questions.
 
-Also include at the end:
+Then, only if warranted by what was discussed:
 
-- **Key concepts** — terms the author uses idiosyncratically, defined in plain language with the technical version in parens.
-- **Quotable lines** — 3-6 short standalone passages from the chapter, vivid enough to anchor a slide on their own.
-- **Open threads** — things the conversation raised but didn't settle. Good seeds for class discussion.
+- **Key concepts** — terms that came up in the conversation and were used in a non-obvious way, defined in plain language (technical version in parens).
+- **Open threads** — things the conversation raised but didn't settle. Good to think through further.
 
-Tone: warm, intellectually serious, accessible. Write the way a good professor writes their own notes — telegraphic but human, precise but not stiff. Avoid academic throat-clearing. The goal is "I could give this lecture from these notes," not "I have proven a theorem."
+Tone: warm, intellectually serious, accessible. Telegraphic but human, precise but not stiff. Avoid academic throat-clearing.
 
-Output GitHub-flavored markdown. Don't pad. If the conversation didn't actually develop a real argument on some topic, just don't include it — better fewer good arguments than many thin ones. Don't invent positions the reader didn't take.
+Output GitHub-flavored markdown. Don't pad. If the conversation didn't actually develop a real argument on some topic, leave it out. Don't invent positions the reader didn't take, and don't reach into the chapter for material the conversation never engaged.
 
-Conversation and chapter context follow.`;
+Conversation and chapter reference follow.`;
 
 type ExtractReq = {
   slug: string;
@@ -53,15 +56,16 @@ export async function POST(request: Request) {
 
   const userMsg = `Book: "${book.meta.title ?? ""}" by ${book.meta.author ?? ""}
 Chapter: ${ch.title}
-Chapter summary: ${ch.summary ?? ""}
-Key claims listed for this chapter:
-${(ch.key_claims ?? []).map((c) => `- ${c}`).join("\n")}
 
---- CHAPTER TEXT ---
-${(ch.text ?? "").slice(0, 60000)}
+=== THE CONVERSATION (your primary source — build the notes from this) ===
+${convo}
 
---- CONVERSATION ---
-${convo}`;
+=== CHAPTER REFERENCE (consult only as needed for quotes/terms/details on points the conversation raised — do not summarize it) ===
+Summary: ${ch.summary ?? ""}
+Key claims: ${(ch.key_claims ?? []).join("; ")}
+
+Full text:
+${(ch.text ?? "").slice(0, 60000)}`;
 
   const client = new Anthropic();
   const resp = await client.messages.create({
