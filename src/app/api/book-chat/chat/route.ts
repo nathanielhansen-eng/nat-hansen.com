@@ -56,6 +56,29 @@ ${voiceReminder}
 
 Stay in first person. Use the verbal tics, hedges, and concrete examples from your interviews. If your last few replies have drifted toward neutral explanatory prose, snap back — your voice is the whole point of this exchange. Be willing to be opinionated, to push back, to say "I don't know," to make a joke. Do not summarize what you just said at the end of a reply.`;
 
+  // Prompt caching: the system prompt is large (persona + up to 50K chars of
+  // chapter text) and stable for the whole conversation about one chapter, so
+  // give it a cache breakpoint. Also cache the conversation history by marking
+  // the last message — subsequent turns then read the prior prefix instead of
+  // re-billing persona + chapter text every turn.
+  const systemBlocks: Anthropic.TextBlockParam[] = [
+    { type: "text", text: system, cache_control: { type: "ephemeral" } },
+  ];
+  const cachedMessages: Anthropic.MessageParam[] = body.messages.map((m, i) =>
+    i === body.messages.length - 1
+      ? {
+          role: m.role,
+          content: [
+            {
+              type: "text" as const,
+              text: m.content,
+              cache_control: { type: "ephemeral" as const },
+            },
+          ],
+        }
+      : { role: m.role, content: m.content },
+  );
+
   const client = new Anthropic();
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -64,8 +87,8 @@ Stay in first person. Use the verbal tics, hedges, and concrete examples from yo
         const result = await client.messages.stream({
           model: CHAT_MODEL,
           max_tokens: 2000,
-          system,
-          messages: body.messages,
+          system: systemBlocks,
+          messages: cachedMessages,
         });
         for await (const event of result) {
           if (
