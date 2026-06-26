@@ -11,6 +11,8 @@ links:
     href: https://philpeople.org/profiles/nat-hansen/
   - label: Teaching
     href: https://nat-hansen.com/teaching
+  - label: Blog
+    href: https://nat-hansen.com/blog
   - label: ux-phi.com
     href: https://ux-phi.com
   - label: CV
@@ -23,6 +25,9 @@ events:
   - title: Experimental Philosophy in China
     venue: Xiamen University
     date: November 2026
+  - title: MeNTAL (Mind, Epistemology, Neuroscience, Thought, and Language)
+    venue: UC Davis
+    date: November 6, 2026
   
 
  

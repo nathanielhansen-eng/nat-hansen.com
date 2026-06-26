@@ -14,6 +14,7 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://nat-hansen.com"),
   title: "Nat Hansen",
   description:
     "Associate Professor of Philosophy, University of Reading. Philosophy of language, experimental philosophy, ordinary language philosophy.",
