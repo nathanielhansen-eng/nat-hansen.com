@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Sample blog image placeholder">
+  <rect width="1200" height="675" fill="#e7e5e4"/>
+  <rect x="1" y="1" width="1198" height="673" fill="none" stroke="#d6d3d1" stroke-width="2"/>
+  <g fill="#a8a29e" font-family="ui-monospace, monospace">
+    <text x="600" y="320" font-size="64" text-anchor="middle">sample image</text>
+    <text x="600" y="380" font-size="28" text-anchor="middle">/blog-images/sample.svg · 1200×675</text>
+  </g>
+  <circle cx="600" cy="170" r="46" fill="none" stroke="#a8a29e" stroke-width="6"/>
+  <path d="M600 150 v40 M580 170 h40" stroke="#a8a29e" stroke-width="6" stroke-linecap="round"/>
+</svg>
