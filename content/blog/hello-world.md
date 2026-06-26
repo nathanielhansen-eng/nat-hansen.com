@@ -3,6 +3,7 @@ title: Hydrosemantics
 date: 2026-06-26
 summary: A first post — and a note on why these old Goodreads reviews are migrating here.
 tags: [meta, reading]
+draft: true
 book:
   title: As You Like It
   author: William Shakespeare

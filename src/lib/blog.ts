@@ -31,12 +31,20 @@ export interface Post extends PostFrontmatter {
   body: string;
 }
 
+/** YAML parses an unquoted `date: 2026-06-26` into a Date; normalize to "YYYY-MM-DD". */
+function normalizeDate(value: unknown): string {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value ?? "");
+}
+
 function readPost(fileName: string): Post {
   const slug = fileName.replace(/\.md$/, "");
   const raw = fs.readFileSync(path.join(BLOG_DIR, fileName), "utf-8");
   const { data, content } = matter(raw);
+  const fm = data as PostFrontmatter;
   return {
-    ...(data as PostFrontmatter),
+    ...fm,
+    date: normalizeDate(fm.date),
     slug,
     body: content.trim(),
   };
