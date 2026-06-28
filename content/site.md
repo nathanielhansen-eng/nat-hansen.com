@@ -11,8 +11,6 @@ links:
     href: https://philpeople.org/profiles/nat-hansen/
   - label: Teaching
     href: https://nat-hansen.com/teaching
-  - label: Blog
-    href: https://nat-hansen.com/blog
   - label: ux-phi.com
     href: https://ux-phi.com
   - label: CV
@@ -25,7 +23,7 @@ events:
   - title: Experimental Philosophy in China
     venue: Xiamen University
     date: November 2026
-  - title: MeNTAL (Mind, Epistemology, Neuroscience, Thought, and Language)
+  - title: MENTaL (Mind, Epistemology, Neuroscience, Thought, and Language)
     venue: UC Davis
     date: November 6, 2026
   
@@ -56,11 +54,6 @@ book:
 publications:
   - year: forthcoming
     display: >-
-      Hansen, N., Liao, S.
-      [\"Measuring Conceptual Inflation: The Case of 'Racist'\"](https://philpapers.org/archive/HANMCI.pdf),
-      *Ergo*.
-  - year: forthcoming
-    display: >-
       Liao, S. and Hansen, N.
       [\"Conceptual Inflation\"](https://philpapers.org/archive/LIACIF.pdf),
       *EurAmerica*.
@@ -74,6 +67,11 @@ publications:
       Hansen, N., Vilar-Lluch, S., Lepoutre, M., and Borg, E.
       \"Legal Interpretation, Corpus Linguistics, and Waismann's Challenge to Ordinary Language Philosophy\",
       in J. Ulatowski, D. Weijers, and J. Sytsma (eds.), *Experimental Philosophy and Corpus Methods*, Bloomsbury.
+  - year: "2026"
+    display: >-
+      Hansen, N., Liao, S.
+      [\"Measuring Conceptual Inflation: The Case of 'Racist'\"](https://philpapers.org/archive/HANMCI.pdf),
+      *Ergo*.
   - year: "2026"
     display: >-
       Hansen, N., Adams, Z.
