@@ -7,13 +7,62 @@ export const metadata: Metadata = {
     "Interactive playtests of classic experiments in philosophy and political science.",
 };
 
-const experiments = [
+type ExperimentCard = {
+  title: string;
+  subtitle: string;
+  slug: string; // used for the React key and the default link
+  href?: string; // overrides the default /teaching/experiments/<slug> link
+  blurb: string;
+  cta?: string;
+};
+
+const experiments: ExperimentCard[] = [
   {
     title: "Frohlich, Oppenheimer & Eavey (1987)",
     subtitle: "Choices of Principles of Distributive Justice",
     slug: "frohlich-justice",
     blurb:
       "A solo playtest of the classic veil-of-ignorance experiment. Pick a principle, see what you'd earn, then deliberate with four simulated co-participants and try to reach unanimous agreement. The original study found 35 of 44 groups chose a principle Rawls explicitly rejected.",
+  },
+  {
+    title: "Esper (1966)",
+    subtitle: "Social Transmission of an Artificial Language",
+    slug: "chain",
+    cta: "Join a room →",
+    blurb:
+      "A live, in-class transmission chain. Each student learns names for eight shape-colour objects, then reproduces them from memory — and their version becomes the language taught to the next student. Across generations a 'totally suppletive' vocabulary drifts toward morphological categories. Run several parallel chains and compare how they diverge. Instructors: open the room from the host console.",
+  },
+  {
+    title: "Brown & Lenneberg (1954)",
+    subtitle: "Codability and Colour Memory",
+    slug: "brown-lenneberg",
+    href: "/teaching/philosophy-of-language/games/brown-lenneberg",
+    blurb:
+      "A classroom replication of the codability-and-memory study: name 12 colours, then try to recognise a subset after a 30-second arithmetic-filled delay. Anonymous results are compiled live for discussion.",
+  },
+  {
+    title: "Heider — Focal Colours (1972)",
+    subtitle: "Universals in Colour Naming and Memory",
+    slug: "heider-focal-colors",
+    href: "/teaching/philosophy-of-language/games/heider-focal-colors",
+    blurb:
+      "Rosch Heider's challenge to Brown & Lenneberg. Pick best examples of basic colour names, name 12 chips (focal, internominal, boundary), then recognise a subset from an 80-chip array — testing whether codability drives memory or some colours are simply more distinctive.",
+  },
+  {
+    title: "Gilbert, Krull & Malone (1990)",
+    subtitle: "Unbelieving the Unbelievable",
+    slug: "gilbert-unbelieving",
+    href: "/teaching/philosophy-of-language/games/gilbert-unbelieving",
+    blurb:
+      "A replication of Study 1: learn an invented Hopi vocabulary, get interrupted by an occasional tone, then take the identification test. The diagnostic asymmetry — false propositions misidentified as true under interruption — is what Spinoza predicts and Descartes does not. (From the Speech Attacks readings.)",
+  },
+  {
+    title: "Hansen & Liao",
+    subtitle: "Measuring Conceptual Inflation",
+    slug: "conceptual-inflation",
+    href: "/teaching/philosophy-of-language/games/conceptual-inflation",
+    blurb:
+      "A classroom replication of Study 1 on the meaning of 'racist'. Rate the extension and intensity of 'racist', its degree-modified forms, related vocabulary, and a set of thin moral terms — then compare your live audience's pattern with the published representative-sample results.",
   },
 ];
 
@@ -55,15 +104,23 @@ export default function ExperimentsPage() {
                   </div>
                 </div>
                 <Link
-                  href={`/teaching/experiments/${e.slug}`}
+                  href={e.href ?? `/teaching/experiments/${e.slug}`}
                   className="text-stone-500 text-sm hover:text-stone-800 transition-colors whitespace-nowrap"
                 >
-                  Start experiment &rarr;
+                  {e.cta ?? "Start experiment →"}
                 </Link>
               </div>
               <p className="text-stone-600 text-sm leading-relaxed mt-3">
                 {e.blurb}
               </p>
+              {e.slug === "chain" && (
+                <Link
+                  href="/teaching/experiments/chain/host"
+                  className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
+                >
+                  Instructor host console &rarr;
+                </Link>
+              )}
             </section>
           ))}
         </div>
