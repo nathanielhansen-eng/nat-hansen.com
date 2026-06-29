@@ -139,7 +139,7 @@ export default function GamesPage() {
               </Link>
             </div>
             <p className="text-stone-600 text-sm leading-relaxed">
-              A classroom replication of Hansen &amp; Liao&apos;s Study 1 on the meaning of
+              A classroom replication of Hansen &amp; Liao&apos;s (2026) Study 1 on the meaning of
               &lsquo;racist&rsquo;. Rate the extension and intensity of &lsquo;racist&rsquo;,
               its degree-modified forms, related alternative vocabulary, and a set of thin
               moral terms — then compare your live audience&apos;s pattern with the published

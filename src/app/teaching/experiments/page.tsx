@@ -57,7 +57,7 @@ const experiments: ExperimentCard[] = [
       "A replication of Study 1: learn an invented Hopi vocabulary, get interrupted by an occasional tone, then take the identification test. The diagnostic asymmetry — false propositions misidentified as true under interruption — is what Spinoza predicts and Descartes does not. (From the Speech Attacks readings.)",
   },
   {
-    title: "Hansen & Liao",
+    title: "Hansen & Liao (2026)",
     subtitle: "Measuring Conceptual Inflation",
     slug: "conceptual-inflation",
     href: "/teaching/philosophy-of-language/games/conceptual-inflation",
