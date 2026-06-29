@@ -268,7 +268,7 @@ export default function Nineties() {
           <h2>What&apos;s New?</h2>
           <ul>
             <li>
-              <span className="new">NEW!</span> Forthcoming in <i>Ergo</i>{" "}
+              <span className="new">NEW!</span> Just out in <i>Ergo</i> (2026){" "}
               with Shen-yi Liao:{" "}
               <a href="https://philpapers.org/archive/HANMCI.pdf">
                 &ldquo;Measuring Conceptual Inflation: The Case of
