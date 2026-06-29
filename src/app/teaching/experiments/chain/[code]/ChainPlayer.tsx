@@ -15,8 +15,7 @@ type State =
   | { kind: "ended" }
   | { kind: "error"; msg: string }
   | { kind: "playing"; taskId: string; chainId: string; n: number; input: unknown }
-  | { kind: "submitting"; taskId: string }
-  | { kind: "done"; chainId: string; n: number; snapshot: ChainSnapshot; taskId: string };
+  | { kind: "done"; snapshot: ChainSnapshot; taskId: string };
 
 function Screen({ children }: { children: React.ReactNode }) {
   return (
@@ -40,6 +39,9 @@ function Screen({ children }: { children: React.ReactNode }) {
 
 export default function ChainPlayer({ code }: { code: string }) {
   const [state, setState] = useState<State>({ kind: "claiming" });
+  // Kept separate from `state` so the task component stays mounted with its
+  // real input while the submission is in flight.
+  const [submitting, setSubmitting] = useState(false);
 
   // Claim a slot on mount; if all chains are momentarily busy, re-claim every
   // few seconds until one frees up.
@@ -85,7 +87,7 @@ export default function ChainPlayer({ code }: { code: string }) {
 
   const submit = useCallback(
     async (taskId: string, response: unknown) => {
-      setState({ kind: "submitting", taskId });
+      setSubmitting(true);
       try {
         const res = await fetch("/api/experiments/chain/submit", {
           method: "POST",
@@ -94,14 +96,9 @@ export default function ChainPlayer({ code }: { code: string }) {
         });
         const data = await res.json();
         if (data.ok) {
-          setState((s) => ({
-            kind: "done",
-            chainId: s.kind === "submitting" ? "" : "",
-            n: 0,
-            snapshot: data.snapshot,
-            taskId,
-          }));
+          setState({ kind: "done", snapshot: data.snapshot, taskId });
         } else {
+          setSubmitting(false);
           setState({
             kind: "error",
             msg:
@@ -111,6 +108,7 @@ export default function ChainPlayer({ code }: { code: string }) {
           });
         }
       } catch {
+        setSubmitting(false);
         setState({ kind: "error", msg: "Network error submitting." });
       }
     },
@@ -168,7 +166,7 @@ export default function ChainPlayer({ code }: { code: string }) {
       </Screen>
     );
 
-  if (state.kind === "playing" || state.kind === "submitting") {
+  if (state.kind === "playing") {
     const client = getTaskClient(state.taskId);
     if (!client)
       return (
@@ -177,11 +175,10 @@ export default function ChainPlayer({ code }: { code: string }) {
         </Screen>
       );
     const Comp = client.Component;
-    const input = state.kind === "playing" ? state.input : undefined;
     return (
       <Comp
-        input={input}
-        submitting={state.kind === "submitting"}
+        input={state.input}
+        submitting={submitting}
         onSubmit={(r) => submit(state.taskId, r)}
       />
     );

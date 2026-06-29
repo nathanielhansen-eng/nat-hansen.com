@@ -67,7 +67,7 @@ export default function EsperTask({
   submitting,
   onSubmit,
 }: ChainTaskComponentProps) {
-  const names = (input as { names: string[] }).names;
+  const names = (input as { names?: string[] } | undefined)?.names ?? [];
 
   const [phase, setPhase] = useState<Phase>("intro");
   // learn: two passes through all 8 in fixed canonical order
