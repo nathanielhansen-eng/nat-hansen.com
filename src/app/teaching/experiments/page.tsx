@@ -14,9 +14,20 @@ type ExperimentCard = {
   href?: string; // overrides the default /teaching/experiments/<slug> link
   blurb: string;
   cta?: string;
+  isStatic?: boolean; // static HTML served from /public — render a plain <a>, not next/link
 };
 
 const experiments: ExperimentCard[] = [
+  {
+    title: "Zollman (2010)",
+    subtitle: "The Epistemic Benefit of Transient Diversity",
+    slug: "zollman",
+    href: "/teaching/games/zollman/tutorial.html",
+    isStatic: true,
+    cta: "Open the tutorial →",
+    blurb:
+      "An interactive build-up of Zollman's bandit-network model of scientific communities — why more communication can mean less truth — one assumption at a time. Then two dashboards: the original model, and an extension in which each scientist consults a sycophantic or a devil's-advocate LLM, showing that whether an AI helps a community reach the truth turns on the shape of its network. Runs entirely in the browser.",
+  },
   {
     title: "Frohlich, Oppenheimer & Eavey (1987)",
     subtitle: "Choices of Principles of Distributive Justice",
@@ -103,12 +114,21 @@ export default function ExperimentsPage() {
                     {e.subtitle}
                   </div>
                 </div>
-                <Link
-                  href={e.href ?? `/teaching/experiments/${e.slug}`}
-                  className="text-stone-500 text-sm hover:text-stone-800 transition-colors whitespace-nowrap"
-                >
-                  {e.cta ?? "Start experiment →"}
-                </Link>
+                {e.isStatic ? (
+                  <a
+                    href={e.href}
+                    className="text-stone-500 text-sm hover:text-stone-800 transition-colors whitespace-nowrap"
+                  >
+                    {e.cta ?? "Start experiment →"}
+                  </a>
+                ) : (
+                  <Link
+                    href={e.href ?? `/teaching/experiments/${e.slug}`}
+                    className="text-stone-500 text-sm hover:text-stone-800 transition-colors whitespace-nowrap"
+                  >
+                    {e.cta ?? "Start experiment →"}
+                  </Link>
+                )}
               </div>
               <p className="text-stone-600 text-sm leading-relaxed mt-3">
                 {e.blurb}
@@ -120,6 +140,22 @@ export default function ExperimentsPage() {
                 >
                   Instructor host console &rarr;
                 </Link>
+              )}
+              {e.slug === "zollman" && (
+                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1">
+                  <a
+                    href="/teaching/games/zollman/dashboard_original.html"
+                    className="text-stone-400 text-xs hover:text-stone-700 transition-colors inline-block"
+                  >
+                    Original-model dashboard &rarr;
+                  </a>
+                  <a
+                    href="/teaching/games/zollman/sycophant_vs_advocate.html"
+                    className="text-stone-400 text-xs hover:text-stone-700 transition-colors inline-block"
+                  >
+                    Sycophant vs. devil&rsquo;s advocate &rarr;
+                  </a>
+                </div>
               )}
             </section>
           ))}

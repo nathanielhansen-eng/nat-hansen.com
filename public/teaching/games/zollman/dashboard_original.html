@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Zollman Lab — original model</title>
+<style>
+  :root { --ink:#1a1a2e; --paper:#f7f5f0; --accent:#2166ac; --fail:#b2182b; --mid:#762a83; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: Georgia, 'Times New Roman', serif; background:var(--paper); color:var(--ink); }
+  header { padding:14px 22px 10px; border-bottom:2px solid var(--ink); }
+  header h1 { margin:0; font-size:20px; }
+  header p { margin:4px 0 0; font-size:13px; color:#555; }
+  .wrap { display:grid; grid-template-columns: 300px 1fr; gap:0; }
+  .controls { padding:16px 18px; border-right:1px solid #ccc; background:#f0ede6; min-height:calc(100vh - 60px); }
+  .controls h2 { font-size:13px; text-transform:uppercase; letter-spacing:1px; margin:18px 0 8px; border-bottom:1px solid #bbb; padding-bottom:3px;}
+  .controls h2:first-child { margin-top:0; }
+  .ctl { margin-bottom:10px; font-size:13px; }
+  .ctl label { display:flex; justify-content:space-between; margin-bottom:2px; }
+  .ctl label .val { font-weight:bold; font-variant-numeric:tabular-nums; }
+  .ctl input[type=range] { width:100%; accent-color:var(--accent); }
+  .ctl select, .ctl input[type=number] { width:100%; font:inherit; padding:2px 4px; }
+  .hint { font-size:11px; color:#777; line-height:1.35; margin-top:1px; }
+  button { font:inherit; font-size:14px; padding:7px 14px; cursor:pointer; background:var(--ink); color:#fff; border:none; border-radius:3px; }
+  button.secondary { background:#fff; color:var(--ink); border:1px solid var(--ink); }
+  button:disabled { opacity:.5; cursor:wait; }
+  .presets button { font-size:11px; padding:4px 7px; margin:2px 2px 2px 0; }
+  .main { padding:16px 22px; }
+  .charts { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:14px; }
+  .card { background:#fff; border:1px solid #ddd; border-radius:4px; padding:10px; }
+  .card h3 { margin:0 0 6px; font-size:14px; }
+  .card canvas { width:100%; height:auto; display:block; }
+  #analysis { background:#fff; border:1px solid #ddd; border-left:4px solid var(--accent); border-radius:4px; padding:12px 16px; font-size:14px; line-height:1.5; }
+  #analysis .num { font-weight:bold; }
+  #status { font-size:12px; color:#777; margin-left:12px; }
+  .netcard { grid-column: 1; }
+  .footnote { font-size:11px; color:#888; margin-top:14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Zollman Lab — original model</h1>
+  <p>Bandit networks &amp; transient diversity (Zollman 2007, 2010), his assumptions only. Old theory pays at exactly 0.5; the new one at 0.5&thinsp;+&thinsp;&epsilon;. Will the community find out? &nbsp;·&nbsp; <a href="tutorial.html">&larr; tutorial</a> &nbsp;·&nbsp; <a href="sycophant_vs_advocate.html">the LLM extension &rarr;</a></p>
+</header>
+<div class="wrap">
+  <div class="controls">
+    <h2>Presets</h2>
+    <div class="presets">
+      <button onclick="preset('baseline')">Zollman baseline</button>
+      <button onclick="preset('dense')">Dense &amp; hasty</button>
+      <button onclick="preset('extreme')">Extreme priors</button>
+      <button onclick="preset('locked')">Never settles</button>
+    </div>
+
+    <h2>Community</h2>
+    <div class="ctl">
+      <label>network structure</label>
+      <select id="network">
+        <option value="cycle" selected>cycle (sparse)</option>
+        <option value="wheel">wheel (hub + rim)</option>
+        <option value="complete">complete (everyone sees all)</option>
+        <option value="line">line (sparsest)</option>
+      </select>
+      <div class="hint">who sees whose results — Zollman's headline: sparser networks are slower but likelier to find the truth</div>
+    </div>
+    <div class="ctl"><label>agents <span class="val" id="v_agents"></span></label>
+      <input type="range" id="agents" min="3" max="24" step="1" value="10">
+      <div class="hint">community size — bigger communities are harder to tip into premature consensus</div></div>
+
+    <h2>The problem</h2>
+    <div class="ctl"><label>&epsilon; (new theory's edge) <span class="val" id="v_eps"></span></label>
+      <input type="range" id="eps" min="0" max="2.65" step="0.05" value="0">
+      <div class="hint">how much better the new theory really is (its payoff rate is 0.5&thinsp;+&thinsp;&epsilon;) — small &epsilon; = a hard problem, easy to get wrong</div></div>
+    <div class="ctl"><label>trials per round <span class="val" id="v_trials"></span></label>
+      <input type="range" id="trials" min="0" max="3" step="0.25" value="3">
+      <div class="hint">how much data each agent generates per round — the size of each "study" before everyone updates</div></div>
+
+    <h2>The scientists</h2>
+    <div class="ctl"><label>prior strength (stubbornness) <span class="val" id="v_prior"></span></label>
+      <input type="range" id="prior" min="0" max="3.5" step="0.1" value="0">
+      <div class="hint">Zollman's "extreme beliefs": how much contrary evidence it takes to move an agent off its starting opinion</div></div>
+    <h2>Simulation</h2>
+    <div class="ctl"><label>runs <span class="val" id="v_runs"></span></label>
+      <input type="range" id="runs" min="50" max="1000" step="50" value="300">
+      <div class="hint">how many independent communities to simulate — more runs, steadier percentages</div></div>
+    <div class="ctl"><label>max rounds <span class="val" id="v_steps"></span></label>
+      <input type="range" id="steps" min="200" max="6000" step="200" value="2000">
+      <div class="hint">the horizon: runs still divided at this point count as "unsettled" (permanent diversity)</div></div>
+    <div class="ctl"><label>seed</label><input type="number" id="seed" value="1">
+      <div class="hint">random seed — same seed + same settings reproduces the exact same result</div></div>
+
+    <div style="margin-top:14px">
+      <button id="runbtn" onclick="runAll()">Run</button>
+      <button class="secondary" id="sweepbtn" onclick="runSweep()">Sweep stubbornness &times; networks</button>
+      <span id="status"></span>
+    </div>
+    <div class="footnote">Log sliders: &epsilon; = 10^(−3+x), trials = 10^x, prior strength = 10^x. Everything reruns client-side; nothing leaves this page.</div>
+  </div>
+
+  <div class="main">
+    <div id="analysis">Press <b>Run</b>.</div>
+    <div class="charts">
+      <div class="card netcard"><h3>The community</h3><canvas id="netcv" width="460" height="300"></canvas></div>
+      <div class="card"><h3>Outcomes</h3><canvas id="outcv" width="460" height="300"></canvas></div>
+      <div class="card"><h3>Diversity trajectories <span style="font-weight:normal;font-size:11px">(fraction working on the new theory; 40 sample runs)</span></h3><canvas id="trajcv" width="460" height="300"></canvas></div>
+      <div class="card"><h3>When is the question settled? <span style="font-weight:normal;font-size:11px">(round of unanimity)</span></h3><canvas id="histcv" width="460" height="300"></canvas></div>
+      <div class="card" style="grid-column:1/-1"><h3>Sweep: P(settle on truth) by stubbornness &times; network <span style="font-weight:normal;font-size:11px">(the 2010 paper's core interaction; uses current &epsilon;, trials, agents)</span></h3><canvas id="sweepcv" width="960" height="320"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- RNG ----------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function makeRandn(rng){let spare=null;return function(){if(spare!==null){const v=spare;spare=null;return v}
+  let u,v,s;do{u=rng()*2-1;v=rng()*2-1;s=u*u+v*v}while(s>=1||s===0);
+  const m=Math.sqrt(-2*Math.log(s)/s);spare=v*m;return u*m}}
+function makeBinom(rng,randn){return function(n,p){
+  if(n<=40){let s=0;for(let i=0;i<n;i++)if(rng()<p)s++;return s}
+  let x=Math.round(n*p+randn()*Math.sqrt(n*p*(1-p)));return x<0?0:(x>n?n:x)}}
+
+// ---------- networks (neighbor lists, self excluded) ----------
+function neighbors(type,n){
+  const nb=[];for(let i=0;i<n;i++)nb.push(new Set());
+  const link=(a,b)=>{if(a!==b){nb[a].add(b);nb[b].add(a)}};
+  if(type==='complete'){for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)link(i,j)}
+  else if(type==='cycle'){for(let i=0;i<n;i++)link(i,(i+1)%n)}
+  else if(type==='line'){for(let i=0;i<n-1;i++)link(i,i+1)}
+  else if(type==='wheel'){for(let i=1;i<n;i++){link(i,i===n-1?1:i+1);link(0,i)}}
+  return nb.map(s=>[...s]);
+}
+
+// ---------- the model (mirrors zollman.py) ----------
+function simulate(P){
+  const rng=mulberry32(P.seed),randn=makeRandn(rng),binom=makeBinom(rng,randn);
+  const nb=neighbors(P.network,P.agents);
+  const pB=0.5+P.eps;
+  const res={success:0,fail:0,unsettled:0,unanimityRound:[],failRound:[],traj:[],outcomes:[]};
+  const trackEvery=Math.max(1,Math.floor(P.steps/300));
+  for(let r=0;r<P.runs;r++){
+    const A=new Float64Array(P.agents),B=new Float64Array(P.agents);
+    for(let i=0;i<P.agents;i++){A[i]=(rng()*4||1e-9)*P.prior;B[i]=(rng()*4||1e-9)*P.prior}
+    const onB=new Uint8Array(P.agents);
+    for(let i=0;i<P.agents;i++)onB[i]=A[i]/(A[i]+B[i])>0.5?1:0;
+    const track=r<40?[]:null; let unan=-1,failed=false,t=0;
+    const succ=new Float64Array(P.agents);
+    for(t=0;t<P.steps;t++){
+      let nOn=0;for(let i=0;i<P.agents;i++)nOn+=onB[i];
+      if(track&&t%trackEvery===0)track.push(nOn/P.agents);
+      if(unan<0&&(nOn===0||nOn===P.agents))unan=t;
+      if(nOn===0){failed=true;break}
+      for(let i=0;i<P.agents;i++)succ[i]=onB[i]?binom(P.trials,pB):0;
+      for(let i=0;i<P.agents;i++){
+        let s=succ[i],n=onB[i]?P.trials:0;
+        for(const j of nb[i]){s+=succ[j];n+=onB[j]?P.trials:0}
+        A[i]+=s;B[i]+=n-s;
+      }
+      for(let i=0;i<P.agents;i++){
+        const e=A[i]/(A[i]+B[i]);
+        if(onB[i]) onB[i]=e>0.5-P.hyst?1:0;      // committed: harder to abandon
+        else onB[i]=e>0.5?1:0;
+      }
+    }
+    let allB=true;for(let i=0;i<P.agents;i++)if(!onB[i]){allB=false;break}
+    const out=failed?'fail':(allB?'success':'unsettled');
+    res[out==='fail'?'fail':out==='success'?'success':'unsettled']++;
+    if(failed)res.failRound.push(t);
+    if(unan>=0)res.unanimityRound.push(unan);
+    if(track)res.traj.push({f:track,out});
+    res.outcomes.push(out);
+  }
+  res.trackEvery=trackEvery;
+  return res;
+}
+
+// ---------- params from UI ----------
+function getP(){return{
+  network:document.getElementById('network').value,
+  agents:+document.getElementById('agents').value,
+  eps:Math.pow(10,-3+ +document.getElementById('eps').value),
+  trials:Math.round(Math.pow(10,+document.getElementById('trials').value)),
+  prior:Math.pow(10,+document.getElementById('prior').value),
+  hyst:0,
+  runs:+document.getElementById('runs').value,
+  steps:+document.getElementById('steps').value,
+  seed:+document.getElementById('seed').value||1}}
+function fmt(x,d=3){return x>=100?x.toFixed(0):x>=1?(+x.toFixed(2)).toString():x.toPrecision(d)}
+function refreshLabels(){const P=getP();
+  v_agents.textContent=P.agents; v_eps.textContent=fmt(P.eps);
+  v_trials.textContent=P.trials; v_prior.textContent=fmt(P.prior);
+  v_runs.textContent=P.runs; v_steps.textContent=P.steps;}
+document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',refreshLabels));
+
+function preset(name){
+  const set=(id,v)=>document.getElementById(id).value=v;
+  set('eps',0);set('trials',3);set('runs',300);set('steps',2000);set('agents',10);
+  if(name==='baseline'){set('network','cycle');set('prior',0)}
+  if(name==='dense'){set('network','complete');set('prior',0)}
+  if(name==='extreme'){set('network','complete');set('prior',2.4)}
+  if(name==='locked'){set('network','line');set('prior',3.3);set('steps',4000)}
+  refreshLabels();runAll();
+}
+
+// ---------- tiny plotting ----------
+function frame(cv){const c=cv.getContext('2d');c.clearRect(0,0,cv.width,cv.height);return c}
+function axes(c,W,H,pad){c.strokeStyle='#999';c.lineWidth=1;c.beginPath();
+  c.moveTo(pad,10);c.lineTo(pad,H-pad);c.lineTo(W-10,H-pad);c.stroke()}
+function drawNet(P){
+  const cv=netcv,c=frame(cv),W=cv.width,H=cv.height,n=P.agents;
+  const nb=neighbors(P.network,n),pos=[];
+  const cx=W/2,cy=H/2,R=Math.min(W,H)/2-30;
+  for(let i=0;i<n;i++){
+    if(P.network==='wheel'&&i===0)pos.push([cx,cy]);
+    else{const k=P.network==='wheel'?i-1:i,m=P.network==='wheel'?n-1:n;
+      const a=-Math.PI/2+2*Math.PI*k/m;pos.push([cx+R*Math.cos(a),cy+R*Math.sin(a)])}}
+  c.strokeStyle='#bbb';
+  for(let i=0;i<n;i++)for(const j of nb[i])if(j>i){c.beginPath();c.moveTo(...pos[i]);c.lineTo(...pos[j]);c.stroke()}
+  for(let i=0;i<n;i++){c.beginPath();c.arc(pos[i][0],pos[i][1],9,0,7);c.fillStyle='#2166ac';c.fill();
+    c.strokeStyle='#fff';c.stroke()}
+  c.fillStyle='#555';c.font='12px Georgia';
+  c.fillText(`${P.network}, ${n} agents — each round every agent shares its results with its neighbors`,12,H-8);
+}
+function drawOutcomes(res,P){
+  const cv=outcv,c=frame(cv),W=cv.width,H=cv.height;
+  const cats=[['settled on truth',res.success,'#2166ac'],['abandoned it',res.fail,'#b2182b'],['still unsettled',res.unsettled,'#999']];
+  const bw=90,gap=45,x0=70,base=H-60,scale=(H-110);
+  c.font='13px Georgia';
+  cats.forEach((k,i)=>{const p=k[1]/P.runs,x=x0+i*(bw+gap),h=p*scale;
+    c.fillStyle=k[2];c.fillRect(x,base-h,bw,h);
+    c.fillStyle='#1a1a2e';c.textAlign='center';
+    c.fillText((100*p).toFixed(1)+'%',x+bw/2,base-h-7);
+    c.fillText(k[0],x+bw/2,base+18);});
+  c.textAlign='left';c.fillStyle='#555';
+  c.fillText(`${P.runs} communities, horizon ${P.steps} rounds`,12,H-8);
+}
+function drawTraj(res,P){
+  const cv=trajcv,c=frame(cv),W=cv.width,H=cv.height,pad=42;
+  axes(c,W,H,pad);
+  c.font='11px Georgia';c.fillStyle='#555';
+  c.save();c.translate(13,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('fraction on new theory',0,0);c.restore();
+  c.textAlign='center';c.fillText('round',W/2,H-6);
+  c.textAlign='right';c.fillText('1',pad-4,16);c.fillText('0',pad-4,H-pad+4);
+  const maxLen=Math.max(1,...res.traj.map(t=>t.f.length));
+  c.textAlign='left';
+  for(const t of res.traj){
+    c.strokeStyle=t.out==='success'?'rgba(33,102,172,.45)':t.out==='fail'?'rgba(178,24,43,.45)':'rgba(120,120,120,.6)';
+    c.lineWidth=1;c.beginPath();
+    t.f.forEach((v,i)=>{const x=pad+(W-pad-12)*i/(maxLen-1||1),y=10+(H-pad-10)*(1-v);
+      i?c.lineTo(x,y):c.moveTo(x,y)});
+    c.stroke();}
+  c.fillStyle='#555';c.fillText(`x-axis: 0 … ${maxLen*res.trackEvery} rounds`,pad+4,20);
+}
+function drawHist(res,P){
+  const cv=histcv,c=frame(cv),W=cv.width,H=cv.height,pad=42;
+  axes(c,W,H,pad);
+  const data=res.unanimityRound;
+  c.font='11px Georgia';c.fillStyle='#555';c.textAlign='center';c.fillText('round of first unanimity (either verdict)',W/2,H-6);
+  if(!data.length){c.fillText('no run reached unanimity',W/2,H/2);return}
+  const nb=24,mx=Math.max(...data)+1,bins=new Array(nb).fill(0);
+  data.forEach(d=>bins[Math.min(nb-1,Math.floor(nb*d/mx))]++);
+  const bmax=Math.max(...bins),bw=(W-pad-14)/nb;
+  bins.forEach((b,i)=>{const h=(H-pad-16)*b/bmax;
+    c.fillStyle='#762a83';c.fillRect(pad+i*bw+1,H-pad-h,bw-2,h)});
+  c.fillStyle='#555';c.textAlign='left';
+  const med=data.slice().sort((a,b)=>a-b)[Math.floor(data.length/2)];
+  c.fillText(`median ${med} · range 0–${mx-1} · ${data.length}/${P.runs} runs unanimous`,pad+4,18);
+}
+function drawSweep(rows,strengths,nets,P){
+  const cv=sweepcv,c=frame(cv),W=cv.width,H=cv.height,pad=52;
+  axes(c,W,H,pad);
+  const colors={cycle:'#2166ac',wheel:'#762a83',complete:'#b2182b',line:'#4d9221'};
+  const lx=x=>pad+(W-pad-140)*(Math.log10(x)-Math.log10(strengths[0]))/(Math.log10(strengths[strengths.length-1])-Math.log10(strengths[0]));
+  const ly=y=>12+(H-pad-12)*(1-y);
+  c.font='11px Georgia';c.fillStyle='#555';
+  c.textAlign='center';c.fillText('prior strength (log scale)',(W-120)/2,H-6);
+  c.save();c.translate(13,H/2);c.rotate(-Math.PI/2);c.fillText('P(settle on truth)',0,0);c.restore();
+  c.textAlign='right';c.fillText('1.0',pad-4,ly(1)+4);c.fillText('0.5',pad-4,ly(.5)+4);c.fillText('0',pad-4,ly(0)+4);
+  c.textAlign='center';strengths.forEach(s=>c.fillText(fmt(s),lx(s),H-pad+14));
+  c.strokeStyle='#eee';c.beginPath();c.moveTo(pad,ly(.5));c.lineTo(W-140,ly(.5));c.stroke();
+  nets.forEach((net,ni)=>{
+    c.strokeStyle=colors[net];c.fillStyle=colors[net];c.lineWidth=2;c.beginPath();
+    strengths.forEach((s,i)=>{const x=lx(s),y=ly(rows[ni][i]);i?c.lineTo(x,y):c.moveTo(x,y)});
+    c.stroke();
+    strengths.forEach((s,i)=>{c.beginPath();c.arc(lx(s),ly(rows[ni][i]),3.5,0,7);c.fill()});
+    c.textAlign='left';c.fillText(net,W-125,30+ni*18);});
+}
+
+// ---------- analysis prose ----------
+function analyze(res,P){
+  const pct=x=>'<span class="num">'+(100*x/P.runs).toFixed(1)+'%</span>';
+  const med=a=>a.length?a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)]:null;
+  const mUnan=med(res.unanimityRound),mFail=med(res.failRound);
+  let regime,mapping;
+  const s=res.success/P.runs,f=res.fail/P.runs,u=res.unsettled/P.runs;
+  if(u>0.25){regime='<b>permanent diversity</b>: disagreement outlives the horizon — the community maintains rival programs indefinitely and the question is never settled';
+    mapping='This is the Charybdis pole: contrariness. Individually principled, collectively unable to close inquiry.';}
+  else if(f>s){regime='<b>premature convergence</b>: the community usually kills the better theory on early unlucky evidence (the Palmer/H. pylori failure)';
+    mapping='This is the Scylla pole: epistemic sycophancy. Everyone updates on everyone; one bad early study cascades.';}
+  else{regime='<b>transient diversity</b>: rival programs coexist long enough for the truth to prove itself, then the community closes ranks';
+    mapping='This is the target regime — the community-level face of "giving a damn": hold long enough to matter, concede when the evidence really tells.';}
+  let hystNote=P.hyst>0?`<br>Commitment hysteresis &delta;=${P.hyst.toFixed(3)} is on: agents abandon their current theory only below E&thinsp;&lt;&thinsp;${(0.5-P.hyst).toFixed(3)}. Compare the same settings with &delta;=0 to price this knob.`:'';
+  return `<b>${P.network}</b> network, ${P.agents} agents, &epsilon;=${fmt(P.eps)}, ${P.trials} trials/round, prior strength ${fmt(P.prior)} — ${P.runs} communities:
+  settled on the truth ${pct(res.success)}, abandoned it ${pct(res.fail)}${mFail!==null?` (median collapse at round <span class="num">${mFail}</span>)`:''}, still unsettled ${pct(res.unsettled)}.
+  ${mUnan!==null?`Median time to unanimity <span class="num">${mUnan}</span> rounds.`:'No run reached unanimity.'}
+  <br>Regime: ${regime}. ${mapping}${hystNote}`;
+}
+
+// ---------- runners ----------
+let busy=false;
+function runAll(){
+  if(busy)return;busy=true;
+  runbtn.disabled=sweepbtn.disabled=true;status.textContent='running…';
+  setTimeout(()=>{const P=getP(),t0=performance.now(),res=simulate(P);
+    drawNet(P);drawOutcomes(res,P);drawTraj(res,P);drawHist(res,P);
+    analysis.innerHTML=analyze(res,P);
+    status.textContent=((performance.now()-t0)/1000).toFixed(1)+'s';
+    runbtn.disabled=sweepbtn.disabled=false;busy=false;},30);
+}
+async function runSweep(){
+  if(busy)return;busy=true;runbtn.disabled=sweepbtn.disabled=true;
+  const P=getP();
+  const strengths=[1,3,10,30,100,300,1000],nets=['complete','wheel','cycle','line'];
+  const rows=nets.map(()=>[]);const runs=Math.min(P.runs,150);
+  for(let ni=0;ni<nets.length;ni++)for(let si=0;si<strengths.length;si++){
+    status.textContent=`sweep ${ni*strengths.length+si+1}/${nets.length*strengths.length}…`;
+    await new Promise(r=>setTimeout(r,10));
+    const res=simulate({...P,network:nets[ni],prior:strengths[si],runs,steps:Math.min(P.steps,2500)});
+    rows[ni][si]=res.success/runs;
+    drawSweep(rows.map((r,i)=>i<=ni?r.map(x=>x??0):[]),strengths,nets.slice(0,ni+1),P);
+  }
+  drawSweep(rows,strengths,nets,P);
+  status.textContent='sweep done';
+  runbtn.disabled=sweepbtn.disabled=false;busy=false;
+}
+refreshLabels();runAll();
+</script>
+</body>
+</html>
