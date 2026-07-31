@@ -29,6 +29,13 @@ const experiments: ExperimentCard[] = [
       "An interactive build-up of Zollman's bandit-network model of scientific communities — why more communication can mean less truth — one assumption at a time. Then two dashboards: the original model, and an extension in which each scientist consults a sycophantic or a devil's-advocate LLM, showing that whether an AI helps a community reach the truth turns on the shape of its network. Runs entirely in the browser.",
   },
   {
+    title: "Knobe (2003)",
+    subtitle: "Intentional Action and Side Effects in Ordinary Language",
+    slug: "knobe-side-effect",
+    blurb:
+      "The side-effect effect — the most-cited result in experimental philosophy. Read one vignette, assigned at random, and say whether a chairman who is indifferent to the environment harmed (or helped) it intentionally. The two versions are matched on foresight, indifference and causal structure, and differ only in whether the side effect is bad or good; Knobe found 82% vs 23%. Both of his studies are included, and class results are compiled live against the published figures.",
+  },
+  {
     title: "Frohlich, Oppenheimer & Eavey (1987)",
     subtitle: "Choices of Principles of Distributive Justice",
     slug: "frohlich-justice",
@@ -139,6 +146,14 @@ export default function ExperimentsPage() {
                   className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
                 >
                   Instructor host console &rarr;
+                </Link>
+              )}
+              {e.slug === "knobe-side-effect" && (
+                <Link
+                  href="/teaching/experiments/knobe-side-effect/admin"
+                  className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
+                >
+                  Instructor results dashboard &rarr;
                 </Link>
               )}
               {e.slug === "zollman" && (
