@@ -58,13 +58,101 @@ const tagOf = (s: Record<string, unknown>): string | null =>
   typeof s.tag === "string" && s.tag ? s.tag : null;
 
 type NamingRowLoose = {
+  id?: unknown;
+  hex?: unknown;
+  munsell?: unknown;
   type?: unknown;
+  name?: unknown;
   exposed?: unknown;
   correct?: unknown;
   recognized?: unknown;
   time?: unknown;
   letters?: unknown;
 };
+
+// Per-swatch class aggregate, admin-dashboard style: the top modal names
+// (lowercased), mean naming time, and accuracy among exposed rows. Free-typed
+// labels surface ONLY here, as class-level modal names — never per record.
+function summarizeSwatches(
+  submissions: Record<string, unknown>[],
+  correctKey: "correct" | "recognized",
+) {
+  const per = new Map<
+    number,
+    {
+      hex: string;
+      munsell: string | null;
+      type: string;
+      names: Map<string, number>;
+      times: number[];
+      exposed: number;
+      hits: number;
+    }
+  >();
+  for (const s of submissions) {
+    if (!Array.isArray(s.naming)) continue;
+    for (const r of s.naming as NamingRowLoose[]) {
+      if (typeof r.id !== "number") continue;
+      let rec = per.get(r.id);
+      if (!rec) {
+        rec = {
+          hex: typeof r.hex === "string" ? r.hex : "#888888",
+          munsell: typeof r.munsell === "string" ? r.munsell : null,
+          type: typeof r.type === "string" ? r.type : "",
+          names: new Map(),
+          times: [],
+          exposed: 0,
+          hits: 0,
+        };
+        per.set(r.id, rec);
+      }
+      const name =
+        typeof r.name === "string" ? r.name.toLowerCase().trim() : "";
+      if (name) rec.names.set(name, (rec.names.get(name) ?? 0) + 1);
+      if (typeof r.time === "number") rec.times.push(r.time);
+      if (r.exposed === true) {
+        rec.exposed++;
+        if (r[correctKey] === true) rec.hits++;
+      }
+    }
+  }
+  return [...per.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([id, v]) => ({
+      id,
+      hex: v.hex,
+      munsell: v.munsell,
+      type: v.type,
+      topNames: [...v.names.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([name, count]) => ({ name, count })),
+      meanTime: mean(v.times),
+      exposed: v.exposed,
+      hits: v.hits,
+    }));
+}
+
+// The tagged student's own naming rows — their labels and times, returned
+// only for the tag the caller supplies.
+function yoursFor(
+  submissions: Record<string, unknown>[],
+  tag: string | null,
+  correctKey: "correct" | "recognized",
+) {
+  if (!tag) return null;
+  const own = submissions.find((s) => tagOf(s) === tag);
+  if (!own || !Array.isArray(own.naming)) return null;
+  return (own.naming as NamingRowLoose[])
+    .filter((r) => typeof r.id === "number")
+    .map((r) => ({
+      id: r.id as number,
+      name: typeof r.name === "string" ? r.name : "",
+      time: typeof r.time === "number" ? r.time : null,
+      exposed: r.exposed === true,
+      hit: r[correctKey] === true,
+    }));
+}
 
 function summarizeKnobe(submissions: Record<string, unknown>[]) {
   const records = submissions
@@ -277,12 +365,31 @@ export async function GET(request: Request) {
   }
 
   const submissions = await loadSubmissions(experiment, session);
-  const summary =
-    experiment === "knobe-side-effect"
-      ? summarizeKnobe(submissions)
-      : experiment === "brown-lenneberg"
-        ? summarizeBrownLenneberg(submissions)
-        : summarizeHeider(submissions);
+  const tagParam = url.searchParams.get("tag");
+  const tag =
+    typeof tagParam === "string"
+      ? tagParam.replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 64) || null
+      : null;
 
-  return Response.json({ ok: true, experiment, session, ...summary });
+  if (experiment === "knobe-side-effect") {
+    return Response.json({
+      ok: true,
+      experiment,
+      session,
+      ...summarizeKnobe(submissions),
+    });
+  }
+  const correctKey = experiment === "brown-lenneberg" ? "correct" : "recognized";
+  const summary =
+    experiment === "brown-lenneberg"
+      ? summarizeBrownLenneberg(submissions)
+      : summarizeHeider(submissions);
+  return Response.json({
+    ok: true,
+    experiment,
+    session,
+    ...summary,
+    swatches: summarizeSwatches(submissions, correctKey),
+    yours: yoursFor(submissions, tag, correctKey),
+  });
 }
