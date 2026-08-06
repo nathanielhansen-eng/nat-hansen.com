@@ -25,9 +25,17 @@ interface WarmupRow {
 
 interface Submission {
   session: string;
+  tag?: string;
   submittedAt: string;
   warmup: WarmupRow[];
   naming: NamingRow[];
+}
+
+// Optional launcher-supplied opaque tag (course-dashboard integration):
+// sanitized like the session, dropped when empty, never required.
+function sanitizeTag(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  return v.replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 64) || null;
 }
 
 function sanitizeSession(s: string): string {
@@ -76,6 +84,7 @@ function validate(body: unknown): Submission | null {
 
   return {
     session: sanitizeSession(b.session),
+    ...(sanitizeTag(b.tag) ? { tag: sanitizeTag(b.tag)! } : {}),
     submittedAt: b.submittedAt,
     warmup: b.warmup as WarmupRow[],
     naming: b.naming as NamingRow[],

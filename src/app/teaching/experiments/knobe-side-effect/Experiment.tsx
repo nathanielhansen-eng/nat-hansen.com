@@ -283,9 +283,13 @@ type Prior = "none" | "some" | "extensive";
 export default function Experiment({
   session,
   study,
+  tag = null,
 }: {
   session: string;
   study: 1 | 2;
+  /** Opaque launcher-supplied tag (e.g. from a course dashboard); stored
+   * with the record so the launching site can highlight "your" response. */
+  tag?: string | null;
 }) {
   const S = STUDIES[study];
 
@@ -340,6 +344,7 @@ export default function Experiment({
     setSubmitting(true);
     const payload = {
       session,
+      ...(tag ? { tag } : {}),
       submittedAt: new Date().toISOString(),
       durationMs: startedAt ? Date.now() - startedAt : 0,
       study,

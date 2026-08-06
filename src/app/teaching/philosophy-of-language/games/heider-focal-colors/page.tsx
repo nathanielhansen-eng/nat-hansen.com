@@ -10,10 +10,11 @@ export const metadata: Metadata = {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ session?: string }>;
+  searchParams: Promise<{ session?: string; tag?: string }>;
 }) {
   const sp = await searchParams;
   const today = new Date().toISOString().slice(0, 10);
   const session = (sp.session && sp.session.trim()) || today;
-  return <Experiment session={session} />;
+  const tag = (sp.tag && sp.tag.trim()) || null;
+  return <Experiment session={session} tag={tag} />;
 }

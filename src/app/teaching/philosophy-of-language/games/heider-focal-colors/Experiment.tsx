@@ -230,7 +230,15 @@ function accuracy(rows: ResultRow[]): { correct: number; total: number; pct: num
   return { correct, total, pct: total === 0 ? 0 : correct / total };
 }
 
-export default function Experiment({ session }: { session: string }) {
+export default function Experiment({
+  session,
+  tag = null,
+}: {
+  session: string;
+  /** Opaque launcher-supplied tag (e.g. from a course dashboard); stored
+   * with the record so the launching site can highlight "your" response. */
+  tag?: string | null;
+}) {
   const [phase, setPhase] = useState<Phase>("intro");
 
   // Warmup (Exp I)
@@ -408,6 +416,7 @@ export default function Experiment({ session }: { session: string }) {
     try {
       const payload = {
         session,
+        ...(tag ? { tag } : {}),
         submittedAt: new Date().toISOString(),
         warmup: warmupChoices.map((w) => ({
           basicName: w.basicName,

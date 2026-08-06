@@ -132,7 +132,15 @@ interface Results {
   avgBoundaryTime: number;
 }
 
-export default function Experiment({ session }: { session: string }) {
+export default function Experiment({
+  session,
+  tag = null,
+}: {
+  session: string;
+  /** Opaque launcher-supplied tag (e.g. from a course dashboard); stored
+   * with the record so the launching site can highlight "your" response. */
+  tag?: string | null;
+}) {
   const [phase, setPhase] = useState<
     "intro" | "naming" | "between" | "exposure" | "retention" | "recognition" | "results"
   >("intro");
@@ -286,6 +294,7 @@ export default function Experiment({ session }: { session: string }) {
     try {
       const payload = {
         session,
+        ...(tag ? { tag } : {}),
         submittedAt: new Date().toISOString(),
         naming: res.map((c) => ({
           id: c.id,

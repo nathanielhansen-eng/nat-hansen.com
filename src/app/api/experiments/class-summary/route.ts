@@ -1,0 +1,288 @@
+import { list, get } from "@vercel/blob";
+import { loadRoom } from "@/lib/chain/store";
+
+// Cross-site class summary (consumed server-to-server by the ux-phi course
+// dashboard's Experiments tab). Serves pre-aggregated, non-identifying
+// results for one class session of one experiment — never raw submissions,
+// never demographics, never free text. Per-record rows carry only the values
+// a class dataviz needs, plus the opaque `tag` a launching site may have
+// attached (see the tag param on the experiment pages) so a student can be
+// shown their own dot. Optionally gated: set EXPERIMENTS_SUMMARY_TOKEN and
+// callers must send it as a bearer token; unset, the endpoint is open but
+// still aggregate-only.
+
+export const dynamic = "force-dynamic";
+
+const BLOB_EXPERIMENTS = new Set([
+  "knobe-side-effect",
+  "brown-lenneberg",
+  "heider-focal-colors",
+]);
+
+function sanitizeSession(s: string): string {
+  return s.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 64);
+}
+
+async function loadSubmissions(
+  experiment: string,
+  session: string,
+): Promise<Record<string, unknown>[]> {
+  const prefix = `${experiment}/${session}/`;
+  const pathnames: string[] = [];
+  let cursor: string | undefined;
+  do {
+    const page = await list({ prefix, cursor, limit: 1000 });
+    for (const b of page.blobs) pathnames.push(b.pathname);
+    cursor = page.cursor;
+  } while (cursor);
+
+  const fetched = await Promise.all(
+    pathnames.map(async (p) => {
+      try {
+        const r = await get(p, { access: "private" });
+        if (!r || r.statusCode !== 200) return null;
+        const text = await new Response(r.stream).text();
+        return JSON.parse(text);
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return fetched.filter((x): x is Record<string, unknown> => x !== null);
+}
+
+const mean = (a: number[]) =>
+  a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
+
+const tagOf = (s: Record<string, unknown>): string | null =>
+  typeof s.tag === "string" && s.tag ? s.tag : null;
+
+type NamingRowLoose = {
+  type?: unknown;
+  exposed?: unknown;
+  correct?: unknown;
+  recognized?: unknown;
+  time?: unknown;
+  letters?: unknown;
+};
+
+function summarizeKnobe(submissions: Record<string, unknown>[]) {
+  const records = submissions
+    .filter(
+      (s) =>
+        (s.study === 1 || s.study === 2) &&
+        (s.condition === "harm" || s.condition === "help") &&
+        typeof s.rating === "number" &&
+        typeof s.intentional === "boolean",
+    )
+    .map((s) => ({
+      study: s.study as 1 | 2,
+      condition: s.condition as "harm" | "help",
+      rating: s.rating as number,
+      intentional: s.intentional as boolean,
+      tag: tagOf(s),
+    }));
+  const cell = (study: 1 | 2, condition: "harm" | "help") => {
+    const rows = records.filter(
+      (r) => r.study === study && r.condition === condition,
+    );
+    return {
+      n: rows.length,
+      yes: rows.filter((r) => r.intentional).length,
+      meanRating: mean(rows.map((r) => r.rating)),
+    };
+  };
+  return {
+    records,
+    aggregate: {
+      n: records.length,
+      byStudy: {
+        1: { harm: cell(1, "harm"), help: cell(1, "help") },
+        2: { harm: cell(2, "harm"), help: cell(2, "help") },
+      },
+    },
+  };
+}
+
+function summarizeBrownLenneberg(submissions: Record<string, unknown>[]) {
+  // Admin-dashboard semantics: accuracy and naming time over EXPOSED rows
+  // (the 4-item recognition set), per type.
+  const perType = (rows: NamingRowLoose[], type: string) => {
+    const t = rows.filter((r) => r.type === type && r.exposed === true);
+    return {
+      correct: t.filter((r) => r.correct === true).length,
+      total: t.length,
+      meanTime: mean(
+        t.map((r) => (typeof r.time === "number" ? r.time : 0)),
+      ),
+    };
+  };
+  const records = submissions
+    .filter((s) => Array.isArray(s.naming))
+    .map((s) => {
+      const rows = s.naming as NamingRowLoose[];
+      return {
+        focal: perType(rows, "focal"),
+        boundary: perType(rows, "boundary"),
+        tag: tagOf(s),
+      };
+    });
+  const total = (pick: (r: (typeof records)[number]) => { correct: number; total: number; meanTime: number }) => {
+    const cells = records.map(pick);
+    const totalN = cells.reduce((n, c) => n + c.total, 0);
+    return {
+      correct: cells.reduce((n, c) => n + c.correct, 0),
+      total: totalN,
+      meanTime: mean(cells.filter((c) => c.total > 0).map((c) => c.meanTime)),
+    };
+  };
+  return {
+    records,
+    aggregate: {
+      n: records.length,
+      focal: total((r) => r.focal),
+      boundary: total((r) => r.boundary),
+    },
+  };
+}
+
+function summarizeHeider(submissions: Record<string, unknown>[]) {
+  const TYPES = ["focal", "internominal", "boundary"] as const;
+  const records = submissions
+    .filter((s) => Array.isArray(s.naming))
+    .map((s) => {
+      const rows = s.naming as NamingRowLoose[];
+      const byType = Object.fromEntries(
+        TYPES.map((type) => {
+          const t = rows.filter((r) => r.type === type && r.exposed === true);
+          return [
+            type,
+            {
+              recognized: t.filter((r) => r.recognized === true).length,
+              total: t.length,
+            },
+          ];
+        }),
+      ) as Record<(typeof TYPES)[number], { recognized: number; total: number }>;
+      const focalRows = rows.filter((r) => r.type === "focal");
+      const nonFocalRows = rows.filter((r) => r.type !== "focal");
+      return {
+        byType,
+        letters: {
+          focal: mean(focalRows.map((r) => (typeof r.letters === "number" ? r.letters : 0))),
+          nonFocal: mean(nonFocalRows.map((r) => (typeof r.letters === "number" ? r.letters : 0))),
+        },
+        time: {
+          focal: mean(focalRows.map((r) => (typeof r.time === "number" ? r.time : 0))),
+          nonFocal: mean(nonFocalRows.map((r) => (typeof r.time === "number" ? r.time : 0))),
+        },
+        tag: tagOf(s),
+      };
+    });
+  const aggType = (type: (typeof TYPES)[number]) => ({
+    recognized: records.reduce((n, r) => n + r.byType[type].recognized, 0),
+    total: records.reduce((n, r) => n + r.byType[type].total, 0),
+  });
+  return {
+    records,
+    aggregate: {
+      n: records.length,
+      byType: {
+        focal: aggType("focal"),
+        internominal: aggType("internominal"),
+        boundary: aggType("boundary"),
+      },
+      letters: {
+        focal: mean(records.map((r) => r.letters.focal)),
+        nonFocal: mean(records.map((r) => r.letters.nonFocal)),
+      },
+      time: {
+        focal: mean(records.map((r) => r.time.focal)),
+        nonFocal: mean(records.map((r) => r.time.nonFocal)),
+      },
+    },
+  };
+}
+
+export async function GET(request: Request) {
+  const token = process.env.EXPERIMENTS_SUMMARY_TOKEN;
+  if (token) {
+    const auth = request.headers.get("authorization") ?? "";
+    if (auth !== `Bearer ${token}`) {
+      return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+    }
+  }
+
+  const url = new URL(request.url);
+  const experiment = url.searchParams.get("experiment") ?? "";
+  const sessionParam = url.searchParams.get("session") ?? "";
+
+  if (experiment === "chain") {
+    const code = sessionParam.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+    const room = code ? await loadRoom(code) : null;
+    if (!room) {
+      return Response.json({ ok: false, error: "not_found" }, { status: 404 });
+    }
+    // Rooms are anonymous by construction (P-k tags); strip nothing but
+    // internal bookkeeping.
+    return Response.json({
+      ok: true,
+      experiment,
+      session: room.code,
+      room: {
+        code: room.code,
+        status: room.status,
+        taskId: room.config.taskId,
+        cap: room.config.cap,
+        chains: room.chains.map((c) => ({
+          id: c.id,
+          closed: c.closed,
+          seed: c.seed,
+          generations: c.generations
+            .filter((g) => g.response !== null)
+            .map((g) => ({
+              n: g.n,
+              participantTag: g.participantTag,
+              response: g.response,
+              submittedAt: g.submittedAt,
+            })),
+        })),
+      },
+    });
+  }
+
+  if (!BLOB_EXPERIMENTS.has(experiment)) {
+    return Response.json({ ok: false, error: "unknown experiment" }, { status: 400 });
+  }
+
+  // Discovery mode: just the session names under this experiment (for
+  // wiring a course config), no records.
+  if (url.searchParams.get("sessions") === "1") {
+    const sessions = new Set<string>();
+    let cursor: string | undefined;
+    do {
+      const page = await list({ prefix: `${experiment}/`, cursor, limit: 1000 });
+      for (const b of page.blobs) {
+        const parts = b.pathname.split("/");
+        if (parts.length >= 3) sessions.add(parts[1]);
+      }
+      cursor = page.cursor;
+    } while (cursor);
+    return Response.json({ ok: true, experiment, sessions: [...sessions].sort() });
+  }
+
+  const session = sanitizeSession(sessionParam);
+  if (!session) {
+    return Response.json({ ok: false, error: "session required" }, { status: 400 });
+  }
+
+  const submissions = await loadSubmissions(experiment, session);
+  const summary =
+    experiment === "knobe-side-effect"
+      ? summarizeKnobe(submissions)
+      : experiment === "brown-lenneberg"
+        ? summarizeBrownLenneberg(submissions)
+        : summarizeHeider(submissions);
+
+  return Response.json({ ok: true, experiment, session, ...summary });
+}
