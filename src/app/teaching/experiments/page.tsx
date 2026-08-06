@@ -29,6 +29,13 @@ const experiments: ExperimentCard[] = [
       "An interactive build-up of Zollman's bandit-network model of scientific communities — why more communication can mean less truth — one assumption at a time. Then two dashboards: the original model, and an extension in which each scientist consults a sycophantic or a devil's-advocate LLM, showing that whether an AI helps a community reach the truth turns on the shape of its network. Runs entirely in the browser.",
   },
   {
+    title: "Reuter & Brun (2022)",
+    subtitle: "Empirical Studies on Truth and the Project of Re-engineering Truth",
+    slug: "reuter-truth",
+    blurb:
+      "Is 'true' ambiguous? A three-part replication: read a story where a speaker's answer fits everything they believe but not the facts, then one where it fits the facts but not their beliefs, and say whether each answer was true. A third part runs the paper's checks on whether 'true' really just meant truthful. Reuter & Brun found responses split close to 50/50 — evidence that everyday 'true' has both a correspondence and a coherence sense.",
+  },
+  {
     title: "Knobe (2003)",
     subtitle: "Intentional Action and Side Effects in Ordinary Language",
     slug: "knobe-side-effect",
@@ -146,6 +153,14 @@ export default function ExperimentsPage() {
                   className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
                 >
                   Instructor host console &rarr;
+                </Link>
+              )}
+              {e.slug === "reuter-truth" && (
+                <Link
+                  href="/teaching/experiments/reuter-truth/admin"
+                  className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
+                >
+                  Instructor results dashboard &rarr;
                 </Link>
               )}
               {e.slug === "knobe-side-effect" && (

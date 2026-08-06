@@ -17,6 +17,7 @@ const BLOB_EXPERIMENTS = new Set([
   "knobe-side-effect",
   "brown-lenneberg",
   "heider-focal-colors",
+  "reuter-truth",
 ]);
 
 function sanitizeSession(s: string): string {
@@ -292,6 +293,65 @@ function summarizeHeider(submissions: Record<string, unknown>[]) {
   };
 }
 
+function summarizeReuterTruth(submissions: Record<string, unknown>[]) {
+  const SCEN = new Set(["party", "rolex"]);
+  const ANS = new Set(["true", "false", "notsure"]);
+  const YN = new Set(["yes", "no"]);
+  type Scen = "party" | "rolex";
+  type Ans = "true" | "false" | "notsure";
+  type Yn = "yes" | "no";
+  // part3Explanation is deliberately excluded: free text never leaves the
+  // instructor dashboard.
+  const records = submissions
+    .filter(
+      (s) =>
+        typeof s.part1Scenario === "string" &&
+        SCEN.has(s.part1Scenario) &&
+        typeof s.part2Scenario === "string" &&
+        SCEN.has(s.part2Scenario) &&
+        typeof s.part1Answer === "string" &&
+        ANS.has(s.part1Answer) &&
+        typeof s.part2Answer === "string" &&
+        ANS.has(s.part2Answer) &&
+        typeof s.part3BestKnowledge === "string" &&
+        YN.has(s.part3BestKnowledge) &&
+        typeof s.part3Correct === "string" &&
+        YN.has(s.part3Correct),
+    )
+    .map((s) => ({
+      part1Scenario: s.part1Scenario as Scen,
+      part1Answer: s.part1Answer as Ans,
+      part2Scenario: s.part2Scenario as Scen,
+      part2Answer: s.part2Answer as Ans,
+      part3BestKnowledge: s.part3BestKnowledge as Yn,
+      part3Correct: s.part3Correct as Yn,
+      tag: tagOf(s),
+    }));
+  const cell = (part: 1 | 2, scenario: Scen) => {
+    const rows = records.filter(
+      (r) => (part === 1 ? r.part1Scenario : r.part2Scenario) === scenario,
+    );
+    const a = (v: Ans) =>
+      rows.filter((r) => (part === 1 ? r.part1Answer : r.part2Answer) === v).length;
+    return { n: rows.length, true: a("true"), false: a("false"), notsure: a("notsure") };
+  };
+  return {
+    records,
+    aggregate: {
+      n: records.length,
+      part1: { party: cell(1, "party"), rolex: cell(1, "rolex") },
+      part2: { party: cell(2, "party"), rolex: cell(2, "rolex") },
+      part3: {
+        bestKnowledgeYes: records.filter((r) => r.part3BestKnowledge === "yes").length,
+        correctYes: records.filter((r) => r.part3Correct === "yes").length,
+        trueButNotCorrect: records.filter(
+          (r) => r.part1Answer === "true" && r.part3Correct === "no",
+        ).length,
+      },
+    },
+  };
+}
+
 export async function GET(request: Request) {
   const token = process.env.EXPERIMENTS_SUMMARY_TOKEN;
   if (token) {
@@ -377,6 +437,14 @@ export async function GET(request: Request) {
       experiment,
       session,
       ...summarizeKnobe(submissions),
+    });
+  }
+  if (experiment === "reuter-truth") {
+    return Response.json({
+      ok: true,
+      experiment,
+      session,
+      ...summarizeReuterTruth(submissions),
     });
   }
   const correctKey = experiment === "brown-lenneberg" ? "correct" : "recognized";
