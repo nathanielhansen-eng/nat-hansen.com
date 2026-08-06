@@ -1,5 +1,11 @@
-import { list, get } from "@vercel/blob";
 import { loadRoom } from "@/lib/chain/store";
+import {
+  listSubmissionBlobs,
+  loadSessionSubmissions,
+  sanitizeSession,
+} from "@/lib/xphi/blob";
+import { CLASS_SUMMARY_SLUGS } from "@/lib/xphi/registry";
+import { mean } from "@/lib/xphi/stats";
 
 // Cross-site class summary (consumed server-to-server by the ux-phi course
 // dashboard's Experiments tab). Serves pre-aggregated, non-identifying
@@ -12,48 +18,6 @@ import { loadRoom } from "@/lib/chain/store";
 // still aggregate-only.
 
 export const dynamic = "force-dynamic";
-
-const BLOB_EXPERIMENTS = new Set([
-  "knobe-side-effect",
-  "brown-lenneberg",
-  "heider-focal-colors",
-  "reuter-truth",
-]);
-
-function sanitizeSession(s: string): string {
-  return s.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 64);
-}
-
-async function loadSubmissions(
-  experiment: string,
-  session: string,
-): Promise<Record<string, unknown>[]> {
-  const prefix = `${experiment}/${session}/`;
-  const pathnames: string[] = [];
-  let cursor: string | undefined;
-  do {
-    const page = await list({ prefix, cursor, limit: 1000 });
-    for (const b of page.blobs) pathnames.push(b.pathname);
-    cursor = page.cursor;
-  } while (cursor);
-
-  const fetched = await Promise.all(
-    pathnames.map(async (p) => {
-      try {
-        const r = await get(p, { access: "private" });
-        if (!r || r.statusCode !== 200) return null;
-        const text = await new Response(r.stream).text();
-        return JSON.parse(text);
-      } catch {
-        return null;
-      }
-    }),
-  );
-  return fetched.filter((x): x is Record<string, unknown> => x !== null);
-}
-
-const mean = (a: number[]) =>
-  a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
 
 const tagOf = (s: Record<string, unknown>): string | null =>
   typeof s.tag === "string" && s.tag ? s.tag : null;
@@ -399,24 +363,15 @@ export async function GET(request: Request) {
     });
   }
 
-  if (!BLOB_EXPERIMENTS.has(experiment)) {
+  if (!CLASS_SUMMARY_SLUGS.has(experiment)) {
     return Response.json({ ok: false, error: "unknown experiment" }, { status: 400 });
   }
 
   // Discovery mode: just the session names under this experiment (for
   // wiring a course config), no records.
   if (url.searchParams.get("sessions") === "1") {
-    const sessions = new Set<string>();
-    let cursor: string | undefined;
-    do {
-      const page = await list({ prefix: `${experiment}/`, cursor, limit: 1000 });
-      for (const b of page.blobs) {
-        const parts = b.pathname.split("/");
-        if (parts.length >= 3) sessions.add(parts[1]);
-      }
-      cursor = page.cursor;
-    } while (cursor);
-    return Response.json({ ok: true, experiment, sessions: [...sessions].sort() });
+    const { sessions } = await listSubmissionBlobs(`${experiment}/`);
+    return Response.json({ ok: true, experiment, sessions });
   }
 
   const session = sanitizeSession(sessionParam);
@@ -424,7 +379,7 @@ export async function GET(request: Request) {
     return Response.json({ ok: false, error: "session required" }, { status: 400 });
   }
 
-  const submissions = await loadSubmissions(experiment, session);
+  const submissions = await loadSessionSubmissions(experiment, session);
   const tagParam = url.searchParams.get("tag");
   const tag =
     typeof tagParam === "string"

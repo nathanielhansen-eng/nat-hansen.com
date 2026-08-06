@@ -199,3 +199,4 @@ local build can't prove).
 | 2026-07-25 | Knobe (2003) built on loaner machine; syllabus survey + DOI lists compiled |
 | 2026-07-31 | Knobe committed to main (`1796da9`) |
 | 2026-08-06 | class-summary endpoint + launch tags (`e9fbe0c`); Reuter & Brun (2022) shipped (`d2ad3ef`, `7196709`); this roadmap |
+| 2026-08-06 | §3 refactor built on branch `xphi-refactor`: `src/lib/xphi/` (theme, stats incl. Fisher's exact, blob, route factories, InstructorGate, AdminShell, registry, spec + VignetteStudy); reuter-truth + index + class-summary migrated as proof consumers; stats validated against R/Knobe; awaiting review |

@@ -1,104 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { C as TC, FONTS, base } from "@/lib/xphi/theme";
+import { Paras, type Seg } from "@/lib/xphi/vignette";
 
-const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`;
-
-const C = {
-  bg: "#F4F0E8",
-  surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
-  corr: "#8C3A2E",
-  coh: "#4A6B4F",
-  well: "#FDFAF5",
-};
-
-const base: Record<string, React.CSSProperties> = {
-  wrap: {
-    minHeight: "100vh",
-    background: C.bg,
-    fontFamily: "'Crimson Pro', Georgia, serif",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "20px",
-  },
-  card: {
-    background: C.surface,
-    border: `1px solid ${C.border}`,
-    maxWidth: "680px",
-    width: "100%",
-    padding: "52px 56px",
-    boxShadow: "0 4px 40px rgba(0,0,0,0.07)",
-  },
-  eyebrow: {
-    fontFamily: "'Space Mono', monospace",
-    fontSize: "11px",
-    letterSpacing: "0.18em",
-    textTransform: "uppercase",
-    color: C.muted,
-    marginBottom: "12px",
-  },
-  h1: { fontSize: "34px", fontWeight: 400, lineHeight: 1.15, marginBottom: "28px", color: C.text },
-  h2: { fontSize: "24px", fontWeight: 400, lineHeight: 1.2, marginBottom: "20px", color: C.text },
-  body: { fontSize: "19px", lineHeight: 1.72, color: C.body, marginBottom: "18px" },
-  small: { fontSize: "15px", lineHeight: 1.6, color: C.muted, marginBottom: "16px" },
-  btn: {
-    background: C.accent,
-    color: C.bg,
-    border: "none",
-    padding: "13px 36px",
-    fontFamily: "'Space Mono', monospace",
-    fontSize: "12px",
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    cursor: "pointer",
-    marginTop: "20px",
-    display: "inline-block",
-  },
-  btnGhost: {
-    background: "transparent",
-    color: C.text,
-    border: `1px solid ${C.border}`,
-    padding: "13px 36px",
-    fontFamily: "'Space Mono', monospace",
-    fontSize: "12px",
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    cursor: "pointer",
-    marginTop: "20px",
-    display: "inline-block",
-  },
-  mono: { fontFamily: "'Space Mono', monospace" },
-  divider: { borderTop: `1px solid ${C.border}`, margin: "28px 0" },
-  vignette: {
-    fontSize: "19px",
-    lineHeight: 1.78,
-    color: C.text,
-    background: C.well,
-    border: `1px solid ${C.border}`,
-    padding: "26px 28px",
-    marginBottom: "32px",
-  },
-  qlabel: {
-    fontSize: "17px",
-    lineHeight: 1.5,
-    color: C.text,
-    marginBottom: "14px",
-    display: "block",
-  },
-  qnum: {
-    fontFamily: "'Space Mono', monospace",
-    fontSize: "11px",
-    letterSpacing: "0.14em",
-    color: C.muted,
-    marginRight: "10px",
-  },
-};
+const C = { ...TC, corr: TC.red, coh: TC.green };
 
 /* ------------------------------------------------------------------ *
  * Stimuli — verbatim from Reuter, K. & Brun, G. (2022), "Empirical
@@ -115,7 +21,6 @@ const base: Record<string, React.CSSProperties> = {
  * it is John asking to be shown the watch — but the error is in the
  * published article, so it is kept verbatim and marked [sic].
  * ------------------------------------------------------------------ */
-type Seg = string | { d: string };
 type Scenario = "party" | "rolex";
 type Answer = "true" | "false" | "notsure";
 type YesNo = "yes" | "no";
@@ -194,28 +99,6 @@ const PAPER = {
   part2: { party: 65.2, rolex: 35.4 }, // % answering "true" (Study 2)
   part3: { direct: 71.1, afterControl: 51.1, correctYes: 44.7 }, // Study 3, Rolex
 };
-
-function Paras({ paras, mark }: { paras: Seg[][]; mark: boolean }) {
-  return (
-    <>
-      {paras.map((segs, i) => (
-        <p key={i} style={{ margin: i === paras.length - 1 ? 0 : "0 0 16px" }}>
-          {segs.map((seg, j) =>
-            typeof seg === "string" ? (
-              <span key={j}>{seg}</span>
-            ) : mark ? (
-              <strong key={j} style={{ fontWeight: 600, color: "inherit", background: "#F0E8D8" }}>
-                {seg.d}
-              </strong>
-            ) : (
-              <span key={j}>{seg.d}</span>
-            )
-          )}
-        </p>
-      ))}
-    </>
-  );
-}
 
 function AnswerButtons({
   value,
