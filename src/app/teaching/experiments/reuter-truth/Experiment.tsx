@@ -111,6 +111,9 @@ const base: Record<string, React.CSSProperties> = {
  * are the wording that differs between the two versions; they are
  * highlighted in the debrief comparison but rendered as plain text
  * during the task itself.
+ * The Rolex vignette's "could show it to her" misgenders the anaphor —
+ * it is John asking to be shown the watch — but the error is in the
+ * published article, so it is kept verbatim and marked [sic].
  * ------------------------------------------------------------------ */
 type Seg = string | { d: string };
 type Scenario = "party" | "rolex";
@@ -164,7 +167,7 @@ const STORIES: Record<Scenario, Story> = {
     correctQ: "Was Maria’s answer correct?",
     coherent: [
       [
-        "Maria is a watch collector. She keeps all her watches in a safe and knows her collection really well. One day, her friend John asks her, whether she has a 1990 Rolex Submariner in her safe and, if so, could show it to her. Maria answers that she ",
+        "Maria is a watch collector. She keeps all her watches in a safe and knows her collection really well. One day, her friend John asks her, whether she has a 1990 Rolex Submariner in her safe and, if so, could show it to her [sic]. Maria answers that she ",
         { d: "has got" },
         " a 1990 Rolex Submariner in her safe",
         { d: ". After all, she had purchased that watch a few years ago." },
@@ -173,7 +176,7 @@ const STORIES: Record<Scenario, Story> = {
     ],
     incoherent: [
       [
-        "Maria is a watch collector. She keeps all her watches in a safe and knows her collection really well. One day, her friend John asks her, whether she has a 1990 Rolex Submariner in her safe and, if so, could show it to her. Maria answers that she ",
+        "Maria is a watch collector. She keeps all her watches in a safe and knows her collection really well. One day, her friend John asks her, whether she has a 1990 Rolex Submariner in her safe and, if so, could show it to her [sic]. Maria answers that she ",
         { d: "has not got" },
         " a 1990 Rolex Submariner in her safe",
         {
