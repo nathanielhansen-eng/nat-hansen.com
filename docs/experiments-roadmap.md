@@ -1,6 +1,6 @@
 # Classroom Experiments Roadmap
 
-**Updated 2026-08-06.** Supersedes `~/Claude/Projects in Progress/xphi-experiment-buildout/README.md`
+**Updated 2026-08-06** (evening: §3 refactor built — see status note there). Supersedes `~/Claude/Projects in Progress/xphi-experiment-buildout/README.md`
 (2026-07-25), whose Knobe handoff sections are done and committed (`1796da9`). The ranked study
 lists below are carried forward from that document — **every DOI in it was resolved against the
 Crossref API, not web search**, after a search-summarised retrieval came back with corrupted
@@ -47,12 +47,26 @@ CSV export. Registration = one card in `/teaching/experiments/page.tsx` + slug/a
 `class-summary/route.ts`. Launch tags (`?tag=`) are stored opaque, forward-only, and free text
 never leaves the instructor dashboard.
 
+As of the §3 refactor (PR #1), the shared parts of that pattern live in `src/lib/xphi/` and new
+builds import them instead of copy-pasting: the submissions and admin-login routes are one-line
+factory calls, the admin gate and dashboard chrome are components, and registration is a
+registry entry. The seven-file layout survives, but most of the files are now thin.
+
 ---
 
 ## 3. Before scaling: the refactor that makes "dozens" cheap
 
-Six experiments now copy-paste the dashboard and blob plumbing (~450–800 lines each). Do this
-once, on its own branch with its own review, **before** Tier A:
+**STATUS: BUILT 2026-08-06 — PR #1 (branch `xphi-refactor`), awaiting Nat's review. Merge before
+starting Tier A.** All five pieces below landed in `src/lib/xphi/` (ten files); `reuter-truth`,
+the experiments index, and `class-summary` were migrated as the proof consumers (behaviour-
+preserving, −984 lines of duplication). Verified: stats validated numerically (Knobe's published
+χ² = 27.2 reproduced; Fisher's exact matches R reference values), build + lint clean, and a
+dev-server smoke test ran the migrated routes end-to-end including a real blob write (test
+record deleted after). Known caveat: `VignetteStudy` has no live consumer yet — its spec surface
+may flex when Beebe & Buckwalter lands.
+
+The original rationale: six experiments copy-pasted the dashboard and blob plumbing (~450–800
+lines each). The refactor, once, on its own branch:
 
 1. **`src/lib/xphi/stats.ts`** — lift `erfc` + `chiSquare2x2` from the Knobe dashboard (validated
    against Knobe's published χ² = 27.2); add the goodness-of-fit-vs-50% variant (now in
@@ -72,8 +86,24 @@ once, on its own branch with its own review, **before** Tier A:
 5. **A generic admin core** — session picker, share-link builder, CSV, stats strip; per-experiment
    dashboards keep only their bespoke tables.
 
-The bespoke experiments (chain, frohlich, gilbert, conceptual-inflation) don't have to migrate;
-the point is that *new* builds stop paying the copy-paste tax.
+The bespoke experiments (chain, frohlich, gilbert, conceptual-inflation, knobe, brown-lenneberg,
+heider) were deliberately **not** migrated; the point is that *new* builds stop paying the
+copy-paste tax. Migrating the older ones is optional cleanup, one experiment per PR if ever.
+
+File map as built:
+
+| File | Provides |
+|---|---|
+| `theme.ts` | `FONTS`, palette `C`, participant styles `base`, dashboard styles `admin` |
+| `stats.ts` | `erfc`, `chiSquare2x2`, `chiVs50`, `fisherExact2x2`, `cramersV`, `fmtP`, `mean` |
+| `blob.ts` | `sanitizeSession`/`sanitizeTag`, `putSubmission`, `listSubmissionBlobs`, `fetchSubmissions`, `loadSessionSubmissions` |
+| `routes.ts` | `isInstructor`, `handleSubmitPOST`, `makeSubmissionsGET`, `makeAdminLoginPOST`, `makeSpecSubmitPOST` |
+| `InstructorGate.tsx` | server-rendered admin login form |
+| `AdminShell.tsx` | dashboard chrome: session picker, refresh, CSV, participant-link builder, load states; bespoke tables via children |
+| `vignette.tsx` | `Seg` type + `Paras` diff-highlighting renderer |
+| `registry.ts` | `EXPERIMENTS` (index cards) + `CLASS_SUMMARY_SLUGS` (allowlist) |
+| `spec.ts` | `VignetteStudySpec` types, `shapeOf`, `validateSpecSubmission`, `summarizeSpecStudy` |
+| `VignetteStudy.tsx` | the spec-driven Tier A participant flow |
 
 ---
 
@@ -83,7 +113,9 @@ Ordering within tiers barely matters; pick to fit the week's teaching.
 
 ### Tier A — stimuli swaps on the (refactored) Knobe scaffold
 
-Between-subjects, one or two fixed responses. Roughly a stimuli file each.
+Between-subjects, one or two fixed responses. With §3 merged, each of these is concretely: a
+`VignetteStudySpec` file, a one-line submit route via `makeSpecSubmitPOST`, a registry entry,
+and an admin dashboard on `AdminShell` — the work is sourcing and stimulus-checking, not code.
 
 | Study | DOI | Note |
 |---|---|---|
@@ -159,8 +191,9 @@ To make experiments first-class instructor content at dozens-scale:
    the ux-phi side only, free text visible to instructors only, aggregates never include
    demographics.
 
-Sequencing: 1 belongs to the refactor; 2–3 are ux-phi-repo work and can trail the next two or
-three experiment builds; 4 is a paragraph in both repos' docs once written.
+Sequencing: 1 is built (`summarizeSpecStudy` in `spec.ts`, PR #1) but unwired until the first
+spec study lands; 2–3 are ux-phi-repo work and can trail the next two or three experiment
+builds; 4 is a paragraph in both repos' docs once written.
 
 ---
 
@@ -199,4 +232,4 @@ local build can't prove).
 | 2026-07-25 | Knobe (2003) built on loaner machine; syllabus survey + DOI lists compiled |
 | 2026-07-31 | Knobe committed to main (`1796da9`) |
 | 2026-08-06 | class-summary endpoint + launch tags (`e9fbe0c`); Reuter & Brun (2022) shipped (`d2ad3ef`, `7196709`); this roadmap |
-| 2026-08-06 | §3 refactor built on branch `xphi-refactor`: `src/lib/xphi/` (theme, stats incl. Fisher's exact, blob, route factories, InstructorGate, AdminShell, registry, spec + VignetteStudy); reuter-truth + index + class-summary migrated as proof consumers; stats validated against R/Knobe; awaiting review |
+| 2026-08-06 | §3 refactor built (`8e263da`, **PR #1**, branch `xphi-refactor`): `src/lib/xphi/` (theme, stats incl. Fisher's exact, blob, route factories, InstructorGate, AdminShell, registry, spec + VignetteStudy); reuter-truth + index + class-summary migrated as proof consumers; stats validated against R/Knobe; smoke-tested end-to-end; awaiting Nat's review |
