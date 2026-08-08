@@ -17,7 +17,7 @@ links:
     href: https://www.dropbox.com/scl/fi/fq3jaysj166t9ott6y17m/CV-Hansen-2017.pdf?rlkey=d6x7m8rsxncvkd624qyj41ly1&dl=0
 
 events:
-  - title: Workshop TBD
+  - title: Philosophy of Language Workshop
     venue: University of Warsaw
     date: September 4, 2026
   - title: Experimental Philosophy in China
@@ -26,6 +26,9 @@ events:
   - title: MENTaL (Mind, Epistemology, Neuroscience, Thought, and Language)
     venue: UC Davis
     date: November 6, 2026
+  - title: Colloquium
+    venue: University of Bristol
+    date: 2027 TBD
   
 
  
@@ -54,11 +57,6 @@ book:
 publications:
   - year: forthcoming
     display: >-
-      Liao, S. and Hansen, N.
-      [\"Conceptual Inflation\"](https://philpapers.org/archive/LIACIF.pdf),
-      *EurAmerica*.
-  - year: forthcoming
-    display: >-
       Grindrod, J., Porter, J.D., and Hansen, N.
       \"Distributional Semantics, Holism, and the Instability of Meaning\",
       in H. Cappelen and R. Sterken (eds.), *Communicating with A.I.*, Oxford University Press.
@@ -71,7 +69,12 @@ publications:
     display: >-
       Hansen, N., Liao, S.
       [\"Measuring Conceptual Inflation: The Case of 'Racist'\"](https://philpapers.org/archive/HANMCI.pdf),
-      *Ergo*.
+      *Ergo*, 13(21), 620–663.
+  - year: "2026"
+    display: >-
+      Liao, S. and Hansen, N.
+      [\"Conceptual Inflation\"](https://philpapers.org/archive/LIACIF.pdf),
+      *EurAmerica*, 56(2), 203–232.
   - year: "2026"
     display: >-
       Hansen, N., Adams, Z.
