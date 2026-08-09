@@ -43,6 +43,41 @@ const experiments: ExperimentCard[] = [
       "The side-effect effect — the most-cited result in experimental philosophy. Read one vignette, assigned at random, and say whether a chairman who is indifferent to the environment harmed (or helped) it intentionally. The two versions are matched on foresight, indifference and causal structure, and differ only in whether the side effect is bad or good; Knobe found 82% vs 23%. Both of his studies are included, and class results are compiled live against the published figures.",
   },
   {
+    title: "Machery (2008)",
+    subtitle: "The Folk Concept of Intentional Action",
+    slug: "machery-tradeoff",
+    blurb:
+      "A non-moral test of the side-effect effect. Read one randomly assigned smoothie-shop vignette and say whether Joe intentionally paid a dollar more (a cost) or intentionally got a free commemorative cup (a bonus) — then rate whether the outcome was blameworthy, praiseworthy, or neutral. Machery found 95% vs 45% 'intentional' with both outcomes judged morally neutral, evidence that cost-benefit reasoning, not morality, drives the asymmetry. Class results compiled live against the published figures.",
+  },
+  {
+    title: "Pettit & Knobe (2009)",
+    subtitle: "The Pervasive Impact of Moral Judgment",
+    slug: "pettit-knobe-decided",
+    blurb:
+      "Does the moral asymmetry reach beyond 'intentionally'? Read one randomly assigned version of the chairman case and rate, 1–7, whether he 'decided' to help or harm the environment. Pettit & Knobe found stronger agreement that he 'decided' to do it in the harm version (4.6 vs 2.7) — the same asymmetry for an ordinary mental-state word, evidence that moral judgment is a pervasive input to folk psychology. Class results compiled live against the published figures.",
+  },
+  {
+    title: "Sripada (2010)",
+    subtitle: "The Deep Self and Asymmetries in Intentional Action",
+    slug: "sripada-deepself",
+    blurb:
+      "The badness of an outcome, or its fit with who the agent is? Read one randomly assigned, morally neutral rifle-contest vignette — one where the winner has no real stake, one where winning fulfils a lifelong dream — and rate whether the hit was intentional. Sripada found people call the outcome intentional far more when it concords with the agent's settled values, independent of moral valence. Class results compiled live against the published figures.",
+  },
+  {
+    title: "Uttich & Lombrozo (2010)",
+    subtitle: "Norms Inform Mental State Ascriptions",
+    slug: "uttich-lombrozo-norms",
+    blurb:
+      "Moral badness, or norm-breaking as such? Read one randomly assigned Gizmo-company vignette where a foreseen side effect either conforms to or violates a norm — sometimes a moral norm, sometimes a mere colour convention — and rate, 1–7, how apt it is to call it intentional. Uttich & Lombrozo found norm-violating outcomes rated more intentional even for conventional norms, evidence that norm violation, not moral valence, carries the effect. Class results compiled live against the published figures.",
+  },
+  {
+    title: "Nadelhoffer (2006)",
+    subtitle: "Bad Acts, Blameworthy Agents, and Intentional Actions",
+    slug: "nadelhoffer-blame",
+    blurb:
+      "Does blame bias our judgments of what a person did on purpose? Read one randomly assigned version of a fatal car-swerve case — a fleeing thief killing a pursuing police officer, or an innocent driver killing an armed carjacker — and say whether the death was brought about knowingly, intentionally, and how much blame it deserves. A built-in lesson in experimental design: the two versions differ in more than one way at once. Class results compiled live against the published figures.",
+  },
+  {
     title: "Frohlich, Oppenheimer & Eavey (1987)",
     subtitle: "Choices of Principles of Distributive Justice",
     slug: "frohlich-justice",

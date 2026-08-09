@@ -1,0 +1,23 @@
+import type { Metadata } from "next";
+import Experiment from "./Experiment";
+
+export const metadata: Metadata = {
+  title: "The Pervasive Impact of Moral Judgment — Nat Hansen",
+  description:
+    "A classroom replication of Pettit & Knobe's (2009) finding that a moral judgment about an outcome shapes even an ordinary mental-state word like 'decided'.",
+};
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ session?: string; study?: string; tag?: string }>;
+}) {
+  const sp = await searchParams;
+  const today = new Date().toISOString().slice(0, 10);
+  const session = (sp.session && sp.session.trim()) || today;
+  // Single-study design. The ?study parameter is accepted for parity with the
+  // other experiments' launch links, but only study 1 (the "decided" study) exists.
+  const study = 1 as const;
+  const tag = (sp.tag && sp.tag.trim()) || null;
+  return <Experiment session={session} study={study} tag={tag} />;
+}
