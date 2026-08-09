@@ -78,6 +78,20 @@ const experiments: ExperimentCard[] = [
       "Does blame bias our judgments of what a person did on purpose? Read one randomly assigned version of a fatal car-swerve case — a fleeing thief killing a pursuing police officer, or an innocent driver killing an armed carjacker — and say whether the death was brought about knowingly, intentionally, and how much blame it deserves. A built-in lesson in experimental design: the two versions differ in more than one way at once. Class results compiled live against the published figures.",
   },
   {
+    title: "Phillips, Luguri & Knobe (2015)",
+    subtitle: "Unifying Morality's Influence: The Relevance of Alternative Possibilities",
+    slug: "phillips-alternatives",
+    blurb:
+      "Why does morality change judgments that aren't about morality? Read one randomly assigned version of the chairman case, then rate both whether he acted intentionally and whether a bystander's alternative was relevant. The claim: morality shapes which alternative possibilities strike us as relevant, and that is what moves the intentionality verdict — unifying the side-effect effect with parallel effects on causation and freedom. Your class's two measures are compiled live against the published figures.",
+  },
+  {
+    title: "Lindauer & Southwood (2021)",
+    subtitle: "How to Cancel the Knobe Effect",
+    slug: "lindauer-cancelling",
+    blurb:
+      "Can the side-effect effect be switched off? Read one randomly assigned version of the chairman case and rate your agreement that he did NOT do it intentionally — except one group can also register strong condemnation in the same breath (\"…but he knowingly harmed it and should be blamed\"). When that option is present, the asymmetry collapses: the survey evidence its authors read as support for the pragmatic account. Compiled live against the published figures.",
+  },
+  {
     title: "Frohlich, Oppenheimer & Eavey (1987)",
     subtitle: "Choices of Principles of Distributive Justice",
     slug: "frohlich-justice",
