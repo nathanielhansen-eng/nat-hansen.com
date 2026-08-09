@@ -485,7 +485,7 @@ export default function AdminDashboard() {
                 Pooled (Student&rsquo;s) two-sample t-tests, two-tailed, df&nbsp;=&nbsp;n₁&nbsp;+&nbsp;n₂&nbsp;−&nbsp;2.
                 R&rsquo;s <code>t.test</code> defaults to Welch&rsquo;s unequal-variance test and will
                 report slightly different degrees of freedom. In the original study the moral swap
-                moved <em>both</em> measures, and the relevance judgment statistically mediated
+                moved <em>both</em>{" "}measures, and the relevance judgment statistically mediated
                 morality&rsquo;s effect on the intentional-action rating.
               </div>
             </div>

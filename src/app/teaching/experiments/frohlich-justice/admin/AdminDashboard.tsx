@@ -253,7 +253,7 @@ export default function AdminDashboard() {
               </table>
               <div style={{ marginTop: 12, color: C.muted, fontSize: 13 }}>
                 Groups that reached an adopted principle:{" "}
-                <strong style={{ color: C.text }}>{summary.groupReached}</strong> /{" "}
+                <strong style={{ color: C.text }}>{summary.groupReached}</strong>{" "}/{" "}
                 {summary.total}. Of those, unanimous final vote captured:{" "}
                 <strong style={{ color: C.text }}>{summary.unanimousReached}</strong>.
               </div>

@@ -503,9 +503,9 @@ export default function Experiment({
           </div>
           <div style={{ fontSize: "18px", lineHeight: 1.6, color: C.body }}>
             You rated your agreement with &ldquo;{S.statement}&rdquo; at{" "}
-            <strong style={{ color: C.text }}>{rating}</strong> out of 6 (1 = agree, 6 = disagree)
+            <strong style={{ color: C.text }}>{rating}</strong>{" "}out of 6 (1 = agree, 6 = disagree)
             &mdash; which counts as{" "}
-            <strong style={{ color: C.text }}>{agreed ? "agreeing" : "disagreeing"}</strong> that the
+            <strong style={{ color: C.text }}>{agreed ? "agreeing" : "disagreeing"}</strong>{" "}that the
             hit was intentional.
           </div>
         </div>
@@ -583,7 +583,7 @@ export default function Experiment({
         </div>
         <p style={base.small}>
           Percent judging the hit intentional: Rifle Contest {o.rifle.pct}% ({o.rifle.measure});
-          Policeman {o.policeman.pct}% agreeing, mean {o.policeman.mean.toFixed(1)} on the 1&ndash;6
+          Policeman {o.policeman.pct}% agreeing, mean {o.policeman.mean.toFixed(1)}{" "}on the 1&ndash;6
           scale ({o.policeman.measure}).
         </p>
         <p style={{ ...base.small, borderLeft: `2px solid ${C.border}`, paddingLeft: "14px" }}>
@@ -597,7 +597,7 @@ export default function Experiment({
         <p style={base.body}>{WHY_MATTERS_2}</p>
         <p style={{ ...base.small, marginBottom: 0 }}>
           Sripada, C. S. (2010). The Deep Self Model and asymmetries in folk judgments about
-          intentional action. <em>Philosophical Studies</em> 151(2), 159&ndash;176.{" "}
+          intentional action. <em>Philosophical Studies</em>{" "}151(2), 159&ndash;176.{" "}
           <a href="https://doi.org/10.1007/s11098-009-9423-5" style={{ color: C.text }}>
             doi:10.1007/s11098-009-9423-5
           </a>

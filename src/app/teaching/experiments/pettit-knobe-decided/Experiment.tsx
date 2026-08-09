@@ -461,11 +461,11 @@ export default function Experiment({
           }}
         >
           <div style={{ ...base.mono, fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: condColour, marginBottom: "8px" }}>
-            {condition} version
+            {condition}{" "}version
           </div>
           <div style={{ fontSize: "18px", lineHeight: 1.6, color: C.body }}>
-            You rated your agreement with &ldquo;The {S.agent} decided to {condition} the
-            environment&rdquo; as <strong style={{ color: C.text }}>{rating}</strong> out of 7.
+            You rated your agreement with &ldquo;The {S.agent}{" "}decided to {condition}{" "}the
+            environment&rdquo; as <strong style={{ color: C.text }}>{rating}</strong>{" "}out of 7.
           </div>
         </div>
 
@@ -501,7 +501,7 @@ export default function Experiment({
                 borderBottom: cmp === c ? `2px solid ${cmpColour}` : `1px solid ${C.border}`,
               }}
             >
-              {c} version
+              {c}{" "}version
             </button>
           ))}
         </div>
@@ -509,8 +509,8 @@ export default function Experiment({
           <Paras paras={S[cmp].paras} mark />
         </div>
         <p style={{ ...base.small, marginBottom: "16px" }}>
-          Everyone was then asked how much they agreed that &ldquo;the {S.agent} decided to{" "}
-          <strong style={{ color: cmpColour }}>{cmp}</strong> the environment,&rdquo; on a scale from
+          Everyone was then asked how much they agreed that &ldquo;the {S.agent}{" "}decided to{" "}
+          <strong style={{ color: cmpColour }}>{cmp}</strong>{" "}the environment,&rdquo; on a scale from
           1 (&lsquo;disagree&rsquo;) to 7 (&lsquo;agree&rsquo;).
         </p>
         <p style={{ ...base.small, borderLeft: `2px solid ${C.border}`, paddingLeft: "14px" }}>
@@ -574,7 +574,7 @@ export default function Experiment({
         </p>
         <p style={{ ...base.small, marginBottom: 0 }}>
           Pettit, D., &amp; Knobe, J. (2009). The pervasive impact of moral judgment.{" "}
-          <em>Mind &amp; Language</em> 24(5), 586&ndash;604.{" "}
+          <em>Mind &amp; Language</em>{" "}24(5), 586&ndash;604.{" "}
           <a href="https://doi.org/10.1111/j.1468-0017.2009.01375.x" style={{ color: C.text }}>
             doi:10.1111/j.1468-0017.2009.01375.x
           </a>

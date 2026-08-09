@@ -259,7 +259,7 @@ export default function AdminDashboard() {
         </h1>
         <p style={{ fontSize: "15px", color: C.muted, lineHeight: 1.6, margin: "0 0 24px" }}>
           The between-subjects Smith study. Note that C1 and C2 differ in more than one variable at
-          once (agent <em>and</em> victim), so any effect here is confounded — treat these tables as
+          once (agent <em>and</em>{" "}victim), so any effect here is confounded — treat these tables as
           a teaching case in design, not as a clean single-factor manipulation.
         </p>
 

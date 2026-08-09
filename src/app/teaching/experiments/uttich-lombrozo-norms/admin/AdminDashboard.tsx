@@ -429,8 +429,8 @@ export default function AdminDashboard() {
               </div>
               <div style={{ fontSize: "14px", color: C.muted, marginTop: "14px", lineHeight: 1.6 }}>
                 Higher = more appropriate to call the side effect &lsquo;intentional&rsquo;. The
-                prediction is that within each norm type the <strong style={{ color: C.violate }}>violating</strong> mean
-                exceeds the <strong style={{ color: C.conform }}>conforming</strong> mean, and that the size of that gap is
+                prediction is that within each norm type the <strong style={{ color: C.violate }}>violating</strong>{" "}mean
+                exceeds the <strong style={{ color: C.conform }}>conforming</strong>{" "}mean, and that the size of that gap is
                 similar for the moral and the conventional norm.
               </div>
             </div>

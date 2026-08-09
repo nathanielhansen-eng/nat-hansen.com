@@ -589,12 +589,12 @@ export default function Experiment({
           }}
         >
           <div style={{ ...base.mono, fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: condColour, marginBottom: "8px" }}>
-            {condition} condition
+            {condition}{" "}condition
           </div>
           <div style={{ fontSize: "18px", lineHeight: 1.6, color: C.body }}>
             You said the {S.agent} <strong style={{ color: C.text }}>{intentional ? "did" : "did not"}</strong>{" "}
-            bring the side effect about intentionally, with a {condition === "harm" ? "blame" : "praise"} rating of{" "}
-            <strong style={{ color: C.text }}>{rating}</strong> out of 6.
+            bring the side effect about intentionally, with a {condition === "harm" ? "blame" : "praise"}{" "}rating of{" "}
+            <strong style={{ color: C.text }}>{rating}</strong>{" "}out of 6.
           </div>
         </div>
 
@@ -630,7 +630,7 @@ export default function Experiment({
                 borderBottom: cmp === c ? `2px solid ${cmpColour}` : `1px solid ${C.border}`,
               }}
             >
-              {c} version
+              {c}{" "}version
             </button>
           ))}
         </div>
@@ -738,7 +738,7 @@ export default function Experiment({
         </p>
         <p style={{ ...base.small, marginBottom: 0 }}>
           Knobe, J. (2003). Intentional action and side effects in ordinary language.{" "}
-          <em>Analysis</em> 63(3), 190&ndash;194.{" "}
+          <em>Analysis</em>{" "}63(3), 190&ndash;194.{" "}
           <a href="https://doi.org/10.1093/analys/63.3.190" style={{ color: C.text }}>
             doi:10.1093/analys/63.3.190
           </a>

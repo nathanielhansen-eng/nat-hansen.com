@@ -588,16 +588,16 @@ export default function Experiment({
           }}
         >
           <div style={{ ...base.mono, fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: condColour, marginBottom: "8px" }}>
-            {condition} version
+            {condition}{" "}version
           </div>
           <div style={{ fontSize: "18px", lineHeight: 1.6, color: C.body }}>
             You rated your agreement that the {S.agent}{" "}
             <strong style={{ color: C.text }}>
-              intentionally {condition === "harm" ? "harmed" : "helped"} the environment
+              intentionally {condition === "harm" ? "harmed" : "helped"}{" "}the environment
             </strong>{" "}
-            as <strong style={{ color: C.text }}>{intentional}</strong> out of 7. You rated the
+            as <strong style={{ color: C.text }}>{intentional}</strong>{" "}out of 7. You rated the
             alternative &mdash; that he could have wanted to avoid it &mdash; at a relevance of{" "}
-            <strong style={{ color: C.text }}>{relevanceScore}</strong> out of 7.
+            <strong style={{ color: C.text }}>{relevanceScore}</strong>{" "}out of 7.
           </div>
         </div>
 
@@ -633,7 +633,7 @@ export default function Experiment({
                 borderBottom: cmp === c ? `2px solid ${cmpColour}` : `1px solid ${C.border}`,
               }}
             >
-              {c} version
+              {c}{" "}version
             </button>
           ))}
         </div>
@@ -642,7 +642,7 @@ export default function Experiment({
         </div>
         <p style={{ ...base.small, marginBottom: "10px" }}>
           Everyone was then shown Sam and Alex discussing an alternative &mdash; that the {S.agent}{" "}
-          could have wanted to avoid <strong style={{ color: cmpColour }}>{cmp}ing</strong> the
+          could have wanted to avoid <strong style={{ color: cmpColour }}>{cmp}ing</strong>{" "}the
           environment &mdash; and asked how relevant that possibility was, before rating whether he
           acted intentionally.
         </p>
@@ -654,7 +654,7 @@ export default function Experiment({
 
         <h2 style={base.h2}>The original 2015 result</h2>
         <p style={{ ...base.small, marginBottom: "18px" }}>
-          Mean agreement that the {S.agent} <em>intentionally</em> brought the side effect about, on
+          Mean agreement that the {S.agent} <em>intentionally</em>{" "}brought the side effect about, on
           a 1 (&lsquo;strongly disagree&rsquo;) to 7 (&lsquo;strongly agree&rsquo;) scale.
         </p>
         <div style={{ marginBottom: "14px" }}>
@@ -688,8 +688,8 @@ export default function Experiment({
           Turk.
         </p>
         <p style={{ ...base.small, marginBottom: 0 }}>
-          On the same scale, people also judged the alternative &mdash; that the {S.agent} could have
-          wanted to <em>avoid</em> the side effect &mdash; as more relevant when the environment was
+          On the same scale, people also judged the alternative &mdash; that the {S.agent}{" "}could have
+          wanted to <em>avoid</em>{" "}the side effect &mdash; as more relevant when the environment was
           harmed (M&nbsp;=&nbsp;{o.relevance.harmMean.toFixed(2)}) than when it was helped
           (M&nbsp;=&nbsp;{o.relevance.helpMean.toFixed(2)}), t({o.relevance.df})&nbsp;=&nbsp;
           {o.relevance.t}, p&nbsp;{o.relevance.p} (relevance ratings reverse-coded).
@@ -700,9 +700,9 @@ export default function Experiment({
         <h2 style={base.h2}>Why it matters</h2>
         <p style={base.body}>
           Knobe (2003) first found that people are far more willing to say a foreseen <em>bad</em>{" "}
-          side effect was brought about intentionally than a foreseen <em>good</em> one, even though
+          side effect was brought about intentionally than a foreseen <em>good</em>{" "}one, even though
           the agent&rsquo;s indifference is described in exactly the same words. Phillips, Luguri and
-          Knobe ask <em>why</em> morality has this effect &mdash; and propose a single answer that
+          Knobe ask <em>why</em>{" "}morality has this effect &mdash; and propose a single answer that
           also covers a whole family of related findings.
         </p>
         <p style={base.body}>
@@ -712,7 +712,7 @@ export default function Experiment({
           that a moral judgment shapes which alternatives seem relevant: we find it relevant to
           consider possibilities in which a morally bad outcome is replaced by a good one, and
           largely irrelevant to consider the reverse. In the harm version, the possibility that the
-          {" "}{S.agent} wanted to <em>avoid</em> harming the environment feels relevant, and against
+          {" "}{S.agent}{" "}wanted to <em>avoid</em>{" "}harming the environment feels relevant, and against
           that backdrop his indifference looks like intent; in the help version, the matching
           possibility feels beside the point, and the same indifference reads as an accident. In this
           study, that judgment of relevance both moved with the moral swap and statistically mediated
@@ -720,10 +720,10 @@ export default function Experiment({
         </p>
         <p style={base.body}>
           The paper shows the very same pattern across four kinds of ordinarily factual judgment: not
-          only <strong>intentional action</strong> (this study), but also whether an agent acted{" "}
-          <strong>freely</strong> or was forced, whether an action <strong>caused</strong> an
-          outcome, and whether an agent <strong>did</strong> something rather than merely{" "}
-          <strong>allowed</strong> it to happen. In each domain morality shifts the judgment, in each
+          only <strong>intentional action</strong>{" "}(this study), but also whether an agent acted{" "}
+          <strong>freely</strong>{" "}or was forced, whether an action <strong>caused</strong>{" "}an
+          outcome, and whether an agent <strong>did</strong>{" "}something rather than merely{" "}
+          <strong>allowed</strong>{" "}it to happen. In each domain morality shifts the judgment, in each
           it shifts the relevance of alternatives, and &mdash; most tellingly &mdash; directly
           manipulating which alternatives seem relevant, by non-moral means, reproduces the effect.
           On this view the side-effect effect is not a quirk of the word &lsquo;intentionally&rsquo;
@@ -733,7 +733,7 @@ export default function Experiment({
         <p style={{ ...base.small, marginBottom: 0 }}>
           Phillips, J., Luguri, J. B., &amp; Knobe, J. (2015). Unifying morality&rsquo;s influence on
           non-moral judgments: The relevance of alternative possibilities.{" "}
-          <em>Cognition</em> 145, 30&ndash;42.{" "}
+          <em>Cognition</em>{" "}145, 30&ndash;42.{" "}
           <a href="https://doi.org/10.1016/j.cognition.2015.08.001" style={{ color: C.text }}>
             doi:10.1016/j.cognition.2015.08.001
           </a>

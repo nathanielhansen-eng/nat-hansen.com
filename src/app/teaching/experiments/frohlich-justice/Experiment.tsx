@@ -549,7 +549,7 @@ function Intro({ onNext }: { onNext: () => void }) {
         <p>
           That's the setup here. You'll pick a principle for distributing
           income before knowing which income class you'll be assigned to. Your
-          income is determined by a random class draw made <em>after</em> you
+          income is determined by a random class draw made <em>after</em>{" "}you
           choose, so the rule you pick is the rule you live under, whoever
           you turn out to be.
         </p>

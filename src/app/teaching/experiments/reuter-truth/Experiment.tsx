@@ -530,7 +530,7 @@ export default function Experiment({
           <div style={base.eyebrow}>Part 3 of 3</div>
           <h2 style={base.h2}>Back to the first story</h2>
           <p style={base.body}>
-            Finally, three follow-up questions about the <em>first</em> story you read. It is shown
+            Finally, three follow-up questions about the <em>first</em>{" "}story you read. It is shown
             again on the next screen so you don&rsquo;t have to rely on memory.
           </p>
           <button style={base.btn} onClick={() => setPhase("part3")}>
@@ -657,9 +657,9 @@ export default function Experiment({
           {S1.protagonist}&rsquo;s answer fit perfectly with everything {s1 === "party" ? "he" : "she"}{" "}
           had been told &mdash; but it didn&rsquo;t match the facts. In the second, {S2.protagonist}
           &rsquo;s answer matched the facts &mdash; but clashed with everything{" "}
-          {s2 === "party" ? "he" : "she"} had been told. On the{" "}
-          <strong style={{ color: C.corr }}>correspondence</strong> view, a statement is true just
-          in case it fits reality. On the <strong style={{ color: C.coh }}>coherence</strong> view,
+          {s2 === "party" ? "he" : "she"}{" "}had been told. On the{" "}
+          <strong style={{ color: C.corr }}>correspondence</strong>{" "}view, a statement is true just
+          in case it fits reality. On the <strong style={{ color: C.coh }}>coherence</strong>{" "}view,
           it is true just in case it hangs together with the relevant body of beliefs. Your two
           truth judgments quietly took sides.
         </p>
@@ -691,7 +691,7 @@ export default function Experiment({
             </div>
             <div>
               <span style={{ ...base.mono, fontSize: "11px", letterSpacing: "0.12em", color: C.muted }}>PART 3</span>{" "}
-              You said {S1.protagonist} answered to the best of {s1 === "party" ? "his" : "her"}{" "}
+              You said {S1.protagonist}{" "}answered to the best of {s1 === "party" ? "his" : "her"}{" "}
               knowledge: <strong style={{ color: C.text }}>{bestKnowledge}</strong>; and that the
               answer was correct: <strong style={{ color: C.text }}>{correct}</strong>.
             </div>
@@ -794,7 +794,7 @@ export default function Experiment({
           Neither theory&rsquo;s prediction held. Up to 70% of participants counted a statement that
           failed to match the facts as &lsquo;true&rsquo;, and responses split close to 50/50 in
           most conditions &mdash; with very few &lsquo;not sure&rsquo; answers. Reuter and Brun read
-          this as evidence that &lsquo;true&rsquo; is <em>ambiguous</em> in everyday talk between a
+          this as evidence that &lsquo;true&rsquo; is <em>ambiguous</em>{" "}in everyday talk between a
           correspondence and a coherence sense, echoing Tarski&rsquo;s remark that the everyday word
           &lsquo;true&rsquo; is &ldquo;certainly not unambiguous&rdquo;.
         </p>
@@ -805,11 +805,11 @@ export default function Experiment({
           coherence notion of truth at all &mdash; they substituted an easier question, about
           whether Maria was <em>truthful</em>, or justified, or whether the answer was &lsquo;true
           for her&rsquo;. Study 3 tested this. Asked directly,{" "}
-          <strong>{PAPER.part3.direct}%</strong> called Maria&rsquo;s coherent answer true. When
-          the best-of-knowledge question was asked <em>first</em> &mdash; soaking up the
+          <strong>{PAPER.part3.direct}%</strong>{" "}called Maria&rsquo;s coherent answer true. When
+          the best-of-knowledge question was asked <em>first</em>{" "}&mdash; soaking up the
           truthfulness reading, as in your Part 3 &mdash; that dropped to{" "}
           <strong>{PAPER.part3.afterControl}%</strong>, yet still half the sample said
-          &lsquo;true&rsquo;. And only <strong>{PAPER.part3.correctYes}%</strong> would call the
+          &lsquo;true&rsquo;. And only <strong>{PAPER.part3.correctYes}%</strong>{" "}would call the
           answer &lsquo;correct&rsquo;. So substitution explains some coherentist answers, but not
           all of them. The written explanations pointed the same way: &lsquo;It was true based on
           the information she had at the time.&rsquo;
@@ -835,7 +835,7 @@ export default function Experiment({
         </p>
         <p style={{ ...base.small, marginBottom: 0 }}>
           Reuter, K., &amp; Brun, G. (2022). Empirical studies on truth and the project of
-          re-engineering truth. <em>Pacific Philosophical Quarterly</em> 103(3), 493&ndash;517.{" "}
+          re-engineering truth. <em>Pacific Philosophical Quarterly</em>{" "}103(3), 493&ndash;517.{" "}
           <a href="https://doi.org/10.1111/papq.12370" style={{ color: C.text }}>
             doi:10.1111/papq.12370
           </a>

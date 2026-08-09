@@ -587,10 +587,10 @@ export default function Experiment({
           </div>
           <div style={{ fontSize: "18px", lineHeight: 1.6, color: C.body }}>
             You said the {V.agent}{" "}
-            <strong style={{ color: C.text }}>{knowingly ? "did" : "did not"}</strong> knowingly and{" "}
-            <strong style={{ color: C.text }}>{intentional ? "did" : "did not"}</strong> intentionally
+            <strong style={{ color: C.text }}>{knowingly ? "did" : "did not"}</strong>{" "}knowingly and{" "}
+            <strong style={{ color: C.text }}>{intentional ? "did" : "did not"}</strong>{" "}intentionally
             bring about the {V.victim}&rsquo;s death, and assigned{" "}
-            <strong style={{ color: C.text }}>{rating}</strong> out of 6 for blame.
+            <strong style={{ color: C.text }}>{rating}</strong>{" "}out of 6 for blame.
           </div>
         </div>
 
@@ -636,9 +636,9 @@ export default function Experiment({
         <p style={{ ...base.small, borderLeft: `2px solid ${C.border}`, paddingLeft: "14px" }}>
           Both drivers do exactly the same thing &mdash; swerve to shake off a person clinging to the
           car, knowing it is dangerous, and that person dies. But notice how much the highlighting
-          changes between the versions: not just <em>one</em> word but <em>two things at once</em>.
-          In one version the driver is a fleeing <em>thief</em> and the victim an innocent{" "}
-          <em>police officer</em>; in the other the driver is an innocent <em>man</em> and the victim
+          changes between the versions: not just <em>one</em>{" "}word but <em>two things at once</em>.
+          In one version the driver is a fleeing <em>thief</em>{" "}and the victim an innocent{" "}
+          <em>police officer</em>; in the other the driver is an innocent <em>man</em>{" "}and the victim
           an armed <em>carjacker</em>. Hold on to that &mdash; it is the whole lesson below.
         </p>
 
@@ -646,7 +646,7 @@ export default function Experiment({
 
         <h2 style={base.h2}>Nadelhoffer&rsquo;s original result</h2>
         <p style={base.small}>
-          N&nbsp;=&nbsp;{ORIG.n} undergraduates, about {ORIG.perCell} per version. Percentages are of
+          N&nbsp;=&nbsp;{ORIG.n}{" "}undergraduates, about {ORIG.perCell}{" "}per version. Percentages are of
           people answering &lsquo;yes&rsquo;; blame is the mean 0&ndash;6 rating.
         </p>
         <div style={{ overflowX: "auto", marginBottom: "14px" }}>
@@ -714,9 +714,9 @@ export default function Experiment({
           often when the driver is a thief as when he is an innocent man. Nadelhoffer&rsquo;s reading,
           borrowing Mark Alicke&rsquo;s culpable-control model, is that a bad outcome or a
           blameworthy agent triggers a spontaneous negative reaction, and that reaction biases the
-          way we describe <em>how</em> the act was done. Blame comes first and colours the judgment
+          way we describe <em>how</em>{" "}the act was done. Blame comes first and colours the judgment
           of intent &mdash; the moral cart pulling the intentional horse. If that is right, the
-          harm/help asymmetry is a moral <em>biasing</em> effect, a performance error, rather than a
+          harm/help asymmetry is a moral <em>biasing</em>{" "}effect, a performance error, rather than a
           feature of the concept of intentional action itself.
         </p>
 
@@ -724,11 +724,11 @@ export default function Experiment({
         <p style={base.body}>
           Here is the catch, and it is the reason this particular study is worth running in a
           methods class. The two versions do not differ in just one thing. Between them the design
-          changes the agent (a blameworthy thief versus an innocent driver) <em>and</em> the victim
+          changes the agent (a blameworthy thief versus an innocent driver) <em>and</em>{" "}the victim
           (an innocent officer versus an armed carjacker) at the same time. The variables are
           confounded: badness-of-outcome, blameworthiness-of-agent, and innocence-of-victim all move
           together. So while the numbers show that moral standing tracks the intentionality judgment,
-          this study on its own <em>cannot</em> tell us which of those factors is doing the work, or
+          this study on its own <em>cannot</em>{" "}tell us which of those factors is doing the work, or
           whether it is all of them. Nadelhoffer concedes exactly this and calls the study
           &lsquo;preliminary&rsquo;, noting that further studies would be needed to separate the
           effects. A cleaner design would vary one factor at a time. Read this less as a settled
@@ -737,7 +737,7 @@ export default function Experiment({
         </p>
         <p style={{ ...base.small, marginBottom: 0 }}>
           Nadelhoffer, T. (2006). Bad acts, blameworthy agents, and intentional actions: Some
-          problems for juror impartiality. <em>Philosophical Explorations</em> 9(2), 203&ndash;219.{" "}
+          problems for juror impartiality. <em>Philosophical Explorations</em>{" "}9(2), 203&ndash;219.{" "}
           <a href="https://doi.org/10.1080/13869790600641905" style={{ color: C.text }}>
             doi:10.1080/13869790600641905
           </a>

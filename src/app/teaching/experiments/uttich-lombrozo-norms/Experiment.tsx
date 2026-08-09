@@ -550,11 +550,11 @@ export default function Experiment({
           }}
         >
           <div style={{ ...base.mono, fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: statusColour, marginBottom: "8px" }}>
-            {normType} norm &middot; {normStatus}
+            {normType}{" "}norm &middot; {normStatus}
           </div>
           <div style={{ fontSize: "18px", lineHeight: 1.6, color: C.body }}>
             You rated it{" "}
-            <strong style={{ color: C.text }}>{rating}</strong> out of 7 &mdash; how appropriate it
+            <strong style={{ color: C.text }}>{rating}</strong>{" "}out of 7 &mdash; how appropriate it
             is to say the {N.agent} {normType === "moral" ? "intentionally harmed the environment" : "intentionally made the Gizmos colored darker than blue"}, where the norm the outcome
             {" "}
             <strong style={{ color: C.text }}>{normStatus === "violating" ? "violated" : "conformed to"}</strong>{" "}
@@ -571,9 +571,9 @@ export default function Experiment({
 
         <h2 style={base.h2}>The four versions</h2>
         <p style={base.small}>
-          The study crosses two things: whether the norm at stake is <em>moral</em> or merely a{" "}
-          <em>colour convention</em>, and whether the outcome <em>conforms to</em> or{" "}
-          <em>violates</em> that norm. You saw one of the four cells; the rest of the room saw the
+          The study crosses two things: whether the norm at stake is <em>moral</em>{" "}or merely a{" "}
+          <em>colour convention</em>, and whether the outcome <em>conforms to</em>{" "}or{" "}
+          <em>violates</em>{" "}that norm. You saw one of the four cells; the rest of the room saw the
           others. Switch between them &mdash; within each norm type, the wording that differs
           between conforming and violating is highlighted.
         </p>
@@ -597,7 +597,7 @@ export default function Experiment({
                 borderBottom: cmpT === t ? `2px solid ${C.accent}` : `1px solid ${C.border}`,
               }}
             >
-              {t} norm
+              {t}{" "}norm
             </button>
           ))}
         </div>
@@ -641,11 +641,11 @@ export default function Experiment({
 
         <h2 style={base.h2}>The original result</h2>
         <p style={base.body}>
-          Uttich &amp; Lombrozo ran this with N&nbsp;=&nbsp;{ORIG.n} participants across all four
+          Uttich &amp; Lombrozo ran this with N&nbsp;=&nbsp;{ORIG.n}{" "}participants across all four
           cells (plus two other cover stories). Averaging over norm type, people rated the very same
           outcome <strong style={{ color: C.violate }}>more appropriate to call &lsquo;intentional&rsquo;</strong>{" "}
-          when it <strong style={{ color: C.violate }}>violated</strong> the applicable norm than
-          when it <strong style={{ color: C.conform }}>conformed</strong> to it &mdash; a main effect
+          when it <strong style={{ color: C.violate }}>violated</strong>{" "}the applicable norm than
+          when it <strong style={{ color: C.conform }}>conformed</strong>{" "}to it &mdash; a main effect
           of norm status, F({ORIG.status.df})&nbsp;=&nbsp;{ORIG.status.f}, p&nbsp;{ORIG.status.p}.
         </p>
         <p style={base.body}>
@@ -661,9 +661,9 @@ export default function Experiment({
         <h2 style={base.h2}>Why it matters</h2>
         <p style={base.body}>
           Knobe (2003) found that people are far more willing to call a foreseen side effect
-          &lsquo;intentional&rsquo; when it is <em>bad</em> than when it is <em>good</em>. One reading is
+          &lsquo;intentional&rsquo; when it is <em>bad</em>{" "}than when it is <em>good</em>. One reading is
           that moral badness is doing the work. Uttich &amp; Lombrozo argue instead for a{" "}
-          <strong style={{ color: C.text }}>&lsquo;Rational Scientist&rsquo;</strong> account: what matters
+          <strong style={{ color: C.text }}>&lsquo;Rational Scientist&rsquo;</strong>{" "}account: what matters
           is norm <em>violation</em>, not moral valence as such. Norm-conforming behaviour is
           uninformative &mdash; an agent has a standing reason to comply anyway &mdash; whereas
           norm-violating behaviour reveals a countervailing reason strong enough to override the
@@ -674,7 +674,7 @@ export default function Experiment({
         </p>
         <p style={base.small}>
           Two cautions the authors themselves stress. First, the claim is that norm status is{" "}
-          <em>sufficient</em> to produce the effect and that moral status is <em>not necessary</em>{" "}
+          <em>sufficient</em>{" "}to produce the effect and that moral status is <em>not necessary</em>{" "}
           &mdash; not that moral judgment plays no role at all. Second, the effects are modest: they
           rest on a main effect pooled across cells rather than a dramatic flip in any single one. In
           the main study the individual CEO-moral cell was not significant on its own (it only
@@ -684,7 +684,7 @@ export default function Experiment({
         </p>
         <p style={{ ...base.small, marginBottom: 0 }}>
           Uttich, K., &amp; Lombrozo, T. (2010). Norms inform mental state ascriptions: A rational
-          explanation for the side-effect effect. <em>Cognition</em> 116(1), 87&ndash;100.{" "}
+          explanation for the side-effect effect. <em>Cognition</em>{" "}116(1), 87&ndash;100.{" "}
           <a href="https://doi.org/10.1016/j.cognition.2010.04.003" style={{ color: C.text }}>
             doi:10.1016/j.cognition.2010.04.003
           </a>

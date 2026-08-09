@@ -447,11 +447,11 @@ export default function AdminDashboard() {
                 </table>
               </div>
               <div style={{ fontSize: "14px", color: C.muted, marginTop: "12px", lineHeight: 1.6 }}>
-                The bold cell — students who called the answer <em>true</em> in Part 1 but not{" "}
-                <em>correct</em> in Part 3 — is the wedge between &lsquo;true&rsquo; and
+                The bold cell — students who called the answer <em>true</em>{" "}in Part 1 but not{" "}
+                <em>correct</em>{" "}in Part 3 — is the wedge between &lsquo;true&rsquo; and
                 &lsquo;correct&rsquo; that Study 3 used against the true-for-her objection. Note
                 the design difference: in the paper the control and correctness questions were
-                between-subjects and came <em>before</em> (or instead of) the truth question; here
+                between-subjects and came <em>before</em>{" "}(or instead of) the truth question; here
                 they come after it, within-subject.
               </div>
             </div>

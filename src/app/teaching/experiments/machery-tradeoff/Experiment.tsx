@@ -488,11 +488,11 @@ export default function Experiment({
           }}
         >
           <div style={{ ...base.mono, fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: condColour, marginBottom: "8px" }}>
-            {condition} condition
+            {condition}{" "}condition
           </div>
           <div style={{ fontSize: "18px", lineHeight: 1.6, color: C.body }}>
             You said {S.agent} <strong style={{ color: C.text }}>{intentional ? "did" : "did not"}</strong>{" "}
-            {V.action} intentionally, and judged it{" "}
+            {V.action}{" "}intentionally, and judged it{" "}
             <strong style={{ color: C.text }}>{value}</strong>.
           </div>
         </div>
@@ -528,7 +528,7 @@ export default function Experiment({
                 borderBottom: cmp === c ? `2px solid ${cmpColour}` : `1px solid ${C.border}`,
               }}
             >
-              {c} version
+              {c}{" "}version
             </button>
           ))}
         </div>
@@ -590,7 +590,7 @@ export default function Experiment({
         <h2 style={base.h2}>Why it matters</h2>
         <p style={base.body}>
           This study varied one thing between two groups of readers: whether Joe&rsquo;s foreseen
-          extra outcome was a <em>cost</em> he paid (an extra dollar) or a <em>bonus</em> he received
+          extra outcome was a <em>cost</em>{" "}he paid (an extra dollar) or a <em>bonus</em>{" "}he received
           (a free commemorative cup) on the way to the smoothie he actually wanted. Ninety-five
           percent of readers said Joe intentionally paid the extra dollar, but only forty-five
           percent said he intentionally obtained the free cup &mdash; even though both were equally
@@ -605,7 +605,7 @@ export default function Experiment({
         </p>
         <p style={{ ...base.small, marginBottom: 0 }}>
           Machery, E. (2008). The folk concept of intentional action: Philosophical and experimental
-          issues. <em>Mind &amp; Language</em> 23(2), 165&ndash;189.{" "}
+          issues. <em>Mind &amp; Language</em>{" "}23(2), 165&ndash;189.{" "}
           <a href="https://doi.org/10.1111/j.1468-0017.2007.00336.x" style={{ color: C.text }}>
             doi:10.1111/j.1468-0017.2007.00336.x
           </a>

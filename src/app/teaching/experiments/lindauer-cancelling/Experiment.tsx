@@ -480,12 +480,12 @@ export default function Experiment({
           }}
         >
           <div style={{ ...base.mono, fontSize: "11px", letterSpacing: "0.14em", textTransform: "uppercase", color: condColour, marginBottom: "8px" }}>
-            {spec.label} condition
+            {spec.label}{" "}condition
           </div>
           <div style={{ fontSize: "18px", lineHeight: 1.6, color: C.body }}>
-            You read the <strong style={{ color: C.text }}>{spec.vignette}</strong> vignette and rated
+            You read the <strong style={{ color: C.text }}>{spec.vignette}</strong>{" "}vignette and rated
             your agreement with &ldquo;{spec.statement}&rdquo; as{" "}
-            <strong style={{ color: C.text }}>{rating}</strong> out of 6.
+            <strong style={{ color: C.text }}>{rating}</strong>{" "}out of 6.
           </div>
         </div>
 
@@ -530,8 +530,8 @@ export default function Experiment({
           <Paras paras={VIGNETTES[cmpSpec.vignette]} mark />
         </div>
         <p style={{ ...base.small, marginBottom: "16px" }}>
-          Readers in the <strong style={{ color: cmpSpec.colour }}>{cmpSpec.label}</strong> condition
-          saw the {cmpSpec.vignette} vignette and rated their agreement, on a 0
+          Readers in the <strong style={{ color: cmpSpec.colour }}>{cmpSpec.label}</strong>{" "}condition
+          saw the {cmpSpec.vignette}{" "}vignette and rated their agreement, on a 0
           (&lsquo;Not at All&rsquo;) to 6 (&lsquo;Fully Agree&rsquo;) scale, with:
         </p>
         <p
@@ -605,13 +605,13 @@ export default function Experiment({
           helping vignette were reluctant to say he helped it intentionally &mdash; even though his
           state of mind is described in exactly the same way in both. This study asks <em>why</em>. On
           the pragmatic explanation, saying &lsquo;intentionally&rsquo; of the harm is a way of
-          registering that what the chairman did was really not okay; to <em>deny</em> it would seem
+          registering that what the chairman did was really not okay; to <em>deny</em>{" "}it would seem
           to let him off the hook. If that is right, then giving people another way to condemn him
           should free them to deny the intentional description.
         </p>
         <p style={base.body}>
           That is what the cancelling condition does. Its readers see the harming vignette but rate a
-          statement that denies intentional harm <em>and</em> insists the chairman knowingly harmed
+          statement that denies intentional harm <em>and</em>{" "}insists the chairman knowingly harmed
           the environment and is morally responsible and should be blamed. Agreement with that
           statement (mean&nbsp;{ORIGINAL.cancelling.mean.toFixed(2)}) was just as high as agreement in
           the helping condition ({ORIGINAL.helping.mean.toFixed(2)}) and far above the plain harming
@@ -622,7 +622,7 @@ export default function Experiment({
         </p>
         <p style={{ ...base.small, marginBottom: 0 }}>
           Lindauer, M., &amp; Southwood, N. (2021). How to cancel the Knobe effect: the role of
-          sufficiently strong moral censure. <em>American Philosophical Quarterly</em> 58(2),
+          sufficiently strong moral censure. <em>American Philosophical Quarterly</em>{" "}58(2),
           181&ndash;186.{" "}
           <a href="https://doi.org/10.2307/48614004" style={{ color: C.text }}>
             doi:10.2307/48614004
