@@ -18,7 +18,102 @@ const BLOB_EXPERIMENTS = new Set([
   "brown-lenneberg",
   "heider-focal-colors",
   "reuter-truth",
+  // Side-effect-effect family — served via the generic condition-cell
+  // summarizer below (see ASYMMETRY_SPECS).
+  "machery-tradeoff",
+  "pettit-knobe-decided",
+  "sripada-deepself",
+  "uttich-lombrozo-norms",
+  "nadelhoffer-blame",
+  "phillips-alternatives",
+  "lindauer-cancelling",
 ]);
+
+// Generic between-subjects summarizer for the side-effect-effect experiments.
+// Each spec declares how to key a submission into a condition CELL (one or more
+// fields joined by "|"), which numeric fields to average, and which boolean
+// fields to report as a proportion. The ux-phi Experiments tab reads the same
+// uniform shape for every one of these, so a new experiment is a spec entry
+// here plus a reference-values entry there — no bespoke aggregation code.
+type AsymmetrySpec = {
+  cellFields: string[];
+  num?: string[];
+  bool?: string[];
+};
+const ASYMMETRY_SPECS: Record<string, AsymmetrySpec> = {
+  "machery-tradeoff": { cellFields: ["condition"], bool: ["intentional"] },
+  "pettit-knobe-decided": { cellFields: ["condition"], num: ["rating"] },
+  "sripada-deepself": { cellFields: ["condition"], num: ["rating"], bool: ["intentional"] },
+  "uttich-lombrozo-norms": { cellFields: ["normType", "normStatus"], num: ["rating"] },
+  "nadelhoffer-blame": { cellFields: ["condition"], num: ["rating"], bool: ["knowingly", "intentional"] },
+  "phillips-alternatives": { cellFields: ["condition"], num: ["intentional", "relevanceAgree"] },
+  "lindauer-cancelling": { cellFields: ["condition"], num: ["rating"] },
+};
+
+function summarizeAsymmetry(
+  submissions: Record<string, unknown>[],
+  spec: AsymmetrySpec,
+  tag: string | null,
+) {
+  const cellKey = (s: Record<string, unknown>): string | null => {
+    const parts: string[] = [];
+    for (const f of spec.cellFields) {
+      const v = s[f];
+      if (typeof v !== "string" || !v) return null;
+      parts.push(v);
+    }
+    return parts.join("|");
+  };
+  const cells = new Map<
+    string,
+    { n: number; numSums: Record<string, number>; numN: Record<string, number>; boolYes: Record<string, number> }
+  >();
+  let ownCell: string | null = null;
+  let ownValues: Record<string, number | boolean> | null = null;
+  for (const s of submissions) {
+    const key = cellKey(s);
+    if (key === null) continue;
+    let c = cells.get(key);
+    if (!c) {
+      c = { n: 0, numSums: {}, numN: {}, boolYes: {} };
+      cells.set(key, c);
+    }
+    c.n++;
+    const own = tagOf(s) === tag && tag !== null;
+    const vals: Record<string, number | boolean> = {};
+    for (const f of spec.num ?? []) {
+      const v = s[f];
+      if (typeof v === "number" && Number.isFinite(v)) {
+        c.numSums[f] = (c.numSums[f] ?? 0) + v;
+        c.numN[f] = (c.numN[f] ?? 0) + 1;
+        vals[f] = v;
+      }
+    }
+    for (const f of spec.bool ?? []) {
+      const v = s[f];
+      if (typeof v === "boolean") {
+        if (v) c.boolYes[f] = (c.boolYes[f] ?? 0) + 1;
+        vals[f] = v;
+      }
+    }
+    if (own) {
+      ownCell = key;
+      ownValues = vals;
+    }
+  }
+  const cellList = [...cells.entries()].map(([key, c]) => {
+    const means: Record<string, number> = {};
+    for (const f of spec.num ?? []) means[f] = c.numN[f] ? c.numSums[f] / c.numN[f] : 0;
+    const pct: Record<string, { yes: number; n: number }> = {};
+    for (const f of spec.bool ?? []) pct[f] = { yes: c.boolYes[f] ?? 0, n: c.n };
+    return { key, n: c.n, means, pct };
+  });
+  const n = cellList.reduce((t, c) => t + c.n, 0);
+  return {
+    aggregate: { n, cells: cellList },
+    yours: ownCell ? { cell: ownCell, values: ownValues } : null,
+  };
+}
 
 function sanitizeSession(s: string): string {
   return s.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 64);
@@ -437,6 +532,14 @@ export async function GET(request: Request) {
       experiment,
       session,
       ...summarizeKnobe(submissions),
+    });
+  }
+  if (experiment in ASYMMETRY_SPECS) {
+    return Response.json({
+      ok: true,
+      experiment,
+      session,
+      ...summarizeAsymmetry(submissions, ASYMMETRY_SPECS[experiment], tag),
     });
   }
   if (experiment === "reuter-truth") {
