@@ -850,9 +850,10 @@ export default function Experiment({
           <div style={{ fontSize: "18px", lineHeight: 1.6, color: C.body }}>
             You were shown {V.label}, and answered that a red/green colour-blind viewer would see{" "}
             <strong style={{ color: C.text }}>{chosen ? chosen.name.toLowerCase() : "—"}</strong>.
-            You named{" "}
-            <strong style={{ color: C.text }}>{namingScore}</strong>{" "}of the six simulated patches
-            with their original colour&rsquo;s name.
+            Of the six simulated patches,{" "}
+            <strong style={{ color: C.text }}>{namingScore}</strong>{" "}kept the name of the colour
+            they started as &mdash; though naming the originals was never the task, as explained
+            below.
           </div>
         </div>
 
@@ -936,6 +937,15 @@ export default function Experiment({
             {ybScore}/{ybTotal}
           </strong>{" "}
           on the two it broadly leaves alone.
+        </p>
+        <p style={base.small}>
+          You were not asked to work out what the originals were &mdash; only to name what was in
+          front of you. The score is split because the simulation treats the two groups differently:
+          it broadly preserves yellow and blue, so honest naming should still land on those two, but
+          it collapses red, green, purple and orange into olives, greys and blues, so honest naming
+          should miss those four. Missing them is the expected result, not a mistake &mdash; it
+          shows, on your own eyes, which distinctions the simulation says a deuteranope&rsquo;s
+          colour signal no longer carries.
         </p>
         <button style={base.btnGhost} onClick={() => setRevealOriginals((r) => !r)}>
           {revealOriginals ? "Hide originals" : "Show the originals"}
