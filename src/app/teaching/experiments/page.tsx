@@ -107,7 +107,7 @@ const experiments: ExperimentCard[] = [
       "A live, in-class transmission chain. Each student learns names for eight shape-colour objects, then reproduces them from memory — and their version becomes the language taught to the next student. Across generations a 'totally suppletive' vocabulary drifts toward morphological categories. Run several parallel chains and compare how they diverge. Instructors: open the room from the host console.",
   },
   {
-    title: "Allen, Quinlan, Andow & Fischer (2021)",
+    title: "Inspired by Allen, Quinlan, Andow & Fischer (2021)",
     subtitle: "What Is It Like to Be Colour-Blind?",
     slug: "allen-colour-blind",
     blurb:
