@@ -17,6 +17,7 @@ const BLOB_EXPERIMENTS = new Set([
   "knobe-side-effect",
   "brown-lenneberg",
   "heider-focal-colors",
+  "winawer-russian-blues",
   "reuter-truth",
   // Side-effect-effect family — served via the generic condition-cell
   // summarizer below (see ASYMMETRY_SPECS).
@@ -400,6 +401,178 @@ function summarizeHeider(submissions: Record<string, unknown>[]) {
   };
 }
 
+/* ------------------------- winawer-russian-blues ---------------------- *
+ * Speeded colour discrimination across the Russian siniy/goluboy border
+ * (Winawer et al. 2007, PNAS 104(19), 7780–7785, doi:10.1073/pnas.0701644104).
+ * Unlike the vignette studies this is a within-subjects RT design, so the
+ * summary reports design cells (interference x distance x category) plus the
+ * per-participant category advantage the paper plots in Fig. 3.
+ * Categories are recomputed against each participant's own elicited boundary,
+ * as the paper does (p. 7781). No naming free text exists here to leak.
+ * -------------------------------------------------------------------- */
+type WinawerInterference = "none" | "spatial" | "verbal";
+const WINAWER_INTERFERENCE: WinawerInterference[] = ["none", "spatial", "verbal"];
+const WINAWER_RT_CEILING = 3000; // Winawer p. 7782
+
+type WinawerTrial = {
+  interference: WinawerInterference;
+  target: number;
+  distractor: number;
+  distance: number;
+  correct: boolean;
+  rtMs: number;
+  probeCorrect: boolean | null;
+};
+
+function winawerCross(a: number, b: number, boundary: number): boolean {
+  if (a === boundary || b === boundary) return true;
+  return a < boundary !== b < boundary;
+}
+
+function winawerKeep(t: WinawerTrial): boolean {
+  if (!t.correct) return false;
+  if (t.rtMs > WINAWER_RT_CEILING) return false;
+  if (t.interference !== "none" && t.probeCorrect === false) return false;
+  return true;
+}
+
+function summarizeWinawer(submissions: Record<string, unknown>[], tag: string | null) {
+  const people = submissions
+    .filter((s) => Array.isArray(s.trials) && typeof s.boundary === "number")
+    .map((s) => {
+      const trials: WinawerTrial[] = [];
+      for (const raw of s.trials as Record<string, unknown>[]) {
+        if (!raw || typeof raw !== "object") continue;
+        if (
+          typeof raw.target !== "number" ||
+          typeof raw.distractor !== "number" ||
+          typeof raw.distance !== "number" ||
+          typeof raw.rtMs !== "number" ||
+          typeof raw.correct !== "boolean" ||
+          typeof raw.interference !== "string"
+        ) {
+          continue;
+        }
+        trials.push({
+          interference: raw.interference as WinawerInterference,
+          target: raw.target,
+          distractor: raw.distractor,
+          distance: raw.distance,
+          correct: raw.correct,
+          rtMs: raw.rtMs,
+          probeCorrect: typeof raw.probeCorrect === "boolean" ? raw.probeCorrect : null,
+        });
+      }
+      return {
+        tag: tagOf(s),
+        boundary: s.boundary as number,
+        boundaryAmbiguous: s.boundaryAmbiguous === true,
+        trials,
+      };
+    })
+    .filter((p) => p.trials.length > 0);
+
+  const cellRts = (
+    p: (typeof people)[number],
+    interference: WinawerInterference,
+    distance: number,
+    cross: boolean,
+  ) =>
+    p.trials
+      .filter(
+        (t) =>
+          t.interference === interference &&
+          t.distance === distance &&
+          winawerCross(t.target, t.distractor, p.boundary) === cross &&
+          winawerKeep(t),
+      )
+      .map((t) => t.rtMs);
+
+  // Per-participant category advantage (within − cross), the DV of Fig. 3.
+  const advantagesFor = (p: (typeof people)[number]) => {
+    const out: { interference: WinawerInterference; distance: number; advantage: number }[] = [];
+    for (const interference of WINAWER_INTERFERENCE) {
+      for (const distance of [2, 4]) {
+        const cross = cellRts(p, interference, distance, true);
+        const within = cellRts(p, interference, distance, false);
+        if (!cross.length || !within.length) continue;
+        out.push({ interference, distance, advantage: mean(within) - mean(cross) });
+      }
+    }
+    return out;
+  };
+
+  const records = people.map((p) => {
+    const all = p.trials.length;
+    const kept = p.trials.filter(winawerKeep).length;
+    return {
+      tag: p.tag,
+      boundary: p.boundary,
+      boundaryAmbiguous: p.boundaryAmbiguous,
+      accuracy: all ? p.trials.filter((t) => t.correct).length / all : 0,
+      kept,
+      total: all,
+      advantages: advantagesFor(p),
+    };
+  });
+
+  const cells: {
+    interference: WinawerInterference;
+    distance: number;
+    category: "cross" | "within";
+    n: number;
+    meanRt: number;
+  }[] = [];
+  for (const interference of WINAWER_INTERFERENCE) {
+    for (const distance of [2, 4]) {
+      for (const category of ["cross", "within"] as const) {
+        const rts = people.flatMap((p) => cellRts(p, interference, distance, category === "cross"));
+        cells.push({ interference, distance, category, n: rts.length, meanRt: mean(rts) });
+      }
+    }
+  }
+
+  // Class-level advantage: mean over participants, so every participant counts
+  // once regardless of how many trials survived their exclusions.
+  const advantage = WINAWER_INTERFERENCE.flatMap((interference) =>
+    [2, 4].map((distance) => {
+      const vals = records
+        .map((r) => r.advantages.find((a) => a.interference === interference && a.distance === distance))
+        .filter((a): a is { interference: WinawerInterference; distance: number; advantage: number } => !!a)
+        .map((a) => a.advantage);
+      return { interference, distance, mean: mean(vals), n: vals.length };
+    }),
+  );
+
+  const boundaries = people.map((p) => p.boundary);
+  const bMean = mean(boundaries);
+  const bSd =
+    boundaries.length > 1
+      ? Math.sqrt(
+          boundaries.reduce((s, x) => s + (x - bMean) * (x - bMean), 0) / (boundaries.length - 1),
+        )
+      : 0;
+
+  const allTrials = people.flatMap((p) => p.trials);
+  const keptTrials = allTrials.filter(winawerKeep);
+
+  return {
+    records,
+    aggregate: {
+      n: people.length,
+      trials: allTrials.length,
+      accuracy: allTrials.length
+        ? allTrials.filter((t) => t.correct).length / allTrials.length
+        : 0,
+      exclusionRate: allTrials.length ? 1 - keptTrials.length / allTrials.length : 0,
+      boundary: { mean: bMean, sd: bSd, n: boundaries.length },
+      cells,
+      advantage,
+    },
+    yours: tag ? (records.find((r) => r.tag === tag) ?? null) : null,
+  };
+}
+
 function summarizeReuterTruth(submissions: Record<string, unknown>[]) {
   const SCEN = new Set(["party", "rolex"]);
   const ANS = new Set(["true", "false", "notsure"]);
@@ -552,6 +725,14 @@ export async function GET(request: Request) {
       experiment,
       session,
       ...summarizeAsymmetry(submissions, ASYMMETRY_SPECS[experiment], tag),
+    });
+  }
+  if (experiment === "winawer-russian-blues") {
+    return Response.json({
+      ok: true,
+      experiment,
+      session,
+      ...summarizeWinawer(submissions, tag),
     });
   }
   if (experiment === "reuter-truth") {
