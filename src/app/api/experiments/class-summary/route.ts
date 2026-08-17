@@ -27,6 +27,9 @@ const BLOB_EXPERIMENTS = new Set([
   "nadelhoffer-blame",
   "phillips-alternatives",
   "lindauer-cancelling",
+  // Allen et al. (2021) colour blindness — also served by the generic
+  // summarizer; its 4-way primary DV is carried as four one-hot booleans.
+  "allen-colour-blind",
 ]);
 
 // Generic between-subjects summarizer for the side-effect-effect experiments.
@@ -48,6 +51,15 @@ const ASYMMETRY_SPECS: Record<string, AsymmetrySpec> = {
   "nadelhoffer-blame": { cellFields: ["condition"], num: ["rating"], bool: ["knowingly", "intentional"] },
   "phillips-alternatives": { cellFields: ["condition"], num: ["intentional", "relevanceAgree"] },
   "lindauer-cancelling": { cellFields: ["condition"], num: ["rating"] },
+  // Not a side-effect study, but the same shape fits: the between-subjects cell
+  // is the viewing-context vignette, and the primary 4-way DV (which account of
+  // colour-blind experience was chosen) is stored one-hot so the whole
+  // distribution comes back as four proportions with no bespoke code.
+  "allen-colour-blind": {
+    cellFields: ["condition"],
+    num: ["confidence", "namingScore", "rgScore", "ybScore"],
+    bool: ["choseStandard", "choseAlien", "choseRevised", "choseCommon", "choseNewPinksPurples"],
+  },
 };
 
 function summarizeAsymmetry(

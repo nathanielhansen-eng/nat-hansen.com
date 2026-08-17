@@ -33,6 +33,7 @@ consumes the same data server-to-server via `/api/experiments/class-summary`.
 | Reuter & Brun (2022) truth ambiguity | `/teaching/experiments/reuter-truth` | 3-part within-visit, counterbalanced vignettes + free text | ✅ |
 | Frohlich et al. (1987) distributive justice | `/teaching/experiments/frohlich-justice` | solo playtest + simulated deliberation | — |
 | Esper (1966) transmission chain | `/teaching/experiments/chain` | live multiplayer, Redis rooms | ✅ (special-cased) |
+| Allen et al. (2021) colour blindness | `/teaching/experiments/allen-colour-blind` | between-subjects vignette + simulated-swatch naming + prediction | ✅ |
 | Brown & Lenneberg (1954) codability | `/teaching/philosophy-of-language/games/brown-lenneberg` | multi-trial with delay | ✅ |
 | Heider (1972) focal colours | `…/games/heider-focal-colors` | multi-trial with delay | ✅ |
 | Gilbert et al. (1990) unbelieving | `…/games/gilbert-unbelieving` | interruption paradigm | — |
@@ -134,6 +135,12 @@ comparative advantage. Weight phil-language builds accordingly.
 
 ### Original studies (the platform as instrument, not replication)
 
+- **Allen et al. 2021, colour blindness** (`10.1111/mila.12370`) — BUILT, awaiting Nat's audit. The
+  paper is qualitative (17 interviews, NCS print stimuli, EnChroma glasses), so it does not port;
+  the build inverts it into a third-person study of what a mostly-sighted class *predicts* about
+  colour-blind experience, and tests a claim the paper asserts but never measures (that the
+  standard view is what "colour blindness" suggests to people). Spec:
+  `docs/cold-experiments/allen-colour-blind-spec.md`, whose §7 is the open audit queue.
 - Uptake and speech-act success (Projects index #4) — own design, needs an experiment page.
 - Traditional texts vs. simulations RCT (Projects index #28) — ux-phi personas are the
   manipulation; the experiments framework supplies the measurement layer.
@@ -199,3 +206,4 @@ local build can't prove).
 | 2026-07-25 | Knobe (2003) built on loaner machine; syllabus survey + DOI lists compiled |
 | 2026-07-31 | Knobe committed to main (`1796da9`) |
 | 2026-08-06 | class-summary endpoint + launch tags (`e9fbe0c`); Reuter & Brun (2022) shipped (`d2ad3ef`, `7196709`); this roadmap |
+| 2026-08-17 | Allen et al. (2021) colour blindness built on `exp/allen-colour-blind`; first *original* design in the cold-experiment scaffold, and the first `docs/cold-experiments/` spec committed |

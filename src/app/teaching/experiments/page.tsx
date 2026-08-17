@@ -107,6 +107,13 @@ const experiments: ExperimentCard[] = [
       "A live, in-class transmission chain. Each student learns names for eight shape-colour objects, then reproduces them from memory — and their version becomes the language taught to the next student. Across generations a 'totally suppletive' vocabulary drifts toward morphological categories. Run several parallel chains and compare how they diverge. Instructors: open the room from the host console.",
   },
   {
+    title: "Allen, Quinlan, Andow & Fischer (2021)",
+    subtitle: "What Is It Like to Be Colour-Blind?",
+    slug: "allen-colour-blind",
+    blurb:
+      "What do you think a red/green colour-blind person sees when they look at something red? Choose between four rival philosophical accounts, name six patches run through a standard simulation of colour blindness, and predict which colours would look new through 'colour-correcting' glasses. Allen et al. interviewed 17 colour-blind participants: all of them named the red patch red, 12 of 17 saw no new colours through the glasses, and nobody saw red or green for the first time — every candidate new colour was a pink or a purple. An original classroom design built on the paper's question, not a replication of its interview method. Class results compiled live against the published findings.",
+  },
+  {
     title: "Brown & Lenneberg (1954)",
     subtitle: "Codability and Colour Memory",
     slug: "brown-lenneberg",
@@ -215,6 +222,14 @@ export default function ExperimentsPage() {
               {e.slug === "knobe-side-effect" && (
                 <Link
                   href="/teaching/experiments/knobe-side-effect/admin"
+                  className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
+                >
+                  Instructor results dashboard &rarr;
+                </Link>
+              )}
+              {e.slug === "allen-colour-blind" && (
+                <Link
+                  href="/teaching/experiments/allen-colour-blind/admin"
                   className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
                 >
                   Instructor results dashboard &rarr;
