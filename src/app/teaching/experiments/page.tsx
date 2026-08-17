@@ -123,6 +123,13 @@ const experiments: ExperimentCard[] = [
       "Rosch Heider's challenge to Brown & Lenneberg. Pick best examples of basic colour names, name 12 chips (focal, internominal, boundary), then recognise a subset from an 80-chip array — testing whether codability drives memory or some colours are simply more distinctive.",
   },
   {
+    title: "Winawer et al. (2007)",
+    subtitle: "Russian Blues and Colour Discrimination",
+    slug: "winawer-russian-blues",
+    blurb:
+      "Does the vocabulary you have change how fast you can tell two colours apart? A speeded matching task on twenty blues spanning the Russian siniy/goluboy border, which English does not mark: pick which of two squares matches the one above, sometimes while rehearsing an eight-digit number, sometimes while holding a grid pattern in mind. Russian speakers were 124 ms faster across the border than within it — and verbal, but not spatial, interference wiped that out. The class runs the paper's English-speaker arm, where the predicted result is a flat line.",
+  },
+  {
     title: "Gilbert, Krull & Malone (1990)",
     subtitle: "Unbelieving the Unbelievable",
     slug: "gilbert-unbelieving",
@@ -207,6 +214,14 @@ export default function ExperimentsPage() {
               {e.slug === "reuter-truth" && (
                 <Link
                   href="/teaching/experiments/reuter-truth/admin"
+                  className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
+                >
+                  Instructor results dashboard &rarr;
+                </Link>
+              )}
+              {e.slug === "winawer-russian-blues" && (
+                <Link
+                  href="/teaching/experiments/winawer-russian-blues/admin"
                   className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
                 >
                   Instructor results dashboard &rarr;
