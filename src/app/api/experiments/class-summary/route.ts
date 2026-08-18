@@ -591,18 +591,26 @@ function bkChipInfo(cnum: number) {
     : { cnum, hex: "#888888", gridRef: String(cnum), munsell: null };
 }
 
+type BKTermAgg = {
+  name: string;
+  /** Charts (in this language) that listed this term. */
+  n: number;
+  focals: Map<number, number>;
+  coverage: Map<number, number>;
+};
+
 function summarizeBerlinKay(submissions: Record<string, unknown>[], tag: string | null) {
   const subs = submissions.filter(
     (s) => typeof s.language === "string" && Array.isArray(s.terms),
   );
-  const langs = new Map<string, { name: string; n: number }>();
+  const langs = new Map<string, { name: string; n: number; terms: Map<string, BKTermAgg> }>();
   const focals = new Map<number, { count: number; terms: Map<string, number> }>();
   let termTotal = 0;
   let own: Record<string, unknown> | null = null;
   for (const s of subs) {
     const lang = (s.language as string).trim();
     const lk = lang.toLowerCase();
-    const l = langs.get(lk) ?? { name: lang, n: 0 };
+    const l = langs.get(lk) ?? { name: lang, n: 0, terms: new Map<string, BKTermAgg>() };
     l.n++;
     langs.set(lk, l);
     for (const t of s.terms as BKTermLoose[]) {
@@ -610,19 +618,51 @@ function summarizeBerlinKay(submissions: Record<string, unknown>[], tag: string 
       termTotal++;
       const rec = focals.get(t.focal) ?? { count: 0, terms: new Map<string, number>() };
       rec.count++;
-      if (typeof t.term === "string" && t.term) {
-        const name = t.term.toLowerCase().trim();
+      const name = typeof t.term === "string" ? t.term.toLowerCase().trim() : "";
+      if (name) {
         rec.terms.set(name, (rec.terms.get(name) ?? 0) + 1);
+        // Per-language, per-term aggregation: focal counts plus full chip
+        // coverage, the data the boundary visualization needs. Still
+        // class-level counts only — no per-record rows.
+        const ta = l.terms.get(name) ?? {
+          name,
+          n: 0,
+          focals: new Map<number, number>(),
+          coverage: new Map<number, number>(),
+        };
+        ta.n++;
+        ta.focals.set(t.focal, (ta.focals.get(t.focal) ?? 0) + 1);
+        if (Array.isArray(t.chips)) {
+          for (const c of t.chips) {
+            if (typeof c === "number") ta.coverage.set(c, (ta.coverage.get(c) ?? 0) + 1);
+          }
+        }
+        l.terms.set(name, ta);
       }
       focals.set(t.focal, rec);
     }
     if (tag !== null && tagOf(s) === tag) own = s;
   }
+  const pairs = (m: Map<number, number>) =>
+    [...m.entries()].map(([cnum, count]) => ({ cnum, count }));
   return {
     aggregate: {
       n: subs.length,
       meanTerms: subs.length ? termTotal / subs.length : 0,
-      languages: [...langs.values()].sort((a, b) => b.n - a.n),
+      languages: [...langs.values()]
+        .sort((a, b) => b.n - a.n)
+        .map((l) => ({
+          name: l.name,
+          n: l.n,
+          terms: [...l.terms.values()]
+            .sort((a, b) => b.n - a.n)
+            .map((t) => ({
+              name: t.name,
+              n: t.n,
+              focals: pairs(t.focals),
+              coverage: pairs(t.coverage),
+            })),
+        })),
       focals: [...focals.entries()]
         .sort((a, b) => b[1].count - a[1].count)
         .map(([cnum, v]) => ({
@@ -645,6 +685,9 @@ function summarizeBerlinKay(submissions: Record<string, unknown>[], tag: string 
               term: t.term as string,
               focal: bkChipInfo(t.focal as number),
               chipCount: Array.isArray(t.chips) ? t.chips.length : 0,
+              chips: Array.isArray(t.chips)
+                ? (t.chips as unknown[]).filter((c): c is number => typeof c === "number")
+                : [],
             })),
         }
       : null,

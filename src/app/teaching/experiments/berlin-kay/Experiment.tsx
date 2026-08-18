@@ -285,16 +285,17 @@ export default function Experiment({ session, tag }: { session: string; tag: str
           <div style={base.eyebrow}>Berlin &amp; Kay 1969</div>
           <h1 style={base.h1}>Mapping your color words</h1>
           <p style={base.body}>
-            In front of you will be a chart of 330 color chips — the same chart Brent Berlin and
-            Paul Kay put in front of speakers of twenty different languages, and the same chart the
-            World Color Survey later carried to speakers of 110 more.
+            You are about to see a chart of 330 color chips, modeled on the chart that Berlin and
+            Kay presented to speakers of twenty different languages and that the World Color
+            Survey later gave to speakers of 110 more languages.
           </p>
           <p style={base.body}>
-            You will do what their informants did: for each basic color word in a language you
-            speak, mark <em>every chip you could call by that word</em>, and then pick the{" "}
-            <em>single best example</em>{" "}of it. The interesting question is not your chart alone —
-            it is whether, when the whole class&rsquo;s charts are laid on top of each other, the
-            best examples land in the same places across different languages.
+            But first, you will be asked to list the basic color terms of the language(s) you
+            speak. Then, for each of the basic color terms you listed, mark{" "}
+            <em>every chip you could call by that term</em>, and then pick its{" "}
+            <em>single best example</em>. Once you have completed your chart, we will compare
+            your responses with other people doing the experiment, so we can see whether the
+            colors picked as best examples cluster together, even across different languages.
           </p>
           <p style={base.small}>
             Your responses are recorded anonymously — no name, no login. What is recorded is the
@@ -696,7 +697,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
       <style>{FONTS}</style>
       <div style={base.cardWide}>
         <div style={base.eyebrow}>Debrief</div>
-        <h2 style={base.h2}>What Berlin and Kay claimed — and who pushed back</h2>
+        <h2 style={base.h2}>Berlin &amp; Kay&rsquo;s findings and later challenges</h2>
         {submitStatus === "err" && (
           <p style={{ ...base.mono, fontSize: "12px", color: C.red }}>
             Your chart could not be sent — tell your instructor. The debrief below still applies.
