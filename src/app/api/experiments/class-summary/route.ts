@@ -1,5 +1,6 @@
 import { list, get } from "@vercel/blob";
 import { loadRoom } from "@/lib/chain/store";
+import { byCnum } from "@/app/teaching/experiments/berlin-kay/chips";
 
 // Cross-site class summary (consumed server-to-server by the ux-phi course
 // dashboard's Experiments tab). Serves pre-aggregated, non-identifying
@@ -31,6 +32,7 @@ const BLOB_EXPERIMENTS = new Set([
   // Allen et al. (2021) colour blindness — also served by the generic
   // summarizer; its 4-way primary DV is carried as four one-hot booleans.
   "allen-colour-blind",
+  "berlin-kay",
 ]);
 
 // Generic between-subjects summarizer for the side-effect-effect experiments.
@@ -573,6 +575,82 @@ function summarizeWinawer(submissions: Record<string, unknown>[], tag: string | 
   };
 }
 
+/* ------------------------------- berlin-kay --------------------------- *
+ * Berlin & Kay (1969) focal/boundary mapping on the WCS 330-chip array.
+ * Free text (language names, color terms) surfaces ONLY class-level, as
+ * counts of modal values — the same rule as the swatch experiments' topNames.
+ * The one full per-record chart returned is the caller's own, matched by the
+ * opaque tag. Chip numbers are enriched with hex/gridRef server-side so the
+ * consumer needs no chip table of its own. */
+type BKTermLoose = { term?: unknown; focal?: unknown; chips?: unknown };
+
+function bkChipInfo(cnum: number) {
+  const c = byCnum[cnum];
+  return c
+    ? { cnum, hex: c.hex, gridRef: `${c.row}${c.col}`, munsell: c.munsell }
+    : { cnum, hex: "#888888", gridRef: String(cnum), munsell: null };
+}
+
+function summarizeBerlinKay(submissions: Record<string, unknown>[], tag: string | null) {
+  const subs = submissions.filter(
+    (s) => typeof s.language === "string" && Array.isArray(s.terms),
+  );
+  const langs = new Map<string, { name: string; n: number }>();
+  const focals = new Map<number, { count: number; terms: Map<string, number> }>();
+  let termTotal = 0;
+  let own: Record<string, unknown> | null = null;
+  for (const s of subs) {
+    const lang = (s.language as string).trim();
+    const lk = lang.toLowerCase();
+    const l = langs.get(lk) ?? { name: lang, n: 0 };
+    l.n++;
+    langs.set(lk, l);
+    for (const t of s.terms as BKTermLoose[]) {
+      if (typeof t.focal !== "number") continue;
+      termTotal++;
+      const rec = focals.get(t.focal) ?? { count: 0, terms: new Map<string, number>() };
+      rec.count++;
+      if (typeof t.term === "string" && t.term) {
+        const name = t.term.toLowerCase().trim();
+        rec.terms.set(name, (rec.terms.get(name) ?? 0) + 1);
+      }
+      focals.set(t.focal, rec);
+    }
+    if (tag !== null && tagOf(s) === tag) own = s;
+  }
+  return {
+    aggregate: {
+      n: subs.length,
+      meanTerms: subs.length ? termTotal / subs.length : 0,
+      languages: [...langs.values()].sort((a, b) => b.n - a.n),
+      focals: [...focals.entries()]
+        .sort((a, b) => b[1].count - a[1].count)
+        .map(([cnum, v]) => ({
+          ...bkChipInfo(cnum),
+          count: v.count,
+          topTerms: [...v.terms.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([name, count]) => ({ name, count })),
+        })),
+    },
+    yours: own
+      ? {
+          language: (own.language as string).trim(),
+          native: typeof own.native === "boolean" ? own.native : null,
+          submittedAt: typeof own.submittedAt === "string" ? own.submittedAt : null,
+          terms: (own.terms as BKTermLoose[])
+            .filter((t) => typeof t.term === "string" && typeof t.focal === "number")
+            .map((t) => ({
+              term: t.term as string,
+              focal: bkChipInfo(t.focal as number),
+              chipCount: Array.isArray(t.chips) ? t.chips.length : 0,
+            })),
+        }
+      : null,
+  };
+}
+
 function summarizeReuterTruth(submissions: Record<string, unknown>[]) {
   const SCEN = new Set(["party", "rolex"]);
   const ANS = new Set(["true", "false", "notsure"]);
@@ -733,6 +811,14 @@ export async function GET(request: Request) {
       experiment,
       session,
       ...summarizeWinawer(submissions, tag),
+    });
+  }
+  if (experiment === "berlin-kay") {
+    return Response.json({
+      ok: true,
+      experiment,
+      session,
+      ...summarizeBerlinKay(submissions, tag),
     });
   }
   if (experiment === "reuter-truth") {
