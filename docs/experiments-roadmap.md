@@ -115,6 +115,16 @@ Machery et al. 2004 appeared in **none** of the five surveyed syllabi despite la
 — the survey under-represents experimental philosophy of language, which is exactly this site's
 comparative advantage. Weight phil-language builds accordingly.
 
+### Zed's Illusion of Color class — requested 2026-08-18 (autumn 2026)
+
+Two requests from Zed, alongside the Berkeley Three Dialogues sim. Both slot into the existing
+colour cluster (brown-lenneberg, heider-focal-colors, winawer-russian-blues).
+
+| Build | Source | Note |
+|---|---|---|
+| Roberson triads (Categorical Perception, Exp 4) | Roberson, Davies & Davidoff 2000, `10.1037/0096-3445.129.3.369` (Crossref-verified) | The double-dissociation centerpiece: 2×8 triads across the English green–blue boundary (7.5G→7.5B, all V5/C8, boundary 7.5BG) vs the Berinmo *nol–wor* boundary (5Y→5G, V5/C8); "which two look most alike?"; predicted = cross-boundary pair split. Class plays both sets; English speakers should show CP at green–blue and sit at chance on *nol–wor* — the class replicates one cell of the paper's 2×2 and the Berinmo published means fill in the rest. Roberson's Exps 2a–2c (recognition memory w/ response-bias control) are optional follow-ons on the B&L/Heider delay engine. Paper text extracted; PDF in `Modules/Colour 2017/Readings/`. |
+| Interactive Munsell array — focal + boundary naming across languages | Berlin & Kay 1969 / WCS 330-chip array | The chart task Nat ran in earlier classes (scanned array + FM-100 hue screenshot survive in `Dropbox/Academic Work/Lazy Man/munsell*.png`; no interactive version found in the PP3LAN folders — this is a new build). Render the WCS array from published chip coordinates (WCS data archive has L\*a\*b\* per chip → sRGB); student picks a language, names each region's term, clicks focal chips, traces boundaries; admin/class view overlays focal choices and boundary lines across the languages spoken in the class, next to Berlin & Kay's published foci. Monitor-gamut caveat belongs on the debrief (Munsell chips ≠ sRGB swatches — itself a teaching point). |
+
 ### Tier C — new interaction machinery
 
 - **Awad et al. 2018, Moral Machine** (`10.1038/s41586-018-0637-6`) — paired-comparison UI with
