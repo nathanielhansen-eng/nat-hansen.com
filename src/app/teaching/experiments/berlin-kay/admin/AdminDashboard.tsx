@@ -339,7 +339,7 @@ export default function AdminDashboard() {
       <style>{FONTS}</style>
       <div style={S.inner}>
         <div style={S.eyebrow}>Berlin &amp; Kay 1969 — instructor dashboard</div>
-        <h1 style={S.h1}>Colour words across the class</h1>
+        <h1 style={S.h1}>Color words across the class</h1>
         <div style={{ marginBottom: "20px" }}>
           <select style={S.select} value={session} onChange={(e) => setSession(e.target.value)}>
             <option value="__all__">All sessions</option>

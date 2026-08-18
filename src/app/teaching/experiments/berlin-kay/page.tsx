@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Experiment from "./Experiment";
 
 export const metadata: Metadata = {
-  title: "Mapping Your Colour Words — Nat Hansen",
+  title: "Mapping Your Color Words — Nat Hansen",
   description:
-    "A classroom version of Berlin & Kay (1969): mark the extension and the best example of each basic colour word of your language on the 330-chip World Color Survey Munsell array, and compare focal choices across the languages in the room.",
+    "A classroom version of Berlin & Kay (1969): mark the extension and the best example of each basic color word of your language on the 330-chip World Color Survey Munsell array, and compare focal choices across the languages in the room.",
 };
 
 export default async function Page({

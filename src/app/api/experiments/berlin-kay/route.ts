@@ -3,7 +3,7 @@ import { put } from "@vercel/blob";
 type ColorVision = "typical" | "atypical" | "unsure";
 const COLOR_VISION = new Set<string>(["typical", "atypical", "unsure"]);
 
-/** One basic colour term's mapping: the chips the participant says the word
+/** One basic color term's mapping: the chips the participant says the word
  * covers, plus the single best-example chip. Chips are WCS chip numbers
  * (1-330), the stable ids from chips.ts. */
 interface TermMap {
@@ -32,7 +32,7 @@ function sanitizeSession(s: string): string {
   return s.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 64) || "default";
 }
 
-/** Free text (language name, colour terms) — printable, control chars out. */
+/** Free text (language name, color terms) — printable, control chars out. */
 function sanitizeText(v: unknown, max: number): string | null {
   if (typeof v !== "string") return null;
   const t = v.replace(/[\u0000-\u001F\u007F]/g, "").trim().slice(0, max);

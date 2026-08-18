@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import AdminDashboard from "./AdminDashboard";
 
 export const metadata: Metadata = {
-  title: "Colour Words — Admin",
+  title: "Color Words — Admin",
   robots: { index: false, follow: false },
 };
 
@@ -57,7 +57,7 @@ export default async function AdminPage({
             Instructor access
           </div>
           <h1 style={{ fontSize: "28px", fontWeight: 400, marginBottom: "24px", color: "#1A1814" }}>
-            Colour words — class data
+            Color words — class data
           </h1>
           <label
             style={{

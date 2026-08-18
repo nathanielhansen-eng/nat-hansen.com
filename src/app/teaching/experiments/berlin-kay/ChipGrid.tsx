@@ -11,7 +11,7 @@ export interface ChipDecoration {
   dot?: boolean;
   /** Centered best-example marker. */
   focal?: boolean;
-  /** 0..1 multiplier on the chip colour (consensus heat); default 1. */
+  /** 0..1 multiplier on the chip color (consensus heat); default 1. */
   strength?: number;
   /** Fade the chip toward the mount grey (not in any relevant set). */
   dim?: boolean;

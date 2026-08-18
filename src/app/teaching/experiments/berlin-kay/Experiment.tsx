@@ -237,22 +237,22 @@ export default function Experiment({ session, tag }: { session: string; tag: str
         <style>{FONTS}</style>
         <div style={base.card}>
           <div style={base.eyebrow}>Berlin &amp; Kay 1969</div>
-          <h1 style={base.h1}>Mapping your colour words</h1>
+          <h1 style={base.h1}>Mapping your color words</h1>
           <p style={base.body}>
-            In front of you will be a chart of 330 colour chips — the same chart Brent Berlin and
+            In front of you will be a chart of 330 color chips — the same chart Brent Berlin and
             Paul Kay put in front of speakers of twenty different languages, and the same chart the
             World Color Survey later carried to speakers of 110 more.
           </p>
           <p style={base.body}>
-            You will do what their informants did: for each basic colour word in a language you
+            You will do what their informants did: for each basic color word in a language you
             speak, mark <em>every chip you could call by that word</em>, and then pick the{" "}
-            <em>single best example</em> of it. The interesting question is not your chart alone —
+            <em>single best example</em>{" "}of it. The interesting question is not your chart alone —
             it is whether, when the whole class&rsquo;s charts are laid on top of each other, the
             best examples land in the same places across different languages.
           </p>
           <p style={base.small}>
             Your responses are recorded anonymously — no name, no login. What is recorded is the
-            language you name, your colour words, and which chips you marked. It takes about ten
+            language you name, your color words, and which chips you marked. It takes about ten
             minutes. Afterwards you will see what Berlin and Kay claimed, and who disputed it.
           </p>
           <button
@@ -278,7 +278,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
           <div style={base.eyebrow}>Step 1 of 3</div>
           <h2 style={base.h2}>Which language will you map?</h2>
           <p style={base.body}>
-            Pick the language whose colour words you know best. If you speak more than one, choose
+            Pick the language whose color words you know best. If you speak more than one, choose
             the one you grew up with — you can always run the task again for another.
           </p>
           <label style={{ ...base.eyebrow, display: "block", marginTop: "8px" }}>Language</label>
@@ -341,18 +341,18 @@ export default function Experiment({ session, tag }: { session: string; tag: str
         <div style={base.card}>
           <div style={base.eyebrow}>Step 2 of 3</div>
           <h2 style={base.h2}>
-            List the basic colour words of {language.trim() || "your language"}
+            List the basic color words of {language.trim() || "your language"}
           </h2>
           <div style={base.well}>
-            A <strong>basic</strong> colour word, in Berlin and Kay&rsquo;s sense, is: a single
-            word (<em>blue</em>, not <em>light blue</em>); not a kind of another colour (
-            <em>scarlet</em> is a kind of red — leave it out); usable for all sorts of things, not
-            just one (<em>blond</em> is only for hair); and a word everyone who speaks the language
+            A <strong>basic</strong>{" "}color word, in Berlin and Kay&rsquo;s sense, is: a single
+            word (<em>blue</em>, not <em>light blue</em>); not a kind of another color (
+            <em>scarlet</em>{" "}is a kind of red — leave it out); usable for all sorts of things, not
+            just one (<em>blond</em>{" "}is only for hair); and a word everyone who speaks the language
             knows.
           </div>
           <p style={base.small}>
             Type each word and press Enter. English speakers typically list around eleven — but
-            list what <em>your</em> language has, not what you think the chart wants.
+            list what <em>your</em>{" "}language has, not what you think the chart wants.
           </p>
           <div style={{ display: "flex", gap: "10px" }}>
             <input
@@ -360,7 +360,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
               value={termDraft}
               maxLength={40}
               autoFocus
-              placeholder="colour word"
+              placeholder="color word"
               onChange={(e) => setTermDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -457,13 +457,13 @@ export default function Experiment({ session, tag }: { session: string; tag: str
           <p style={{ ...base.small, marginBottom: "14px" }}>
             {mode === "paint" ? (
               <>
-                Mark <strong>every chip you could call &ldquo;{t.term}&rdquo;</strong> — click or
+                Mark <strong>every chip you could call &ldquo;{t.term}&rdquo;</strong>{" "}— click or
                 drag across the chart. Click a marked chip to unmark it. Chips can belong to more
                 than one word; a small dot means another of your words already claims that chip.
               </>
             ) : (
               <>
-                Now click the <strong>single best example</strong> of &ldquo;{t.term}&rdquo; — the
+                Now click the <strong>single best example</strong>{" "}of &ldquo;{t.term}&rdquo; — the
                 chip you would point to if someone asked what &ldquo;{t.term}&rdquo; looks like.
               </>
             )}
@@ -560,7 +560,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
         <style>{FONTS}</style>
         <div style={base.cardWide}>
           <div style={base.eyebrow}>Your chart</div>
-          <h2 style={base.h2}>The colour space of {language.trim()}, according to you</h2>
+          <h2 style={base.h2}>The color space of {language.trim()}, according to you</h2>
           <p style={base.small}>
             Greyed chips are ones none of your words covers. Circles are your best examples. A
             number means the chip belongs to more than one of your words. Go back if anything looks
@@ -587,12 +587,12 @@ export default function Experiment({ session, tag }: { session: string; tag: str
           </div>
           <div style={base.divider} />
           <label style={{ ...base.eyebrow, display: "block" }}>
-            One last question — as far as you know, is your colour vision typical?
+            One last question — as far as you know, is your color vision typical?
           </label>
           {(
             [
               ["typical", "Typical, as far as I know"],
-              ["atypical", "Atypical (e.g. some form of colour-blindness)"],
+              ["atypical", "Atypical (e.g. some form of color-blindness)"],
               ["unsure", "Not sure"],
             ] as const
           ).map(([v, label]) => (
@@ -649,10 +649,10 @@ export default function Experiment({ session, tag }: { session: string; tag: str
         )}
         <p style={base.body}>
           Berlin and Kay ran this procedure on speakers of twenty languages and made two claims
-          that upended the field. First, although the <em>boundaries</em> people drew were vague
-          and wandered all over the chart, the <em>best examples</em> did not: foci clustered in
+          that upended the field. First, although the <em>boundaries</em>{" "}people drew were vague
+          and wandered all over the chart, the <em>best examples</em>{" "}did not: foci clustered in
           the same small regions of the chart regardless of language. Second, languages acquire
-          basic colour terms in a constrained order — no language, on their evidence, has a word
+          basic color terms in a constrained order — no language, on their evidence, has a word
           for brown before it has words on the black/white, red, green/yellow, and blue rungs
           below it.
         </p>
@@ -666,11 +666,11 @@ export default function Experiment({ session, tag }: { session: string; tag: str
           lines?
         </p>
         <div style={base.well}>
-          <strong>Where this deviates from the original.</strong> Berlin and Kay used painted
+          <strong>Where this deviates from the original.</strong>{" "}Berlin and Kay used painted
           Munsell chips under controlled lighting; you used a screen. About a quarter of the
           chart&rsquo;s most saturated chips lie outside what an sRGB monitor can display at all
           and are shown desaturated — an ordinary monitor cannot reproduce a Munsell book, which
-          is itself a lesson in what a colour stimulus is. Their informants also did not list
+          is itself a lesson in what a color stimulus is. Their informants also did not list
           their own basic terms; the list was elicited separately first. Treat today&rsquo;s data
           accordingly.
         </div>

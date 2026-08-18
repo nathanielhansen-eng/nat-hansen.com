@@ -141,7 +141,7 @@ const experiments: ExperimentCard[] = [
     subtitle: "Basic Color Terms: Mapping the Munsell Array",
     slug: "berlin-kay",
     blurb:
-      "The procedure that launched the universals debate, on the 330-chip World Color Survey Munsell array. List the basic colour words of a language you speak, mark every chip each word covers, and pick its single best example. Berlin & Kay found that boundaries wander but foci cluster in the same regions across twenty languages; Roberson, Davies & Davidoff's Berinmo work pushed back. The instructor dashboard lays the class's charts on top of each other, focal points and term regions compared across whatever languages are in the room.",
+      "The procedure that launched the universals debate, on the 330-chip World Color Survey Munsell array. List the basic color words of a language you speak, mark every chip each word covers, and pick its single best example. Berlin & Kay found that boundaries wander but foci cluster in the same regions across twenty languages; Roberson, Davies & Davidoff's Berinmo work pushed back. The instructor dashboard lays the class's charts on top of each other, focal points and term regions compared across whatever languages are in the room.",
   },
   {
     title: "Gilbert, Krull & Malone (1990)",
