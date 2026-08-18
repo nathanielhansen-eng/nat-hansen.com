@@ -137,6 +137,13 @@ const experiments: ExperimentCard[] = [
       "Does the vocabulary you have change how fast you can tell two colours apart? A speeded matching task on twenty blues spanning the Russian siniy/goluboy border, which English does not mark: pick which of two squares matches the one above, sometimes while rehearsing an eight-digit number, sometimes while holding a grid pattern in mind. Russian speakers were 124 ms faster across the border than within it — and verbal, but not spatial, interference wiped that out. The class runs the paper's English-speaker arm, where the predicted result is a flat line.",
   },
   {
+    title: "Berlin & Kay (1969)",
+    subtitle: "Basic Color Terms: Mapping the Munsell Array",
+    slug: "berlin-kay",
+    blurb:
+      "The procedure that launched the universals debate, on the 330-chip World Color Survey Munsell array. List the basic colour words of a language you speak, mark every chip each word covers, and pick its single best example. Berlin & Kay found that boundaries wander but foci cluster in the same regions across twenty languages; Roberson, Davies & Davidoff's Berinmo work pushed back. The instructor dashboard lays the class's charts on top of each other, focal points and term regions compared across whatever languages are in the room.",
+  },
+  {
     title: "Gilbert, Krull & Malone (1990)",
     subtitle: "Unbelieving the Unbelievable",
     slug: "gilbert-unbelieving",
@@ -221,6 +228,14 @@ export default function ExperimentsPage() {
               {e.slug === "reuter-truth" && (
                 <Link
                   href="/teaching/experiments/reuter-truth/admin"
+                  className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
+                >
+                  Instructor results dashboard &rarr;
+                </Link>
+              )}
+              {e.slug === "berlin-kay" && (
+                <Link
+                  href="/teaching/experiments/berlin-kay/admin"
                   className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
                 >
                   Instructor results dashboard &rarr;
