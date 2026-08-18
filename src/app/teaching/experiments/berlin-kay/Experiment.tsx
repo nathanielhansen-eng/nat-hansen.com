@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ChipGrid from "./ChipGrid";
 import { byCnum, type Chip } from "./chips";
 
@@ -26,7 +26,7 @@ const base: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "20px",
+    padding: "clamp(10px, 3vw, 20px)",
   },
   card: {
     background: C.surface,
@@ -41,7 +41,7 @@ const base: Record<string, React.CSSProperties> = {
     border: `1px solid ${C.border}`,
     maxWidth: "1060px",
     width: "100%",
-    padding: "36px 40px",
+    padding: "clamp(14px, 3vw, 36px) clamp(12px, 3.5vw, 40px)",
     boxShadow: "0 4px 40px rgba(0,0,0,0.07)",
   },
   eyebrow: {
@@ -117,9 +117,51 @@ interface TermMap {
 
 const MAX_TERMS = 20;
 
+/** True on a phone held upright: too narrow for the 41-column chart. The
+ * chart phases ask for landscape instead of truncating the array. */
+function useNarrowPortrait() {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const check = () =>
+      setNarrow(window.innerWidth < 700 && window.innerHeight > window.innerWidth);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return narrow;
+}
+
+function RotatePrompt() {
+  return (
+    <div style={base.wrap}>
+      <style>{FONTS}</style>
+      <div style={{ ...base.card, textAlign: "center" }}>
+        <div
+          style={{
+            width: "64px",
+            height: "36px",
+            border: `3px solid ${C.text}`,
+            borderRadius: "6px",
+            margin: "0 auto 24px",
+            transform: "rotate(-90deg)",
+            animation: "bk-rotate 1.6s ease-in-out infinite alternate",
+          }}
+        />
+        <style>{`@keyframes bk-rotate { from { transform: rotate(-90deg); } to { transform: rotate(0deg); } }`}</style>
+        <h2 style={base.h2}>Turn your phone sideways</h2>
+        <p style={{ ...base.body, marginBottom: 0 }}>
+          The chart is four times wider than it is tall — it needs the long side of your screen.
+          The task will appear as soon as you rotate.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function Experiment({ session, tag }: { session: string; tag: string | null }) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [startedAt, setStartedAt] = useState<number | null>(null);
+  const narrowPortrait = useNarrowPortrait();
 
   const [language, setLanguage] = useState("");
   const [native, setNative] = useState<boolean | null>(null);
@@ -426,6 +468,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
 
   /* -------------------------------- MAP -------------------------------- */
   if (phase === "map") {
+    if (narrowPortrait) return <RotatePrompt />;
     const t = terms[current];
     if (!t) {
       setPhase("terms");
@@ -546,6 +589,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
 
   /* ------------------------------- REVIEW ------------------------------- */
   if (phase === "review") {
+    if (narrowPortrait) return <RotatePrompt />;
     const decorate = (chip: Chip) => {
       const n = membershipCount.get(chip.cnum) ?? 0;
       const isFocal = terms.some((t) => t.focal === chip.cnum);

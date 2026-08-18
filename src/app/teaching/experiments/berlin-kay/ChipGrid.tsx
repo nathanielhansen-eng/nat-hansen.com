@@ -49,7 +49,7 @@ export default function ChipGrid({
   paintable = false,
 }: Props) {
   // header col | neutral col | gap | 40 hue cols
-  const template = `22px minmax(13px, 1fr) 10px repeat(40, minmax(13px, 1fr))`;
+  const template = `20px minmax(12px, 1fr) 8px repeat(40, minmax(12px, 1fr))`;
 
   const headerCell = (label: string, key: string) => (
     <div
@@ -158,8 +158,8 @@ export default function ChipGrid({
         style={{
           background: MOUNT,
           border: `1px solid ${MOUNT_EDGE}`,
-          padding: "10px 12px 12px",
-          minWidth: "760px",
+          padding: "8px 10px 10px",
+          minWidth: "640px",
           touchAction: paintable ? "none" : undefined,
         }}
       >
