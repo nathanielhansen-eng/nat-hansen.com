@@ -49,7 +49,10 @@ export default function ChipGrid({
   paintable = false,
 }: Props) {
   // header col | neutral col | gap | 40 hue cols
-  const template = `20px minmax(12px, 1fr) 8px repeat(40, minmax(12px, 1fr))`;
+  // minmax(0, 1fr) everywhere: the grid always fits its container, however
+  // narrow — chips shrink instead of overflowing behind an invisible
+  // scrollbar (drag-paint's touch-action:none would swallow the scroll).
+  const template = `16px minmax(0, 1fr) 6px repeat(40, minmax(0, 1fr))`;
 
   const headerCell = (label: string, key: string) => (
     <div
@@ -159,7 +162,6 @@ export default function ChipGrid({
           background: MOUNT,
           border: `1px solid ${MOUNT_EDGE}`,
           padding: "8px 10px 10px",
-          minWidth: "640px",
           touchAction: paintable ? "none" : undefined,
         }}
       >

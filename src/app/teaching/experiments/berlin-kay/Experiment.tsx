@@ -155,7 +155,7 @@ function RotateGate({ onContinue }: { onContinue: () => void }) {
           Nothing happening? Your phone&rsquo;s rotation lock may be on.
         </p>
         <button style={base.btnGhost} onClick={onContinue}>
-          Continue upright — the chart will scroll
+          Continue upright — the chips will be tiny
         </button>
       </div>
     </div>
