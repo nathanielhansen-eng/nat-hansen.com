@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import ChipGrid from "./ChipGrid";
 import { byCnum, type Chip } from "./chips";
 
@@ -117,24 +117,23 @@ interface TermMap {
 
 const MAX_TERMS = 20;
 
-/** True on a phone held upright: too narrow for the 41-column chart. The
- * chart phases ask for landscape instead of truncating the array. */
-function useNarrowPortrait() {
-  const [narrow, setNarrow] = useState(false);
-  useEffect(() => {
-    const check = () =>
-      setNarrow(window.innerWidth < 700 && window.innerHeight > window.innerWidth);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  return narrow;
+/** Portrait-phone gate, CSS-only: the browser's own media query decides
+ * which wrapper is visible, so it keeps working where in-app browsers and
+ * iOS quirks never fire resize events. The task stays mounted underneath —
+ * rotating loses no state. Both display rules are !important because the
+ * wrappers carry inline flex styles. */
+const GATE_CSS = `
+.bk-gate { display: none !important; }
+@media (max-width: 699px) and (orientation: portrait) {
+  .bk-gate { display: flex !important; }
+  .bk-task { display: none !important; }
 }
+@keyframes bk-rotate { from { transform: rotate(-90deg); } to { transform: rotate(0deg); } }
+`;
 
-function RotatePrompt() {
+function RotateGate({ onContinue }: { onContinue: () => void }) {
   return (
-    <div style={base.wrap}>
-      <style>{FONTS}</style>
+    <div className="bk-gate" style={base.wrap}>
       <div style={{ ...base.card, textAlign: "center" }}>
         <div
           style={{
@@ -147,12 +146,17 @@ function RotatePrompt() {
             animation: "bk-rotate 1.6s ease-in-out infinite alternate",
           }}
         />
-        <style>{`@keyframes bk-rotate { from { transform: rotate(-90deg); } to { transform: rotate(0deg); } }`}</style>
         <h2 style={base.h2}>Turn your phone sideways</h2>
         <p style={{ ...base.body, marginBottom: 0 }}>
           The chart is four times wider than it is tall — it needs the long side of your screen.
           The task will appear as soon as you rotate.
         </p>
+        <p style={{ ...base.small, marginTop: "16px", marginBottom: 0 }}>
+          Nothing happening? Your phone&rsquo;s rotation lock may be on.
+        </p>
+        <button style={base.btnGhost} onClick={onContinue}>
+          Continue upright — the chart will scroll
+        </button>
       </div>
     </div>
   );
@@ -161,7 +165,7 @@ function RotatePrompt() {
 export default function Experiment({ session, tag }: { session: string; tag: string | null }) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [startedAt, setStartedAt] = useState<number | null>(null);
-  const narrowPortrait = useNarrowPortrait();
+  const [ignoreRotate, setIgnoreRotate] = useState(false);
 
   const [language, setLanguage] = useState("");
   const [native, setNative] = useState<boolean | null>(null);
@@ -468,7 +472,6 @@ export default function Experiment({ session, tag }: { session: string; tag: str
 
   /* -------------------------------- MAP -------------------------------- */
   if (phase === "map") {
-    if (narrowPortrait) return <RotatePrompt />;
     const t = terms[current];
     if (!t) {
       setPhase("terms");
@@ -484,12 +487,16 @@ export default function Experiment({ session, tag }: { session: string; tag: str
       };
     };
     return (
-      <div
-        style={{ ...base.wrap, alignItems: "flex-start" }}
-        onPointerUp={endDrag}
-        onPointerLeave={endDrag}
-      >
+      <>
         <style>{FONTS}</style>
+        {!ignoreRotate && <style>{GATE_CSS}</style>}
+        {!ignoreRotate && <RotateGate onContinue={() => setIgnoreRotate(true)} />}
+        <div
+          className="bk-task"
+          style={{ ...base.wrap, alignItems: "flex-start" }}
+          onPointerUp={endDrag}
+          onPointerLeave={endDrag}
+        >
         <div style={base.cardWide}>
           <div style={base.eyebrow}>
             Step 3 of 3 · word {current + 1} of {terms.length}
@@ -583,13 +590,13 @@ export default function Experiment({ session, tag }: { session: string; tag: str
             )}
           </div>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
   /* ------------------------------- REVIEW ------------------------------- */
   if (phase === "review") {
-    if (narrowPortrait) return <RotatePrompt />;
     const decorate = (chip: Chip) => {
       const n = membershipCount.get(chip.cnum) ?? 0;
       const isFocal = terms.some((t) => t.focal === chip.cnum);
@@ -600,8 +607,11 @@ export default function Experiment({ session, tag }: { session: string; tag: str
       };
     };
     return (
-      <div style={{ ...base.wrap, alignItems: "flex-start" }}>
+      <>
         <style>{FONTS}</style>
+        {!ignoreRotate && <style>{GATE_CSS}</style>}
+        {!ignoreRotate && <RotateGate onContinue={() => setIgnoreRotate(true)} />}
+        <div className="bk-task" style={{ ...base.wrap, alignItems: "flex-start" }}>
         <div style={base.cardWide}>
           <div style={base.eyebrow}>Your chart</div>
           <h2 style={base.h2}>The color space of {language.trim()}, according to you</h2>
@@ -668,7 +678,8 @@ export default function Experiment({ session, tag }: { session: string; tag: str
             {submitting ? "Sending…" : "Submit your chart →"}
           </button>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
