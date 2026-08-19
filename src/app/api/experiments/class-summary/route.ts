@@ -33,6 +33,7 @@ const BLOB_EXPERIMENTS = new Set([
   // summarizer; its 4-way primary DV is carried as four one-hot booleans.
   "allen-colour-blind",
   "berlin-kay",
+  "roberson-triads",
 ]);
 
 // Generic between-subjects summarizer for the side-effect-effect experiments.
@@ -694,6 +695,62 @@ function summarizeBerlinKay(submissions: Record<string, unknown>[], tag: string 
   };
 }
 
+/* ----------------------------- roberson-triads ------------------------ *
+ * Roberson, Davies & Davidoff (2000) Exp 4 triad task. Scores (predicted
+ * choices out of 32 per boundary set) were recomputed server-side at
+ * submission time. First languages surface class-level only, as counts;
+ * per-record rows carry scores and the opaque tag, nothing textual. */
+function summarizeRoberson(submissions: Record<string, unknown>[], tag: string | null) {
+  const subs = submissions.filter(
+    (s) =>
+      !!s.scores &&
+      typeof (s.scores as Record<string, unknown>).gb === "number" &&
+      typeof (s.scores as Record<string, unknown>).nw === "number",
+  );
+  const englishOf = (s: Record<string, unknown>) =>
+    typeof s.firstLanguage === "string" &&
+    s.firstLanguage.trim().toLowerCase().startsWith("english");
+  const records = subs.map((s) => ({
+    tag: tagOf(s),
+    gb: (s.scores as { gb: number }).gb,
+    nw: (s.scores as { nw: number }).nw,
+    english: englishOf(s),
+  }));
+  const langs = new Map<string, { name: string; n: number }>();
+  for (const s of subs) {
+    if (typeof s.firstLanguage !== "string") continue;
+    const name = s.firstLanguage.trim();
+    const lk = name.toLowerCase();
+    const l = langs.get(lk) ?? { name, n: 0 };
+    l.n++;
+    langs.set(lk, l);
+  }
+  const stat = (vals: number[]) => {
+    const m = mean(vals);
+    const sd =
+      vals.length > 1
+        ? Math.sqrt(vals.reduce((t, x) => t + (x - m) * (x - m), 0) / (vals.length - 1))
+        : 0;
+    return { mean: m, se: vals.length > 1 ? sd / Math.sqrt(vals.length) : 0, n: vals.length };
+  };
+  const group = (rows: typeof records) => ({
+    gb: stat(rows.map((r) => r.gb)),
+    nw: stat(rows.map((r) => r.nw)),
+  });
+  const own = tag ? (records.find((r) => r.tag === tag) ?? null) : null;
+  return {
+    records: records.map(({ tag: t, gb, nw }) => ({ tag: t, gb, nw })),
+    aggregate: {
+      n: subs.length,
+      all: group(records),
+      english: group(records.filter((r) => r.english)),
+      other: group(records.filter((r) => !r.english)),
+      languages: [...langs.values()].sort((a, b) => b.n - a.n),
+    },
+    yours: own ? { gb: own.gb, nw: own.nw } : null,
+  };
+}
+
 function summarizeReuterTruth(submissions: Record<string, unknown>[]) {
   const SCEN = new Set(["party", "rolex"]);
   const ANS = new Set(["true", "false", "notsure"]);
@@ -854,6 +911,14 @@ export async function GET(request: Request) {
       experiment,
       session,
       ...summarizeWinawer(submissions, tag),
+    });
+  }
+  if (experiment === "roberson-triads") {
+    return Response.json({
+      ok: true,
+      experiment,
+      session,
+      ...summarizeRoberson(submissions, tag),
     });
   }
   if (experiment === "berlin-kay") {

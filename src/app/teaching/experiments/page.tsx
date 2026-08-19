@@ -137,6 +137,13 @@ const experiments: ExperimentCard[] = [
       "Does the vocabulary you have change how fast you can tell two colours apart? A speeded matching task on twenty blues spanning the Russian siniy/goluboy border, which English does not mark: pick which of two squares matches the one above, sometimes while rehearsing an eight-digit number, sometimes while holding a grid pattern in mind. Russian speakers were 124 ms faster across the border than within it — and verbal, but not spatial, interference wiped that out. The class runs the paper's English-speaker arm, where the predicted result is a flat line.",
   },
   {
+    title: "Roberson, Davies & Davidoff (2000)",
+    subtitle: "Color Categories Are Not Universal: The Triad Task",
+    slug: "roberson-triads",
+    blurb:
+      "The double-dissociation test. See three color chips at a time and click the two that look most alike — one set spans the English green–blue boundary, the other spans the boundary Berinmo (five basic color terms, Papua New Guinea) draws between nol and wor, straight through English green. Roberson et al. found each group's similarity judgments snapped to its own language's boundary and sat at chance on the other's: English speakers 23.0 vs 14.38 of 32, Berinmo 20.75 vs 25.38. The class runs the English arm against the published Berinmo numbers.",
+  },
+  {
     title: "Berlin & Kay (1969)",
     subtitle: "Basic Color Terms: Mapping the Munsell Array",
     slug: "berlin-kay",
@@ -228,6 +235,14 @@ export default function ExperimentsPage() {
               {e.slug === "reuter-truth" && (
                 <Link
                   href="/teaching/experiments/reuter-truth/admin"
+                  className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
+                >
+                  Instructor results dashboard &rarr;
+                </Link>
+              )}
+              {e.slug === "roberson-triads" && (
+                <Link
+                  href="/teaching/experiments/roberson-triads/admin"
                   className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
                 >
                   Instructor results dashboard &rarr;
