@@ -442,7 +442,8 @@ export default function Experiment({
 
           <p style={paper.body}>
             <span style={paper.dropcap}>&ldquo;I</span>
-            <span style={paper.opener}>t is popularly believed</span> that
+            <span style={paper.opener}>t is popularly believed</span>{" "}
+            that
             reality is present in much the same form to all men of sound
             mind.&rdquo;
           </p>
@@ -462,18 +463,22 @@ export default function Experiment({
 
           <div style={paper.sectionHead}>Procedure</div>
           <p style={paper.body}>
-            <b style={{ fontWeight: 700 }}>Part I.</b> Name each color as you
+            <b style={{ fontWeight: 700 }}>Part I.</b>{" "}
+            Name each color as you
             would to someone who has to pick it out later.{" "}
-            <b style={{ fontWeight: 700 }}>Part II.</b> Four colors are shown
+            <b style={{ fontWeight: 700 }}>Part II.</b>{" "}
+            Four colors are shown
             briefly; after an interval filled with arithmetic, you will look for
             them in a larger array.
           </p>
 
           <div style={paper.footnoteRule} />
           <p style={paper.footnote}>
-            <sup>1</sup> A classroom replication of Brown, R. W., &amp;
+            <sup>1</sup>{" "}
+            A classroom replication of Brown, R. W., &amp;
             Lenneberg, E. H., &ldquo;A Study in Language and Cognition,&rdquo;{" "}
-            <em>Journal of Abnormal and Social Psychology</em> (1954), pp.
+            <em>Journal of Abnormal and Social Psychology</em>{" "}
+            (1954), pp.
             454&ndash;462. Your responses are anonymous and are compiled for
             discussion in class.
           </p>
@@ -951,7 +956,8 @@ export default function Experiment({
           </div>
           <p style={paper.body}>
             In the original experiment with 24 Munsell color chips, Brown and Lenneberg found a rank-order correlation
-            of <strong>.415</strong> between codability and recognition. When a 30-second interval filled with
+            of <strong>.415</strong>{" "}
+            between codability and recognition. When a 30-second interval filled with
             distractor tasks was used (as here), the correlation rose to <strong>.487</strong> — higher storage demand
             made linguistic coding matter more.
           </p>
@@ -963,7 +969,8 @@ export default function Experiment({
           </p>
           <div style={paper.footnoteRule} />
           <p style={paper.footnote}>
-            <sup>2</sup> A companion Zuni Indian study confirmed the effect cross-culturally: Zuni speakers, who use one
+            <sup>2</sup>{" "}
+            A companion Zuni Indian study confirmed the effect cross-culturally: Zuni speakers, who use one
             word for orange and yellow, confused those two colors in recognition significantly more than English
             speakers did.
           </p>
