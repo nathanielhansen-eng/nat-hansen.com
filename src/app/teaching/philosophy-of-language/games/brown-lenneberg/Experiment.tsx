@@ -180,6 +180,7 @@ const paper: Record<string, React.CSSProperties> = {
   sectionHead: {
     fontFamily: SERIF_1954,
     fontSize: "15px",
+    fontWeight: 700,
     letterSpacing: "0.12em",
     textTransform: "uppercase",
     textAlign: "center",
@@ -440,38 +441,40 @@ export default function Experiment({
           </p>
 
           <p style={paper.body}>
-            <span style={paper.dropcap}>I</span>
-            <span style={paper.opener}>t is popularly believed</span> that reality is
-            present in much the same form to all men of sound mind. Brown and
-            Lenneberg doubted it. They proposed that colours with short,
-            agreed-upon names — <em>focal colours</em> — are more available to
-            the mind than colours needing a phrase or a hesitation, and that
-            the availability shows up in memory. Their finding: ease of naming
-            predicts ease of recognition.
+            <span style={paper.dropcap}>&ldquo;I</span>
+            <span style={paper.opener}>t is popularly believed</span> that
+            reality is present in much the same form to all men of sound
+            mind.&rdquo;
+          </p>
+          <p style={{ ...paper.body, marginTop: "22px" }}>
+            Brown and Lenneberg proposed that colors with short, agreed upon
+            names — <em>focal colors</em> — are more available to the mind than
+            colors that are identified with a longer phrase, and that
+            availability will show up in memory tasks. They found that ease of
+            naming predicts ease of recognition.
           </p>
           <p style={paper.body}>
-            What follows is their experiment, run on you. It has two parts. You
-            will name twelve colours, and the time you take will be recorded.
-            After a delay, you will try to pick out four of them again.
+            What follows is their experiment with you as the participant. It has
+            two parts: First, you will name twelve colors, and the time it takes
+            to name each one will be recorded. Then after a delay, you will try
+            to pick out four of them again as a test of memory.
           </p>
 
           <div style={paper.sectionHead}>Procedure</div>
           <p style={paper.body}>
-            <b style={{ fontWeight: 500 }}>Part I. Naming.</b> Twelve colours
-            are shown one at a time. Name each as you would to someone who must
-            pick it out later. <b style={{ fontWeight: 500 }}>Part II. Memory
-            and recognition.</b> Four colours are shown briefly; after an
-            interval filled with arithmetic, you will look for them in a larger
-            array.
+            <b style={{ fontWeight: 700 }}>Part I.</b> Name each color as you
+            would to someone who has to pick it out later.{" "}
+            <b style={{ fontWeight: 700 }}>Part II.</b> Four colors are shown
+            briefly; after an interval filled with arithmetic, you will look for
+            them in a larger array.
           </p>
 
           <div style={paper.footnoteRule} />
           <p style={paper.footnote}>
             <sup>1</sup> A classroom replication of Brown, R. W., &amp;
             Lenneberg, E. H., &ldquo;A Study in Language and Cognition&rdquo;
-            (1954), pp. 454&ndash;462; the original was received 12 April 1954.
-            Your responses are anonymous and are compiled for discussion in
-            class.
+            (1954), pp. 454&ndash;462. Your responses are anonymous and are
+            compiled for discussion in class.
           </p>
           <button style={{ ...base.btn, fontFamily: SERIF_1954, letterSpacing: "0.14em" }} onClick={() => setPhase("naming")}>
             Begin the experiment
@@ -939,23 +942,29 @@ export default function Experiment({
             recognised it.
           </p>
 
+          {/* The paper's own findings return to the paper's dress — your
+              numbers above stay in the house face, theirs wear 1954. */}
           <div style={base.divider} />
-          <div style={{ ...base.eyebrow, marginBottom: "12px" }}>Brown &amp; Lenneberg&apos;s Findings</div>
-          <p style={base.body}>
+          <div style={{ ...paper.sectionHead, marginTop: "0" }}>
+            Brown &amp; Lenneberg&apos;s Findings
+          </div>
+          <p style={paper.body}>
             In the original experiment with 24 Munsell colour chips, Brown and Lenneberg found a rank-order correlation
             of <strong>.415</strong> between codability and recognition. When a 30-second interval filled with
             distractor tasks was used (as here), the correlation rose to <strong>.487</strong> — higher storage demand
             made linguistic coding matter more.
           </p>
-          <p style={base.body}>
+          <p style={paper.body}>
             The key variable was <em>codability</em>: a composite of naming speed, syllable count, and inter-rater
             agreement. Colours that everyone names quickly and consistently (<em>&ldquo;red,&rdquo; &ldquo;blue&rdquo;</em>) are
             remembered better than colours requiring negotiation (<em>&ldquo;a sort of brownish gold,&rdquo; &ldquo;between blue and
             gray&rdquo;</em>).
           </p>
-          <p style={{ ...base.small, fontStyle: "italic" }}>
-            A companion Zuni Indian study confirmed the effect cross-culturally: Zuni speakers, who use one word for
-            orange and yellow, confused those two colours in recognition significantly more than English speakers did.
+          <div style={paper.footnoteRule} />
+          <p style={paper.footnote}>
+            <sup>2</sup> A companion Zuni Indian study confirmed the effect cross-culturally: Zuni speakers, who use one
+            word for orange and yellow, confused those two colours in recognition significantly more than English
+            speakers did.
           </p>
           <button
             style={base.btn}
