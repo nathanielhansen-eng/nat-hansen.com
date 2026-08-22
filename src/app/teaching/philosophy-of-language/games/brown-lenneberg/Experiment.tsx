@@ -472,9 +472,10 @@ export default function Experiment({
           <div style={paper.footnoteRule} />
           <p style={paper.footnote}>
             <sup>1</sup> A classroom replication of Brown, R. W., &amp;
-            Lenneberg, E. H., &ldquo;A Study in Language and Cognition&rdquo;
-            (1954), pp. 454&ndash;462. Your responses are anonymous and are
-            compiled for discussion in class.
+            Lenneberg, E. H., &ldquo;A Study in Language and Cognition,&rdquo;{" "}
+            <em>Journal of Abnormal and Social Psychology</em> (1954), pp.
+            454&ndash;462. Your responses are anonymous and are compiled for
+            discussion in class.
           </p>
           <button style={{ ...base.btn, fontFamily: SERIF_1954, letterSpacing: "0.14em" }} onClick={() => setPhase("naming")}>
             Begin the experiment
