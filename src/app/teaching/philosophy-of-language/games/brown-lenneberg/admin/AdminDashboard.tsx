@@ -371,18 +371,18 @@ export default function AdminDashboard() {
               <div style={{ ...eyebrow, marginBottom: "10px" }}>How does this compare to Brown &amp; Lenneberg?</div>
               <p style={{ fontSize: "16px", lineHeight: "1.65", color: C.body, marginBottom: "10px" }}>
                 Brown &amp; Lenneberg predicted that <em>codability</em> — the speed and
-                agreement with which a colour can be named — should predict how well it is
-                remembered. If they were right, this class should recognise focal colours
+                agreement with which a color can be named — should predict how well it is
+                remembered. If they were right, this class should recognize focal colors
                 (the ones named quickly and consistently) more accurately than boundary
-                colours (the ones that take longer or invite hedging phrases).
+                colors (the ones that take longer or invite hedging phrases).
               </p>
               {verdict === "supports" && (
                 <p style={{ fontSize: "16px", lineHeight: "1.65", color: C.body }}>
                   That is broadly what this class shows: focal recognition is{" "}
                   <strong>{(diff * 100).toFixed(0)} percentage points</strong> higher than
-                  boundary recognition, and focal colours were named on average{" "}
+                  boundary recognition, and focal colors were named on average{" "}
                   <strong>{timeDiff.toFixed(1)}s faster</strong>. In other words, easier-to-name
-                  colours were easier to hold in memory across the 30-second delay — the
+                  colors were easier to hold in memory across the 30-second delay — the
                   codability–memory link that Brown &amp; Lenneberg reported in 1954.
                 </p>
               )}
@@ -393,22 +393,22 @@ export default function AdminDashboard() {
                   points of each other ({(stats.focalAcc * 100).toFixed(0)}% vs{" "}
                   {(stats.boundaryAcc * 100).toFixed(0)}%). Worth discussing why — sample
                   size, the small 4-item memory load, English vocabulary for these specific
-                  hues, or genuinely weaker codability effects for this colour set.
+                  hues, or genuinely weaker codability effects for this color set.
                 </p>
               )}
               {verdict === "inverts" && (
                 <p style={{ fontSize: "16px", lineHeight: "1.65", color: C.body }}>
                   This class <strong>inverts</strong> Brown &amp; Lenneberg&apos;s prediction:
-                  boundary colours were recognised more accurately than focal ones by{" "}
+                  boundary colors were recognized more accurately than focal ones by{" "}
                   {(-diff * 100).toFixed(0)} points. With a small sample this can easily be
                   noise, but it is a useful prompt for the seminar — which of the 4 test
-                  colours drew the hit, and is there a story about their perceptual
+                  colors drew the hit, and is there a story about their perceptual
                   distinctiveness that outweighs codability?
                 </p>
               )}
               <p style={{ fontSize: "14px", color: C.muted, fontStyle: "italic", marginTop: "10px" }}>
                 Caveats: N = {stats.n}. The original 1954 study used 24 Munsell chips and a
-                recognition set of 4–120 items; this replication uses 12 hex colours and a
+                recognition set of 4–120 items; this replication uses 12 hex colors and a
                 fixed 4-item set, so the effect size is not directly comparable.
               </p>
             </div>
@@ -653,7 +653,7 @@ export default function AdminDashboard() {
                   </text>
                   {sw.accuracy !== null && (
                     <text x={4} y={82} fontSize="10" fontFamily="'Space Mono', monospace" fill={C.muted}>
-                      {(sw.accuracy * 100).toFixed(0)}% recognised when tested
+                      {(sw.accuracy * 100).toFixed(0)}% recognized when tested
                     </text>
                   )}
                   {sw.top.slice(0, 3).map((t, j) => (
@@ -685,16 +685,16 @@ export default function AdminDashboard() {
             {(() => {
               const commentaryY = 830;
               const intro =
-                "Brown & Lenneberg predicted that codability — the speed and agreement with which a colour can be named — should predict how well it is remembered. If they were right, focal colours (named quickly and consistently) should be recognised more accurately than boundary colours (those that take longer or invite hedging phrases).";
+                "Brown & Lenneberg predicted that codability — the speed and agreement with which a color can be named — should predict how well it is remembered. If they were right, focal colors (named quickly and consistently) should be recognized more accurately than boundary colors (those that take longer or invite hedging phrases).";
               let verdictText = "";
               if (verdict === "supports") {
-                verdictText = `That is broadly what this class shows: focal recognition is ${(diff * 100).toFixed(0)} percentage points higher than boundary recognition, and focal colours were named on average ${timeDiff.toFixed(1)}s faster. Easier-to-name colours were easier to hold in memory across the 30-second delay — the codability–memory link Brown & Lenneberg reported in 1954.`;
+                verdictText = `That is broadly what this class shows: focal recognition is ${(diff * 100).toFixed(0)} percentage points higher than boundary recognition, and focal colors were named on average ${timeDiff.toFixed(1)}s faster. Easier-to-name colors were easier to hold in memory across the 30-second delay — the codability–memory link Brown & Lenneberg reported in 1954.`;
               } else if (verdict === "mixed") {
-                verdictText = `This class shows a flatter pattern than Brown & Lenneberg reported: focal and boundary recognition came out within a few points of each other (${(stats.focalAcc * 100).toFixed(0)}% vs ${(stats.boundaryAcc * 100).toFixed(0)}%). Worth discussing why — sample size, the small 4-item memory load, English vocabulary for these specific hues, or genuinely weaker codability effects for this colour set.`;
+                verdictText = `This class shows a flatter pattern than Brown & Lenneberg reported: focal and boundary recognition came out within a few points of each other (${(stats.focalAcc * 100).toFixed(0)}% vs ${(stats.boundaryAcc * 100).toFixed(0)}%). Worth discussing why — sample size, the small 4-item memory load, English vocabulary for these specific hues, or genuinely weaker codability effects for this color set.`;
               } else {
-                verdictText = `This class inverts Brown & Lenneberg's prediction: boundary colours were recognised more accurately than focal ones by ${(-diff * 100).toFixed(0)} points. With a small sample this can easily be noise, but it is a useful prompt for the seminar — which of the 4 test colours drew the hit, and is there a story about their perceptual distinctiveness that outweighs codability?`;
+                verdictText = `This class inverts Brown & Lenneberg's prediction: boundary colors were recognized more accurately than focal ones by ${(-diff * 100).toFixed(0)} points. With a small sample this can easily be noise, but it is a useful prompt for the seminar — which of the 4 test colors drew the hit, and is there a story about their perceptual distinctiveness that outweighs codability?`;
               }
-              const caveat = `Caveats: N = ${stats.n}. The original 1954 study used 24 Munsell chips and a recognition set of 4–120 items; this replication uses 12 hex colours and a fixed 4-item set, so the effect size is not directly comparable.`;
+              const caveat = `Caveats: N = ${stats.n}. The original 1954 study used 24 Munsell chips and a recognition set of 4–120 items; this replication uses 12 hex colors and a fixed 4-item set, so the effect size is not directly comparable.`;
               const WRAP = 120;
               const introLines = wrapText(intro, WRAP);
               const verdictLines = wrapText(verdictText, WRAP);

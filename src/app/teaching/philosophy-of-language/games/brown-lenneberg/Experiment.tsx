@@ -112,8 +112,8 @@ const base: Record<string, React.CSSProperties> = {
 // not a claim about which type the journal used, which this scan cannot
 // tell us.
 //
-// It stops at the description. Every phase that puts a colour on screen
-// keeps the neutral ground it had: type is not neutral for a colour-memory
+// It stops at the description. Every phase that puts a color on screen
+// keeps the neutral ground it had: type is not neutral for a color-memory
 // task, and dressing the stimulus would put the period look inside the
 // measurement.
 const SERIF_1954 = "'Bodoni Moda', 'Didot', 'Bodoni MT', Georgia, serif";
@@ -490,7 +490,7 @@ export default function Experiment({
         <style>{FONTS}</style>
         <div style={{ ...base.card, padding: "40px 52px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <div style={base.eyebrow}>Part I — Colour Naming</div>
+            <div style={base.eyebrow}>Part I — Color Naming</div>
             <div style={{ ...base.mono, fontSize: "12px", color: C.muted }}>
               {namingIdx + 1} / {shuffled.length}
             </div>
@@ -514,7 +514,7 @@ export default function Experiment({
               marginBottom: "8px",
             }}
           >
-            Name this colour
+            Name this color
           </div>
           <input
             ref={inputRef}
@@ -560,15 +560,15 @@ export default function Experiment({
         <style>{FONTS}</style>
         <div style={base.card}>
           <div style={base.eyebrow}>Part I Complete</div>
-          <h2 style={base.h1}>Colour naming recorded.</h2>
+          <h2 style={base.h1}>Color naming recorded.</h2>
           <p style={base.body}>
-            Now for Part II. You will see <strong>4 colours simultaneously for 3 seconds</strong>. Study them.
+            Now for Part II. You will see <strong>4 colors simultaneously for 3 seconds</strong>. Study them.
           </p>
           <p style={base.body}>
-            After a short delay filled with arithmetic problems, you will identify those colours from the full set of 12.
+            After a short delay filled with arithmetic problems, you will identify those colors from the full set of 12.
           </p>
           <p style={{ ...base.small, fontStyle: "italic" }}>
-            The colours were selected to include both easy-to-name and harder-to-name items.
+            The colors were selected to include both easy-to-name and harder-to-name items.
           </p>
           <button style={base.btn} onClick={() => setPhase("exposure")}>
             Start Memory Test →
@@ -582,7 +582,7 @@ export default function Experiment({
       <div style={base.wrap}>
         <style>{FONTS}</style>
         <div style={{ ...base.card, textAlign: "center" }}>
-          <div style={{ ...base.eyebrow, textAlign: "center" }}>Memorise these colours · {expCountdown}s</div>
+          <div style={{ ...base.eyebrow, textAlign: "center" }}>Memorize these colors · {expCountdown}s</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", margin: "20px 0 24px" }}>
             {exposureColors.map((c) => (
               <div
@@ -672,7 +672,7 @@ export default function Experiment({
         <style>{FONTS}</style>
         <div style={{ ...base.card, padding: "44px 52px" }}>
           <div style={base.eyebrow}>Part II — Recognition</div>
-          <h2 style={base.h2}>Which 4 colours did you see?</h2>
+          <h2 style={base.h2}>Which 4 colors did you see?</h2>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <p style={{ ...base.small, margin: 0 }}>Click to select. When you have chosen 4, submit.</p>
             <div
@@ -743,7 +743,7 @@ export default function Experiment({
           <h1 style={{ ...base.h1, fontSize: "30px" }}>
             You correctly identified&nbsp;
             <span style={{ borderBottom: `2px solid ${C.accent}` }}>{correct} of 4</span>
-            &nbsp; colours.
+            &nbsp; colors.
           </h1>
           {submitStatus === "ok" && (
             <p style={{ ...base.small, fontStyle: "italic", color: "#1A7840" }}>
@@ -759,7 +759,7 @@ export default function Experiment({
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "28px" }}>
             {[
               {
-                label: "Focal colours",
+                label: "Focal colors",
                 sub: "(easy to name)",
                 c: focalCorrect,
                 t: focalTotal,
@@ -767,7 +767,7 @@ export default function Experiment({
                 color: "#1A7840",
               },
               {
-                label: "Boundary colours",
+                label: "Boundary colors",
                 sub: "(harder to name)",
                 c: boundaryCorrect,
                 t: boundaryTotal,
@@ -810,7 +810,7 @@ export default function Experiment({
           </div>
 
           <div style={base.divider} />
-          <div style={{ ...base.eyebrow, marginBottom: "16px" }}>The 4 test colours — your naming data</div>
+          <div style={{ ...base.eyebrow, marginBottom: "16px" }}>The 4 test colors — your naming data</div>
           <div
             style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "28px" }}
           >
@@ -938,8 +938,8 @@ export default function Experiment({
             ))}
           </svg>
           <p style={{ fontSize: "13px", color: C.muted, fontStyle: "italic", marginBottom: "24px" }}>
-            Each circle represents one of the 4 test colours, plotted by how quickly you named it and whether you
-            recognised it.
+            Each circle represents one of the 4 test colors, plotted by how quickly you named it and whether you
+            recognized it.
           </p>
 
           {/* The paper's own findings return to the paper's dress — your
@@ -949,21 +949,21 @@ export default function Experiment({
             Brown &amp; Lenneberg&apos;s Findings
           </div>
           <p style={paper.body}>
-            In the original experiment with 24 Munsell colour chips, Brown and Lenneberg found a rank-order correlation
+            In the original experiment with 24 Munsell color chips, Brown and Lenneberg found a rank-order correlation
             of <strong>.415</strong> between codability and recognition. When a 30-second interval filled with
             distractor tasks was used (as here), the correlation rose to <strong>.487</strong> — higher storage demand
             made linguistic coding matter more.
           </p>
           <p style={paper.body}>
             The key variable was <em>codability</em>: a composite of naming speed, syllable count, and inter-rater
-            agreement. Colours that everyone names quickly and consistently (<em>&ldquo;red,&rdquo; &ldquo;blue&rdquo;</em>) are
-            remembered better than colours requiring negotiation (<em>&ldquo;a sort of brownish gold,&rdquo; &ldquo;between blue and
+            agreement. Colors that everyone names quickly and consistently (<em>&ldquo;red,&rdquo; &ldquo;blue&rdquo;</em>) are
+            remembered better than colors requiring negotiation (<em>&ldquo;a sort of brownish gold,&rdquo; &ldquo;between blue and
             gray&rdquo;</em>).
           </p>
           <div style={paper.footnoteRule} />
           <p style={paper.footnote}>
             <sup>2</sup> A companion Zuni Indian study confirmed the effect cross-culturally: Zuni speakers, who use one
-            word for orange and yellow, confused those two colours in recognition significantly more than English
+            word for orange and yellow, confused those two colors in recognition significantly more than English
             speakers did.
           </p>
           <button

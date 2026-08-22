@@ -4,7 +4,7 @@ import Experiment from "./Experiment";
 export const metadata: Metadata = {
   title: "Brown & Lenneberg Replication — Nat Hansen",
   description:
-    "A classroom replication of Brown & Lenneberg's 1954 experiment on language and memory for colour.",
+    "A classroom replication of Brown & Lenneberg's 1954 experiment on language and memory for color.",
 };
 
 export default async function Page({
