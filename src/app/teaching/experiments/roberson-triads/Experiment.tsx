@@ -630,7 +630,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
           language draws these lines differently, something rarer and more interesting).
         </p>
         <div style={base.well}>
-          <strong>Where this deviates from the original.</strong> The original used painted
+          <strong>Where this deviates from the original.</strong>{" "}The original used painted
           Munsell chips in a daylight light box; you used a screen, and the nine green–blue
           chips sit slightly outside what an sRGB monitor can show, so each lost a little
           saturation (uniformly, with the hue steps preserved). The original&rsquo;s two

@@ -474,7 +474,7 @@ export default function AdminDashboard() {
                 )}
                 {verdict === "mixed" && (
                   <p style={{ fontSize: "16px", lineHeight: "1.65", color: C.body }}>
-                    The class shows a <strong>flatter pattern</strong> than Heider reported —
+                    The class shows a <strong>flatter pattern</strong>{" "}than Heider reported —
                     focal, internominal, and boundary recognition are within ~8 points of each
                     other. Worth discussing: small N, the gap between these approximate hex
                     swatches and Heider&apos;s actual Munsell chips, or the replication&apos;s

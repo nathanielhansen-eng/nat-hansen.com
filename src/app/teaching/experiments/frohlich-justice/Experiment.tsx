@@ -61,7 +61,7 @@ function ReferencePanel() {
   return (
     <details className="border border-[#DDD5C0] rounded bg-white group">
       <summary className="cursor-pointer px-3 py-2 text-[#3A3328] text-sm hover:text-[#1A1814] select-none">
-        <span className="text-[#9A8866]">▸</span> Reference — principles &amp;
+        <span className="text-[#9A8866]">▸</span>{" "}Reference — principles &amp;
         candidate distributions (D1–D{GROUP_DISTRIBUTIONS.length})
       </summary>
       <div className="px-3 pb-3 pt-1 space-y-3">
