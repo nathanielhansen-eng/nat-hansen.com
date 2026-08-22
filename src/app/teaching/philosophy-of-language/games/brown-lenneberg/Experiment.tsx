@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 
-const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`;
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`;
 
 type ColorType = "focal" | "boundary";
 interface ColorDef {
@@ -100,6 +100,106 @@ const base: Record<string, React.CSSProperties> = {
   },
   mono: { fontFamily: "'Space Mono', monospace" },
   divider: { borderTop: `1px solid ${C.border}`, margin: "28px 0" },
+};
+
+// ---- 1954 dress, for the description only ----
+//
+// The front page of Brown & Lenneberg as it was set: letterspaced caps for
+// the title, the authors in caps with a small-caps "and" between them,
+// affiliations in italic, and an opening paragraph that starts on a
+// two-line drop cap with the first words carried in small caps. The face is
+// a Modern in the manner of the original's — an evocation of the period,
+// not a claim about which type the journal used, which this scan cannot
+// tell us.
+//
+// It stops at the description. Every phase that puts a colour on screen
+// keeps the neutral ground it had: type is not neutral for a colour-memory
+// task, and dressing the stimulus would put the period look inside the
+// measurement.
+const SERIF_1954 = "'Bodoni Moda', 'Didot', 'Bodoni MT', Georgia, serif";
+
+const paper: Record<string, React.CSSProperties> = {
+  card: {
+    background: "#FCFAF6",
+    border: `1px solid ${C.border}`,
+    maxWidth: "720px",
+    width: "100%",
+    padding: "64px 72px 40px",
+    boxShadow: "0 2px 18px rgba(0,0,0,0.06)",
+    fontFamily: SERIF_1954,
+  },
+  title: {
+    fontFamily: SERIF_1954,
+    fontSize: "27px",
+    fontWeight: 400,
+    letterSpacing: "0.14em",
+    lineHeight: "1.3",
+    textAlign: "center",
+    textTransform: "uppercase",
+    color: C.text,
+    margin: "0 0 26px",
+  },
+  author: {
+    fontFamily: SERIF_1954,
+    fontSize: "17px",
+    letterSpacing: "0.09em",
+    textAlign: "center",
+    textTransform: "uppercase",
+    color: C.text,
+    margin: "0 0 2px",
+  },
+  conjunction: { fontSize: "13px", letterSpacing: "0.1em" },
+  affiliation: {
+    fontFamily: SERIF_1954,
+    fontStyle: "italic",
+    fontSize: "16px",
+    lineHeight: "1.35",
+    textAlign: "center",
+    color: C.text,
+    margin: "0 0 20px",
+  },
+  body: {
+    fontFamily: SERIF_1954,
+    fontSize: "18px",
+    lineHeight: "1.6",
+    color: C.text,
+    textAlign: "justify",
+    hyphens: "auto",
+    margin: "0 0 14px",
+  },
+  dropcap: {
+    float: "left",
+    fontFamily: SERIF_1954,
+    fontSize: "58px",
+    lineHeight: "0.82",
+    paddingRight: "8px",
+    paddingTop: "4px",
+    color: C.text,
+  },
+  opener: { fontVariant: "small-caps", letterSpacing: "0.04em" },
+  sectionHead: {
+    fontFamily: SERIF_1954,
+    fontSize: "15px",
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    textAlign: "center",
+    color: C.text,
+    margin: "26px 0 12px",
+  },
+  footnoteRule: {
+    borderTop: `1px solid ${C.border}`,
+    width: "34%",
+    margin: "30px 0 10px",
+  },
+  footnote: {
+    fontFamily: SERIF_1954,
+    fontSize: "14px",
+    lineHeight: "1.5",
+    color: C.body,
+    textAlign: "justify",
+    hyphens: "auto",
+    margin: "0 0 8px",
+  },
 };
 
 function ProgressBar({ value, max, color = C.accent }: { value: number; max: number; color?: string }) {
@@ -323,40 +423,58 @@ export default function Experiment({
     return (
       <div style={base.wrap}>
         <style>{FONTS}</style>
-        <div style={base.card}>
-          <div style={base.eyebrow}>Brown &amp; Lenneberg · Journal of Abnormal Psychology · 1954</div>
-          <h1 style={base.h1}>
-            A Study in
-            <br />
-            Language &amp; Cognition
+        <div style={paper.card}>
+          <h1 style={paper.title}>
+            A Study in Language and Cognition
+            <sup style={{ fontSize: "0.5em", letterSpacing: 0 }}>1</sup>
           </h1>
-          <p style={base.body}>
-            Brown and Lenneberg proposed that colors with short, agreed-upon names — <em>focal colors</em> — are more
-            cognitively available than colors requiring phrases or hesitation. Their key finding:{" "}
-            <strong>ease of naming predicts ease of recognition.</strong>
+          <p style={paper.author}>Roger W. Brown</p>
+          <p style={paper.affiliation}>Harvard University</p>
+          <p style={paper.author}>
+            <span style={paper.conjunction}>and </span>Eric H. Lenneberg
           </p>
-          <p style={base.body}>
-            This replication has two parts. First, you will name 12 colors. Then you will attempt to recognise a subset
-            of them after a delay.
+          <p style={paper.affiliation}>
+            Center for International Studies,
+            <br />
+            Massachusetts Institute of Technology
           </p>
-          <p style={{ ...base.small, fontStyle: "italic" }}>
-            Your anonymous responses will be compiled and used for in-class discussion.
+
+          <p style={paper.body}>
+            <span style={paper.dropcap}>I</span>
+            <span style={paper.opener}>t is popularly believed</span> that reality is
+            present in much the same form to all men of sound mind. Brown and
+            Lenneberg doubted it. They proposed that colours with short,
+            agreed-upon names — <em>focal colours</em> — are more available to
+            the mind than colours needing a phrase or a hesitation, and that
+            the availability shows up in memory. Their finding: ease of naming
+            predicts ease of recognition.
           </p>
-          <div style={{ ...base.divider }} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-            {[
-              ["Part I", "Colour Naming", "Name 12 colours. Response time is recorded."],
-              ["Part II", "Memory & Recognition", "See 4 colours briefly, then find them after a delay."],
-            ].map(([label, title, desc]) => (
-              <div key={label} style={{ borderTop: `2px solid ${C.border}`, paddingTop: "16px" }}>
-                <div style={{ ...base.eyebrow, marginBottom: "4px" }}>{label}</div>
-                <div style={{ fontSize: "17px", fontWeight: 600, marginBottom: "6px", color: C.text }}>{title}</div>
-                <div style={{ fontSize: "15px", color: C.muted, lineHeight: "1.5" }}>{desc}</div>
-              </div>
-            ))}
-          </div>
-          <button style={base.btn} onClick={() => setPhase("naming")}>
-            Begin Experiment →
+          <p style={paper.body}>
+            What follows is their experiment, run on you. It has two parts. You
+            will name twelve colours, and the time you take will be recorded.
+            After a delay, you will try to pick out four of them again.
+          </p>
+
+          <div style={paper.sectionHead}>Procedure</div>
+          <p style={paper.body}>
+            <b style={{ fontWeight: 500 }}>Part I. Naming.</b> Twelve colours
+            are shown one at a time. Name each as you would to someone who must
+            pick it out later. <b style={{ fontWeight: 500 }}>Part II. Memory
+            and recognition.</b> Four colours are shown briefly; after an
+            interval filled with arithmetic, you will look for them in a larger
+            array.
+          </p>
+
+          <div style={paper.footnoteRule} />
+          <p style={paper.footnote}>
+            <sup>1</sup> A classroom replication of Brown, R. W., &amp;
+            Lenneberg, E. H., &ldquo;A Study in Language and Cognition&rdquo;
+            (1954), pp. 454&ndash;462; the original was received 12 April 1954.
+            Your responses are anonymous and are compiled for discussion in
+            class.
+          </p>
+          <button style={{ ...base.btn, fontFamily: SERIF_1954, letterSpacing: "0.14em" }} onClick={() => setPhase("naming")}>
+            Begin the experiment
           </button>
         </div>
       </div>
