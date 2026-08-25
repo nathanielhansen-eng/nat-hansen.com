@@ -15,7 +15,7 @@ export default function ChainJoinPage() {
         minHeight: "100vh",
         background: "#F5F5F4",
         fontFamily: "'Crimson Pro', Georgia, serif",
-        color: "#1A1814",
+        color: "#1C1917",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -32,7 +32,7 @@ export default function ChainJoinPage() {
             fontSize: 11,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "#9A8866",
+            color: "#78716C",
             marginBottom: 14,
           }}
         >
@@ -48,7 +48,7 @@ export default function ChainJoinPage() {
           placeholder="ABCDE"
           maxLength={6}
           style={{
-            border: "1px solid #DDD5C0",
+            border: "1px solid #D6D3D1",
             padding: "14px 18px",
             fontSize: 28,
             letterSpacing: "0.3em",
@@ -57,7 +57,7 @@ export default function ChainJoinPage() {
             textTransform: "uppercase",
             width: 240,
             outline: "none",
-            background: "#FDFAF5",
+            background: "#FAFAF9",
             marginBottom: 22,
           }}
         />
@@ -65,7 +65,7 @@ export default function ChainJoinPage() {
           <button
             type="submit"
             style={{
-              background: "#1A1814",
+              background: "#1C1917",
               color: "#F5F5F4",
               border: "none",
               padding: "13px 34px",
@@ -79,8 +79,8 @@ export default function ChainJoinPage() {
             Join →
           </button>
         </div>
-        <p style={{ marginTop: 28, fontSize: 13, color: "#9A8866" }}>
-          <Link href="/teaching/experiments" style={{ color: "#9A8866" }}>
+        <p style={{ marginTop: 28, fontSize: 13, color: "#78716C" }}>
+          <Link href="/teaching/experiments" style={{ color: "#78716C" }}>
             ← all experiments
           </Link>
         </p>

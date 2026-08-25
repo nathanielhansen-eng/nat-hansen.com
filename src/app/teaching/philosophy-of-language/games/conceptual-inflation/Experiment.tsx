@@ -7,11 +7,11 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
 };
 
 const base: Record<string, React.CSSProperties> = {
@@ -77,7 +77,7 @@ const base: Record<string, React.CSSProperties> = {
     fontFamily: "'Crimson Pro', Georgia, serif",
     width: "100%",
     outline: "none",
-    background: "#FDFAF5",
+    background: "#FAFAF9",
     boxSizing: "border-box",
   },
   mono: { fontFamily: "'Space Mono', monospace" },
@@ -498,7 +498,7 @@ export default function Experiment({ session }: { session: string }) {
             style={{
               marginTop: "28px",
               height: "2px",
-              background: "#EDE8DF",
+              background: "#E7E5E4",
               borderRadius: "1px",
               overflow: "hidden",
             }}
@@ -629,7 +629,7 @@ export default function Experiment({ session }: { session: string }) {
                       color: C.body,
                       padding: "10px 12px",
                       border: `1px solid ${checked ? C.accent : C.border}`,
-                      background: checked ? "#FDFAF5" : C.surface,
+                      background: checked ? "#FAFAF9" : C.surface,
                       cursor: "pointer",
                     }}
                   >

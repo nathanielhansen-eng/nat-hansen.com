@@ -7,14 +7,14 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
   cost: "#8C3A2E",
   bonus: "#4A6B4F",
-  well: "#FDFAF5",
+  well: "#FAFAF9",
 };
 
 const base: Record<string, React.CSSProperties> = {
@@ -554,7 +554,7 @@ export default function Experiment({
               <span style={{ ...base.mono, fontSize: "12px", color: C.muted, width: "88px" }}>
                 {row[0]}
               </span>
-              <span style={{ flex: 1, height: "10px", background: "#EDE6D8", display: "block" }}>
+              <span style={{ flex: 1, height: "10px", background: "#E7E5E4", display: "block" }}>
                 <span
                   style={{
                     display: "block",

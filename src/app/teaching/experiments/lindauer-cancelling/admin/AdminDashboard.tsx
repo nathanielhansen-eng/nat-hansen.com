@@ -7,15 +7,15 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
   harm: "#8C3A2E",
   help: "#4A6B4F",
   cancel: "#A6772E",
-  well: "#FDFAF5",
+  well: "#FAFAF9",
 };
 
 type Condition = "helping" | "harming" | "cancelling";

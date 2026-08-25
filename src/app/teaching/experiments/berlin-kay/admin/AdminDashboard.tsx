@@ -9,11 +9,11 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  well: "#FDFAF5",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  well: "#FAFAF9",
   red: "#CC1A14",
 };
 

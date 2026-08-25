@@ -86,7 +86,7 @@ export default function ChipGrid({
       position: "relative",
       cursor: interactive ? "pointer" : "default",
       touchAction: paintable ? "none" : undefined,
-      boxShadow: d.ring ? "inset 0 0 0 2px #FFFFFF, inset 0 0 0 3.5px #1A1814" : undefined,
+      boxShadow: d.ring ? "inset 0 0 0 2px #FFFFFF, inset 0 0 0 3.5px #1C1917" : undefined,
       opacity: d.dim ? 0.55 : 1,
     };
     return (
@@ -114,7 +114,7 @@ export default function ChipGrid({
               inset: "22%",
               borderRadius: "50%",
               background: "#FFFFFF",
-              border: "2px solid #1A1814",
+              border: "2px solid #1C1917",
               pointerEvents: "none",
             }}
           />
@@ -144,7 +144,7 @@ export default function ChipGrid({
               lineHeight: 1,
               padding: "1px 2px",
               background: "rgba(255,255,255,0.85)",
-              color: "#1A1814",
+              color: "#1C1917",
               pointerEvents: "none",
             }}
           >

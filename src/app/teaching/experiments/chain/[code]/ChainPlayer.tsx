@@ -5,7 +5,7 @@ import { getTaskClient } from "../tasks/registry";
 import type { ChainSnapshot } from "@/lib/chain/types";
 
 const CANVAS = "#F5F5F4";
-const INK = "#1A1814";
+const INK = "#1C1917";
 const MONO = "'Space Mono', monospace";
 const SERIF = "'Crimson Pro', Georgia, serif";
 
@@ -131,7 +131,7 @@ export default function ChainPlayer({ code }: { code: string }) {
           <h1 style={{ fontSize: 26, fontWeight: 400, marginBottom: 12 }}>
             All chains are busy
           </h1>
-          <p style={{ fontSize: 17, color: "#5b5347" }}>
+          <p style={{ fontSize: 17, color: "#57534E" }}>
             Every chain is currently being worked on. You&apos;ll be slotted in
             automatically the moment one frees up — keep this tab open.
           </p>
@@ -146,7 +146,7 @@ export default function ChainPlayer({ code }: { code: string }) {
           <h1 style={{ fontSize: 26, fontWeight: 400, marginBottom: 12 }}>
             This room is finished
           </h1>
-          <p style={{ fontSize: 17, color: "#5b5347" }}>
+          <p style={{ fontSize: 17, color: "#57534E" }}>
             Every chain has reached its final generation, or the instructor has
             closed the room. Thanks for taking part.
           </p>
@@ -161,7 +161,7 @@ export default function ChainPlayer({ code }: { code: string }) {
           <h1 style={{ fontSize: 26, fontWeight: 400, marginBottom: 12 }}>
             Something went wrong
           </h1>
-          <p style={{ fontSize: 17, color: "#5b5347" }}>{state.msg}</p>
+          <p style={{ fontSize: 17, color: "#57534E" }}>{state.msg}</p>
         </div>
       </Screen>
     );
@@ -196,7 +196,7 @@ export default function ChainPlayer({ code }: { code: string }) {
             fontSize: 11,
             letterSpacing: "0.16em",
             textTransform: "uppercase",
-            color: "#9A8866",
+            color: "#78716C",
             marginBottom: 12,
           }}
         >
@@ -205,7 +205,7 @@ export default function ChainPlayer({ code }: { code: string }) {
         <h1 style={{ fontSize: 28, fontWeight: 400, marginBottom: 8 }}>
           Passed on. Thank you.
         </h1>
-        <p style={{ fontSize: 16, color: "#5b5347", marginBottom: 28 }}>
+        <p style={{ fontSize: 16, color: "#57534E", marginBottom: 28 }}>
           Here is how this chain has drifted so far, generation by generation.
         </p>
         <div style={{ textAlign: "left" }}>
@@ -231,7 +231,7 @@ function Row({ label, node }: { label: string; node: React.ReactNode }) {
         gap: 14,
         alignItems: "center",
         padding: "8px 0",
-        borderBottom: "1px solid #E5DDC9",
+        borderBottom: "1px solid #E7E5E4",
       }}
     >
       <div
@@ -240,7 +240,7 @@ function Row({ label, node }: { label: string; node: React.ReactNode }) {
           fontSize: 10,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: "#9A8866",
+          color: "#78716C",
           width: 110,
           flexShrink: 0,
         }}

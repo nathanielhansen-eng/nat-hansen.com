@@ -7,14 +7,14 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
   cross: "#8C3A2E",
   within: "#4A6B4F",
-  well: "#FDFAF5",
+  well: "#FAFAF9",
 };
 
 const mono: React.CSSProperties = { fontFamily: "'Space Mono', monospace" };
@@ -618,7 +618,7 @@ export default function AdminDashboard() {
                     return (
                       <div key={k} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
                         <span style={{ ...mono, fontSize: "9px", color: count ? C.text : "transparent" }}>{count}</span>
-                        <span style={{ display: "block", width: "100%", height: `${8 + (count / max) * 56}px`, background: count ? C.accent : "#EDE6D8" }} />
+                        <span style={{ display: "block", width: "100%", height: `${8 + (count / max) * 56}px`, background: count ? C.accent : "#E7E5E4" }} />
                         <span style={{ display: "block", width: "100%", height: "14px", background: STIMULI_HEX[k] }} />
                       </div>
                     );

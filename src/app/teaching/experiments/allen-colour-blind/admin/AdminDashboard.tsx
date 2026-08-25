@@ -7,15 +7,15 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
   favc: "#2F5D8C",
   unfavc: "#8C5A2E",
   err: "#8C3A2E",
-  well: "#FDFAF5",
+  well: "#FAFAF9",
 };
 
 const mono: React.CSSProperties = { fontFamily: "'Space Mono', monospace" };
@@ -490,7 +490,7 @@ export default function AdminDashboard() {
                       <span style={{ ...mono, fontSize: "11px", color: C.muted, width: "150px", flexShrink: 0 }}>
                         {VIEW_LABEL[k]}
                       </span>
-                      <span style={{ flex: 1, height: "12px", background: "#EDE6D8", display: "block" }}>
+                      <span style={{ flex: 1, height: "12px", background: "#E7E5E4", display: "block" }}>
                         <span
                           style={{
                             display: "block",
@@ -719,7 +719,7 @@ export default function AdminDashboard() {
                         {NEW_COLOUR_LABEL[k]}
                         {isAnswer ? " ★" : ""}
                       </span>
-                      <span style={{ flex: 1, height: "12px", background: "#EDE6D8", display: "block" }}>
+                      <span style={{ flex: 1, height: "12px", background: "#E7E5E4", display: "block" }}>
                         <span style={{ display: "block", height: "100%", width: `${pct}%`, background: isAnswer ? C.favc : C.muted }} />
                       </span>
                       <span style={{ ...mono, fontSize: "14px", color: C.text, width: "74px", textAlign: "right" }}>

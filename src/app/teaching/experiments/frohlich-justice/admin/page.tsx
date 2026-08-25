@@ -37,7 +37,7 @@ export default async function AdminPage({
           action="/api/experiments/frohlich-justice/admin-login"
           style={{
             background: "#FFFFFF",
-            border: "1px solid #DDD5C0",
+            border: "1px solid #D6D3D1",
             padding: "48px 52px",
             maxWidth: "420px",
             width: "100%",
@@ -50,7 +50,7 @@ export default async function AdminPage({
               fontSize: "11px",
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "#9A8866",
+              color: "#78716C",
               marginBottom: "12px",
             }}
           >
@@ -61,7 +61,7 @@ export default async function AdminPage({
               fontSize: "28px",
               fontWeight: 400,
               marginBottom: "24px",
-              color: "#1A1814",
+              color: "#1C1917",
             }}
           >
             Distributive Justice — class data
@@ -73,7 +73,7 @@ export default async function AdminPage({
               fontSize: "11px",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: "#9A8866",
+              color: "#78716C",
               marginBottom: "8px",
             }}
           >
@@ -84,13 +84,13 @@ export default async function AdminPage({
             name="password"
             autoFocus
             style={{
-              border: "1px solid #DDD5C0",
+              border: "1px solid #D6D3D1",
               padding: "12px 16px",
               fontSize: "19px",
               fontFamily: "'Crimson Pro', Georgia, serif",
               width: "100%",
               outline: "none",
-              background: "#FDFAF5",
+              background: "#FAFAF9",
               boxSizing: "border-box",
             }}
           />
@@ -109,7 +109,7 @@ export default async function AdminPage({
           <button
             type="submit"
             style={{
-              background: "#1A1814",
+              background: "#1C1917",
               color: "#F5F5F4",
               border: "none",
               padding: "13px 36px",

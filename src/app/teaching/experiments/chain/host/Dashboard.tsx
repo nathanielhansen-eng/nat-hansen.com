@@ -5,7 +5,7 @@ import { getTaskClient } from "../tasks/registry";
 import type { Room } from "@/lib/chain/types";
 
 const CANVAS = "#F5F5F4";
-const INK = "#1A1814";
+const INK = "#1C1917";
 const MONO = "'Space Mono', monospace";
 const SERIF = "'Crimson Pro', Georgia, serif";
 const LS_KEY = "chain_host_room";
@@ -17,7 +17,7 @@ const mono = (size = 11): React.CSSProperties => ({
   fontSize: size,
   letterSpacing: "0.12em",
   textTransform: "uppercase",
-  color: "#9A8866",
+  color: "#78716C",
 });
 
 export default function Dashboard() {
@@ -130,7 +130,7 @@ export default function Dashboard() {
         <div
           style={{
             background: "#FFFFFF",
-            border: "1px solid #DDD5C0",
+            border: "1px solid #D6D3D1",
             padding: 24,
             marginBottom: 28,
             display: "flex",
@@ -178,7 +178,7 @@ export default function Dashboard() {
         </div>
 
         {tasks.find((t) => t.id === taskId) && !room && (
-          <p style={{ color: "#5b5347", fontSize: 16, maxWidth: 680 }}>
+          <p style={{ color: "#57534E", fontSize: 16, maxWidth: 680 }}>
             {tasks.find((t) => t.id === taskId)!.blurb}
           </p>
         )}
@@ -216,7 +216,7 @@ export default function Dashboard() {
                       fontFamily: MONO,
                       fontSize: 13,
                       background: "#FFF",
-                      border: "1px solid #DDD5C0",
+                      border: "1px solid #D6D3D1",
                       padding: "8px 10px",
                       flex: 1,
                       overflow: "hidden",
@@ -281,7 +281,7 @@ function ChainGrid({ room }: { room: Room }) {
         return (
           <div
             key={c.id}
-            style={{ background: "#FFF", border: "1px solid #DDD5C0", padding: 14 }}
+            style={{ background: "#FFF", border: "1px solid #D6D3D1", padding: 14 }}
           >
             <div
               style={{
@@ -329,7 +329,7 @@ function Line({
     <div
       style={{
         padding: "6px 0",
-        borderTop: "1px solid #EFE8D6",
+        borderTop: "1px solid #E7E5E4",
         opacity: muted ? 0.6 : 1,
       }}
     >
@@ -349,11 +349,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputStyle: React.CSSProperties = {
-  border: "1px solid #DDD5C0",
+  border: "1px solid #D6D3D1",
   padding: "10px 12px",
   fontSize: 16,
   fontFamily: SERIF,
-  background: "#FDFAF5",
+  background: "#FAFAF9",
   outline: "none",
 };
 

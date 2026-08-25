@@ -7,11 +7,11 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
   green: "#1A7840",
   red: "#CC1A14",
 };
@@ -490,7 +490,7 @@ export default function AdminDashboard() {
                           </tr>
                         );
                       })}
-                      <tr style={{ borderTop: `2px solid ${C.border}`, background: "#FAFAF7" }}>
+                      <tr style={{ borderTop: `2px solid ${C.border}`, background: "#FAFAF9" }}>
                         <td
                           colSpan={4}
                           style={{
@@ -527,7 +527,7 @@ export default function AdminDashboard() {
                       ].map((row) => {
                         const delta = row.s - row.g;
                         return (
-                          <tr key={row.k} style={{ borderBottom: `1px solid ${C.border}`, background: "#FAFAF7" }}>
+                          <tr key={row.k} style={{ borderBottom: `1px solid ${C.border}`, background: "#FAFAF9" }}>
                             <td
                               style={{
                                 padding: "10px 8px",

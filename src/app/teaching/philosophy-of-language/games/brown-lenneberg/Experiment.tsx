@@ -38,11 +38,11 @@ function genArith() {
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
 };
 
 const base: Record<string, React.CSSProperties> = {
@@ -95,7 +95,7 @@ const base: Record<string, React.CSSProperties> = {
     fontFamily: "'Crimson Pro', Georgia, serif",
     width: "100%",
     outline: "none",
-    background: "#FDFAF5",
+    background: "#FAFAF9",
     boxSizing: "border-box",
   },
   mono: { fontFamily: "'Space Mono', monospace" },
@@ -120,7 +120,7 @@ const SERIF_1954 = "'Bodoni Moda', 'Didot', 'Bodoni MT', Georgia, serif";
 
 const paper: Record<string, React.CSSProperties> = {
   card: {
-    background: "#FCFAF6",
+    background: "#FAFAF9",
     border: `1px solid ${C.border}`,
     maxWidth: "720px",
     width: "100%",
@@ -205,7 +205,7 @@ const paper: Record<string, React.CSSProperties> = {
 
 function ProgressBar({ value, max, color = C.accent }: { value: number; max: number; color?: string }) {
   return (
-    <div style={{ height: "3px", background: "#E8E2D8", borderRadius: "2px", overflow: "hidden", marginTop: "24px" }}>
+    <div style={{ height: "3px", background: "#E7E5E4", borderRadius: "2px", overflow: "hidden", marginTop: "24px" }}>
       <div
         style={{
           height: "100%",
@@ -541,7 +541,7 @@ export default function Experiment({
             style={{
               marginTop: "28px",
               height: "2px",
-              background: "#EDE8DF",
+              background: "#E7E5E4",
               borderRadius: "1px",
               overflow: "hidden",
             }}
@@ -863,8 +863,8 @@ export default function Experiment({
           <div style={base.divider} />
           <div style={{ ...base.eyebrow, marginBottom: "8px" }}>Naming time vs. recognition — your data</div>
           <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block", marginBottom: "4px" }}>
-            <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#CCC3B0" strokeWidth="1" />
-            <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#CCC3B0" strokeWidth="1" />
+            <line x1={pad.l} y1={pad.t} x2={pad.l} y2={H - pad.b} stroke="#A8A29E" strokeWidth="1" />
+            <line x1={pad.l} y1={H - pad.b} x2={W - pad.r} y2={H - pad.b} stroke="#A8A29E" strokeWidth="1" />
             <text
               x={pad.l - 8}
               y={yScale(1) + 4}
@@ -894,7 +894,7 @@ export default function Experiment({
                       y1={H - pad.b}
                       x2={xScale(v)}
                       y2={H - pad.b + 4}
-                      stroke="#CCC3B0"
+                      stroke="#A8A29E"
                       strokeWidth="1"
                     />
                     <text

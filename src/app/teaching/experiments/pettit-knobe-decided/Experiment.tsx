@@ -7,14 +7,14 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
   harm: "#8C3A2E",
   help: "#4A6B4F",
-  well: "#FDFAF5",
+  well: "#FAFAF9",
 };
 
 const base: Record<string, React.CSSProperties> = {
@@ -178,7 +178,7 @@ function Paras({ paras, mark }: { paras: Seg[][]; mark: boolean }) {
             typeof seg === "string" ? (
               <span key={j}>{seg}</span>
             ) : mark ? (
-              <strong key={j} style={{ fontWeight: 600, color: "inherit", background: "#F0E8D8" }}>
+              <strong key={j} style={{ fontWeight: 600, color: "inherit", background: "#E7E5E4" }}>
                 {seg.d}
               </strong>
             ) : (
@@ -529,7 +529,7 @@ export default function Experiment({
               <span style={{ ...base.mono, fontSize: "12px", color: C.muted, width: "48px" }}>
                 {row[0]}
               </span>
-              <span style={{ flex: 1, height: "10px", background: "#EDE6D8", display: "block" }}>
+              <span style={{ flex: 1, height: "10px", background: "#E7E5E4", display: "block" }}>
                 <span
                   style={{
                     display: "block",

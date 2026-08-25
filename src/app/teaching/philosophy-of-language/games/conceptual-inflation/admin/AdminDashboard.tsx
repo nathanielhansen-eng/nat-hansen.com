@@ -7,14 +7,14 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
   ext: "#1548A8",
   int: "#B01568",
-  ref: "#9A8866",
+  ref: "#78716C",
 };
 
 type QType = "extension" | "intensity";
@@ -306,7 +306,7 @@ export default function AdminDashboard() {
               fontSize: "12px",
               padding: "8px 10px",
               border: `1px solid ${C.border}`,
-              background: "#FDFAF5",
+              background: "#FAFAF9",
             }}
           >
             <option value="">All sessions</option>
@@ -361,7 +361,7 @@ export default function AdminDashboard() {
                 fontSize: "12px",
                 padding: "8px 10px",
                 border: `1px solid ${C.border}`,
-                background: "#FDFAF5",
+                background: "#FAFAF9",
                 minWidth: "240px",
               }}
             />
@@ -471,7 +471,7 @@ export default function AdminDashboard() {
                             y={ROW_H / 2 - 11}
                             width={BAR_W}
                             height={22}
-                            fill="#EDE8DF"
+                            fill="#E7E5E4"
                           />
                           {/* live mean bar */}
                           <rect
@@ -667,7 +667,7 @@ function Scatter({
       >
         {title}
       </div>
-      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block", background: "#FDFAF5", border: `1px solid ${C.border}` }}>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block", background: "#FAFAF9", border: `1px solid ${C.border}` }}>
         {/* y gridlines + labels */}
         {yTicks.map((v) => (
           <g key={`y${v}`}>
@@ -676,7 +676,7 @@ function Scatter({
               x2={W - PAD_R}
               y1={sy(v)}
               y2={sy(v)}
-              stroke="#EDE8DF"
+              stroke="#E7E5E4"
               strokeWidth="1"
             />
             <text

@@ -7,11 +7,11 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
   // Condition accents. Deliberately blue vs. amber rather than the usual
   // red/green pair: this experiment is about colour vision, some participants
   // will be colour-blind, and a blue/amber contrast survives both protan and
@@ -19,7 +19,7 @@ const C = {
   favc: "#2F5D8C",
   unfavc: "#8C5A2E",
   err: "#8C3A2E",
-  well: "#FDFAF5",
+  well: "#FAFAF9",
 };
 
 const base: Record<string, React.CSSProperties> = {

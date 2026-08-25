@@ -17,15 +17,15 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
-  well: "#FDFAF5",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
+  well: "#FAFAF9",
   red: "#CC1A14",
   // The paper mounts triads on off-white Munsell display card in a light box.
-  card: "#EDEAE3",
+  card: "#E7E5E4",
 };
 
 const base: Record<string, React.CSSProperties> = {
@@ -178,7 +178,7 @@ function TriadCard({
           borderRadius: "2px",
           cursor: "pointer",
           boxShadow: isSel
-            ? "0 0 0 3px #FFFFFF, 0 0 0 6px #1A1814"
+            ? "0 0 0 3px #FFFFFF, 0 0 0 6px #1C1917"
             : "0 1px 3px rgba(0,0,0,0.25)",
         }}
       />

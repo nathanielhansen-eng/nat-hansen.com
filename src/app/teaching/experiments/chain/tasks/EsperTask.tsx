@@ -7,7 +7,7 @@ import type { ChainTaskComponentProps } from "./types";
 type Phase = "intro" | "learn" | "test" | "review";
 
 const CANVAS = "#F5F5F4";
-const INK = "#1A1814";
+const INK = "#1C1917";
 const MONO = "'Space Mono', monospace";
 const SERIF = "'Crimson Pro', Georgia, serif";
 
@@ -114,7 +114,7 @@ export default function EsperTask({
             fontSize: 11,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "#9A8866",
+            color: "#78716C",
             marginBottom: 14,
           }}
         >
@@ -128,7 +128,7 @@ export default function EsperTask({
           green — each with a made-up name. Study them twice. Then you&apos;ll be
           shown each figure and asked to type its name <em>from memory</em>.
         </p>
-        <p style={{ fontSize: 16, lineHeight: 1.5, marginBottom: 28, color: "#5b5347" }}>
+        <p style={{ fontSize: 16, lineHeight: 1.5, marginBottom: 28, color: "#57534E" }}>
           Whatever you type becomes the language taught to the next student in
           the chain. Don&apos;t look anything up — just do your best to remember.
         </p>
@@ -151,7 +151,7 @@ export default function EsperTask({
             fontSize: 11,
             letterSpacing: "0.16em",
             textTransform: "uppercase",
-            color: "#9A8866",
+            color: "#78716C",
             marginBottom: 18,
           }}
         >
@@ -204,14 +204,14 @@ export default function EsperTask({
             fontSize: 11,
             letterSpacing: "0.16em",
             textTransform: "uppercase",
-            color: "#9A8866",
+            color: "#78716C",
             marginBottom: 18,
           }}
         >
           Recall · {testIdx + 1}/{testOrder.length}
         </div>
         <ShapeSVG shape={s.shape} color={s.color} />
-        <div style={{ margin: "20px 0 8px", fontSize: 17, color: "#5b5347" }}>
+        <div style={{ margin: "20px 0 8px", fontSize: 17, color: "#57534E" }}>
           What is this called?
         </div>
         <input
@@ -222,14 +222,14 @@ export default function EsperTask({
             if (e.key === "Enter") commit();
           }}
           style={{
-            border: `1px solid #DDD5C0`,
+            border: `1px solid #D6D3D1`,
             padding: "12px 16px",
             fontSize: 24,
             fontFamily: SERIF,
             textAlign: "center",
             width: 260,
             outline: "none",
-            background: "#FDFAF5",
+            background: "#FAFAF9",
             marginBottom: 24,
           }}
         />
@@ -251,7 +251,7 @@ export default function EsperTask({
           fontSize: 11,
           letterSpacing: "0.16em",
           textTransform: "uppercase",
-          color: "#9A8866",
+          color: "#78716C",
           marginBottom: 14,
         }}
       >
@@ -304,7 +304,7 @@ export function renderEsperSummary(value: unknown) {
             fontFamily: MONO,
             fontSize: 12,
             background: s.color === "red" ? "#F6E2DF" : "#DEF0E7",
-            border: "1px solid #DDD5C0",
+            border: "1px solid #D6D3D1",
             padding: "2px 6px",
             borderRadius: 3,
           }}

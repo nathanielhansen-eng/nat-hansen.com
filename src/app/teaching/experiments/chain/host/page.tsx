@@ -37,7 +37,7 @@ export default async function HostPage({
           action="/api/experiments/chain/host/login"
           style={{
             background: "#FFFFFF",
-            border: "1px solid #DDD5C0",
+            border: "1px solid #D6D3D1",
             padding: "48px 52px",
             maxWidth: 420,
             width: "100%",
@@ -50,13 +50,13 @@ export default async function HostPage({
               fontSize: 11,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "#9A8866",
+              color: "#78716C",
               marginBottom: 12,
             }}
           >
             Instructor access
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 400, marginBottom: 24, color: "#1A1814" }}>
+          <h1 style={{ fontSize: 28, fontWeight: 400, marginBottom: 24, color: "#1C1917" }}>
             Transmission chains
           </h1>
           <label
@@ -66,7 +66,7 @@ export default async function HostPage({
               fontSize: 11,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: "#9A8866",
+              color: "#78716C",
               marginBottom: 8,
             }}
           >
@@ -77,13 +77,13 @@ export default async function HostPage({
             name="password"
             autoFocus
             style={{
-              border: "1px solid #DDD5C0",
+              border: "1px solid #D6D3D1",
               padding: "12px 16px",
               fontSize: 19,
               fontFamily: "'Crimson Pro', Georgia, serif",
               width: "100%",
               outline: "none",
-              background: "#FDFAF5",
+              background: "#FAFAF9",
               boxSizing: "border-box",
             }}
           />
@@ -102,7 +102,7 @@ export default async function HostPage({
           <button
             type="submit"
             style={{
-              background: "#1A1814",
+              background: "#1C1917",
               color: "#F5F5F4",
               border: "none",
               padding: "13px 36px",

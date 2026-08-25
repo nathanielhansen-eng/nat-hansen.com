@@ -7,11 +7,11 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro
 const C = {
   bg: "#F5F5F4",
   surface: "#FFFFFF",
-  border: "#DDD5C0",
-  text: "#1A1814",
-  muted: "#9A8866",
-  body: "#3A3328",
-  accent: "#1A1814",
+  border: "#D6D3D1",
+  text: "#1C1917",
+  muted: "#78716C",
+  body: "#44403C",
+  accent: "#1C1917",
   focal: "#1A7840",
   boundary: "#B01568",
 };
@@ -246,7 +246,7 @@ export default function AdminDashboard() {
                 fontSize: "12px",
                 padding: "8px 10px",
                 border: `1px solid ${C.border}`,
-                background: "#FDFAF5",
+                background: "#FAFAF9",
               }}
             >
               <option value="">All sessions</option>
@@ -314,7 +314,7 @@ export default function AdminDashboard() {
                 fontSize: "12px",
                 padding: "8px 10px",
                 border: `1px solid ${C.border}`,
-                background: "#FDFAF5",
+                background: "#FAFAF9",
                 minWidth: "240px",
               }}
             />
@@ -497,14 +497,14 @@ export default function AdminDashboard() {
               y1={scatterBox.y + scatterBox.h - 30}
               x2={scatterBox.x + scatterBox.w - 20}
               y2={scatterBox.y + scatterBox.h - 30}
-              stroke="#CCC3B0"
+              stroke="#A8A29E"
             />
             <line
               x1={scatterBox.x + 40}
               y1={scatterBox.y + 20}
               x2={scatterBox.x + 40}
               y2={scatterBox.y + scatterBox.h - 30}
-              stroke="#CCC3B0"
+              stroke="#A8A29E"
             />
             <text
               x={scatterBox.x + 34}
@@ -535,7 +535,7 @@ export default function AdminDashboard() {
                       y1={scatterBox.y + scatterBox.h - 30}
                       x2={xS(v)}
                       y2={scatterBox.y + scatterBox.h - 26}
-                      stroke="#CCC3B0"
+                      stroke="#A8A29E"
                     />
                     <text
                       x={xS(v)}
@@ -579,7 +579,7 @@ export default function AdminDashboard() {
               y1={barBaseY}
               x2={barBox.x + barBox.w - 10}
               y2={barBaseY}
-              stroke="#CCC3B0"
+              stroke="#A8A29E"
             />
             {barVals.map((b, i) => {
               const x = barBox.x + 40 + i * (barW + barGap);
