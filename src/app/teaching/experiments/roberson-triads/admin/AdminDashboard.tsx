@@ -6,7 +6,7 @@ import { TRIADS, REPS, PUBLISHED, SETS, type SetId } from "../stimuli";
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`;
 
 const C = {
-  bg: "#F4F0E8",
+  bg: "#F5F5F4",
   surface: "#FFFFFF",
   border: "#DDD5C0",
   text: "#1A1814",

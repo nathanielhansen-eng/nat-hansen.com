@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getTaskClient } from "../tasks/registry";
 import type { Room } from "@/lib/chain/types";
 
-const CREAM = "#F4F0E8";
+const CANVAS = "#F5F5F4";
 const INK = "#1A1814";
 const MONO = "'Space Mono', monospace";
 const SERIF = "'Crimson Pro', Georgia, serif";
@@ -114,7 +114,7 @@ export default function Dashboard() {
     <div
       style={{
         minHeight: "100vh",
-        background: CREAM,
+        background: CANVAS,
         fontFamily: SERIF,
         color: INK,
         padding: "32px 24px 80px",
@@ -359,7 +359,7 @@ const inputStyle: React.CSSProperties = {
 
 const primaryBtn: React.CSSProperties = {
   background: INK,
-  color: CREAM,
+  color: CANVAS,
   border: "none",
   padding: "12px 28px",
   fontFamily: MONO,

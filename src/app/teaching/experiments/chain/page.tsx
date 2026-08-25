@@ -13,7 +13,7 @@ export default function ChainJoinPage() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#F4F0E8",
+        background: "#F5F5F4",
         fontFamily: "'Crimson Pro', Georgia, serif",
         color: "#1A1814",
         display: "flex",
@@ -66,7 +66,7 @@ export default function ChainJoinPage() {
             type="submit"
             style={{
               background: "#1A1814",
-              color: "#F4F0E8",
+              color: "#F5F5F4",
               border: "none",
               padding: "13px 34px",
               fontFamily: "'Space Mono', monospace",

@@ -300,7 +300,7 @@ export default function Experiment({ session }: { session: string }) {
 
   return (
     <div
-      className="min-h-screen bg-[#F4F0E8] text-[#1A1814] flex flex-col"
+      className="min-h-screen bg-[#F5F5F4] text-[#1A1814] flex flex-col"
       style={{ fontFamily: "'Crimson Pro', Georgia, serif" }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`}</style>
@@ -1294,7 +1294,7 @@ function Discussion({
         <button
           onClick={send}
           disabled={busy || !input.trim()}
-          className="px-4 py-2 bg-[#1A1814] hover:bg-[#3A3328] disabled:opacity-40 disabled:cursor-not-allowed text-[#F4F0E8] text-sm uppercase tracking-[0.12em]"
+          className="px-4 py-2 bg-[#1A1814] hover:bg-[#3A3328] disabled:opacity-40 disabled:cursor-not-allowed text-[#F5F5F4] text-sm uppercase tracking-[0.12em]"
         >
           Send
         </button>
@@ -1565,7 +1565,7 @@ function VoteResult({
           </div>
           <button
             onClick={onKeepTalking}
-            className="px-4 py-2 bg-[#1A1814] hover:bg-[#3A3328] text-[#F4F0E8] text-sm uppercase tracking-[0.12em]"
+            className="px-4 py-2 bg-[#1A1814] hover:bg-[#3A3328] text-[#F5F5F4] text-sm uppercase tracking-[0.12em]"
           >
             Back to discussion
           </button>
@@ -1682,7 +1682,7 @@ function Debrief({
       )}
       <button
         onClick={onRestart}
-        className="px-4 py-2 bg-[#1A1814] hover:bg-[#3A3328] text-[#F4F0E8] text-sm uppercase tracking-[0.12em]"
+        className="px-4 py-2 bg-[#1A1814] hover:bg-[#3A3328] text-[#F5F5F4] text-sm uppercase tracking-[0.12em]"
       >
         Run it again
       </button>
@@ -1703,7 +1703,7 @@ function PrimaryButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="px-9 py-3 bg-[#1A1814] hover:bg-[#3A3328] disabled:opacity-40 disabled:cursor-not-allowed text-[#F4F0E8] text-sm uppercase tracking-[0.12em] transition-colors"
+      className="px-9 py-3 bg-[#1A1814] hover:bg-[#3A3328] disabled:opacity-40 disabled:cursor-not-allowed text-[#F5F5F4] text-sm uppercase tracking-[0.12em] transition-colors"
       style={{ fontFamily: "'Space Mono', monospace" }}
     >
       {children}

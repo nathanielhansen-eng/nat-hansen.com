@@ -6,7 +6,7 @@ import type { ChainTaskComponentProps } from "./types";
 
 type Phase = "intro" | "learn" | "test" | "review";
 
-const CREAM = "#F4F0E8";
+const CANVAS = "#F5F5F4";
 const INK = "#1A1814";
 const MONO = "'Space Mono', monospace";
 const SERIF = "'Crimson Pro', Georgia, serif";
@@ -52,7 +52,7 @@ function shuffled<T>(arr: T[]): T[] {
 
 const btn = (primary = true): React.CSSProperties => ({
   background: primary ? INK : "transparent",
-  color: primary ? CREAM : INK,
+  color: primary ? CANVAS : INK,
   border: primary ? "none" : `1px solid ${INK}`,
   padding: "13px 34px",
   fontFamily: MONO,
@@ -89,7 +89,7 @@ export default function EsperTask({
       <div
         style={{
           minHeight: "100vh",
-          background: CREAM,
+          background: CANVAS,
           fontFamily: SERIF,
           color: INK,
           display: "flex",

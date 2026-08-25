@@ -36,7 +36,7 @@ function genArith() {
 }
 
 const C = {
-  bg: "#F4F0E8",
+  bg: "#F5F5F4",
   surface: "#FFFFFF",
   border: "#DDD5C0",
   text: "#1A1814",

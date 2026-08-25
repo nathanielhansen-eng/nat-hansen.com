@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getTaskClient } from "../tasks/registry";
 import type { ChainSnapshot } from "@/lib/chain/types";
 
-const CREAM = "#F4F0E8";
+const CANVAS = "#F5F5F4";
 const INK = "#1A1814";
 const MONO = "'Space Mono', monospace";
 const SERIF = "'Crimson Pro', Georgia, serif";
@@ -22,7 +22,7 @@ function Screen({ children }: { children: React.ReactNode }) {
     <div
       style={{
         minHeight: "100vh",
-        background: CREAM,
+        background: CANVAS,
         fontFamily: SERIF,
         color: INK,
         display: "flex",

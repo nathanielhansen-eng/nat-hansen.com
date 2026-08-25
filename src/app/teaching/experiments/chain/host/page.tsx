@@ -24,7 +24,7 @@ export default async function HostPage({
       <div
         style={{
           minHeight: "100vh",
-          background: "#F4F0E8",
+          background: "#F5F5F4",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -103,7 +103,7 @@ export default async function HostPage({
             type="submit"
             style={{
               background: "#1A1814",
-              color: "#F4F0E8",
+              color: "#F5F5F4",
               border: "none",
               padding: "13px 36px",
               fontFamily: "'Space Mono', monospace",
