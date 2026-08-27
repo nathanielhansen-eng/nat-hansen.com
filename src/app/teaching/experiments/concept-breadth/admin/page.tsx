@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import AdminDashboard from "./AdminDashboard";
 
 export const metadata: Metadata = {
-  title: "Where Do the Concepts Stop? — Admin",
+  title: "How far do concepts extend? — Admin",
   robots: { index: false, follow: false },
 };
 

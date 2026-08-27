@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   LADDER_INSTRUCTIONS,
   LADDER_QUESTION,
@@ -122,22 +122,21 @@ function YesNo({ value, onPick }: { value: boolean | null; onPick: (v: boolean) 
   );
 }
 
-/** Pool aggregates served by the public summary endpoint. */
-interface PoolSummary {
-  n: number;
-  ladderScoreHist: number[];
-  traumaScoreHist: number[];
-}
-
-/** Midrank percentile of `score` within a histogram whose bucket i starts at `offset + i`. */
-function percentile(hist: number[], offset: number, score: number): number | null {
-  const total = hist.reduce((a, b) => a + b, 0);
-  if (total < 1) return null;
-  const idx = score - offset;
-  let below = 0;
-  for (let i = 0; i < hist.length && i < idx; i++) below += hist[i];
-  const ties = idx >= 0 && idx < hist.length ? hist[idx] : 0;
-  return Math.round(((below + ties / 2) / total) * 100);
+/**
+ * Approximate percentile of a score within the published sample, assuming
+ * normality: Φ((score − M) / SD) from the published mean and SD (see
+ * PUBLISHED in stimuli.ts). An approximation — both distributions are
+ * bounded and discrete — hence "about" in the debrief copy. Abramowitz &
+ * Stegun 7.1.26 erf; |error| < 1.5e-7.
+ */
+function normalPercentile(score: number, m: number, sd: number): number {
+  const z = (score - m) / (sd * Math.SQRT2);
+  const t = 1 / (1 + 0.3275911 * Math.abs(z));
+  const poly =
+    t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
+  const erf = 1 - poly * Math.exp(-z * z);
+  const cdf = 0.5 * (1 + (z < 0 ? -erf : erf));
+  return Math.round(cdf * 100);
 }
 
 type Phase = "intro" | "ladder" | "break" | "trauma" | "debrief";
@@ -171,7 +170,6 @@ export default function Experiment({
 
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "ok" | "err">("idle");
-  const [pool, setPool] = useState<PoolSummary | null>(null);
 
   const ladderScore = useMemo(() => ladderYes.filter((v) => v === true).length, [ladderYes]);
   const traumaScore = useMemo(() => ratings.reduce((a, r) => a + r.rating, 0), [ratings]);
@@ -215,23 +213,6 @@ export default function Experiment({
     setSubmitting(false);
   };
 
-  // The debrief compares you with everyone who has taken it before; fetched
-  // once, aggregate-only, after submission.
-  useEffect(() => {
-    if (phase !== "debrief") return;
-    let cancelled = false;
-    fetch("/api/experiments/concept-breadth/summary")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (cancelled || !d?.ok || !d.pool) return;
-        setPool(d.pool as PoolSummary);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [phase]);
-
   /* ----------------------------- INTRO ----------------------------- */
   if (phase === "intro" || order === null) {
     return (
@@ -239,17 +220,16 @@ export default function Experiment({
         <style>{FONTS}</style>
         <div style={base.card}>
           <div style={base.eyebrow}>Concept breadth &middot; Two parts</div>
-          <h1 style={base.h1}>Where do the concepts stop?</h1>
+          <h1 style={base.h1}>Applying concepts</h1>
           <p style={base.body}>
-            You will read short descriptions of people and situations and make a series of quick
-            judgments about them &mdash; fifteen in all, taking three or four minutes. There are no
-            right or wrong answers. We are interested in your personal opinions: how{" "}
-            <em>you</em>{" "}define or think about two very common concepts.
+            You will read fifteen short descriptions of people and situations and make a series of
+            quick judgments about them. It should take no more than five minutes to complete. There
+            are no right or wrong answers. We are interested in how{" "}
+            <em>you</em>{" "}define or think about two concepts.
           </p>
           <p style={base.small}>
-            Your answers are recorded anonymously &mdash; no name, no login, nothing that identifies
-            you. At the end you will see what the study is about, your own scores, and how they
-            compare with everyone who has answered before you.
+            Your answers are recorded anonymously. At the end you will see what the study is about,
+            your judgments, and how they compare with the published version of these surveys.
           </p>
           <div style={base.divider} />
           <p style={{ ...base.small, marginBottom: 0 }}>
@@ -303,11 +283,11 @@ export default function Experiment({
         <style>{FONTS}</style>
         <div style={base.card}>
           <div style={base.eyebrow}>Part 2 of 2</div>
-          <h2 style={base.h2}>Ten short scenarios</h2>
+          <h2 style={base.h2}>Ten scenarios</h2>
           <p style={base.body}>{TRAUMA_INSTRUCTIONS}.</p>
           <p style={base.small}>
-            Each scenario appears on its own page, in a random order. Rate each one on a six-point
-            scale from &ldquo;strongly disagree&rdquo; to &ldquo;strongly agree&rdquo;.
+            Scenarios appear in random order. Rate each one on a six-point scale from{" "}
+            &ldquo;strongly disagree&rdquo; to &ldquo;strongly agree&rdquo;.
           </p>
           <button
             style={base.btn}
@@ -405,9 +385,8 @@ export default function Experiment({
 
   /* ---------------------------- DEBRIEF ---------------------------- */
   const traumaMean = traumaScore / TRAUMA_VIGNETTES.length;
-  const ladderPct = pool ? percentile(pool.ladderScoreHist, 0, ladderScore) : null;
-  const traumaPct = pool ? percentile(pool.traumaScoreHist, 10, traumaScore) : null;
-  const poolBig = (pool?.n ?? 0) >= 10;
+  const ladderPct = normalPercentile(ladderScore, PUBLISHED.mddDepth, PUBLISHED.mddDepthSd);
+  const traumaPct = normalPercentile(traumaMean, PUBLISHED.traumaItemMean, PUBLISHED.traumaItemSd);
 
   const scoreRow = (
     label: string,
@@ -429,11 +408,10 @@ export default function Experiment({
       </div>
       <div style={{ fontSize: "17px", lineHeight: 1.65, color: C.body }}>
         Your score: <strong style={{ color: C.text }}>{yours}</strong>. {published}
-        {poolBig && pct !== null && (
+        {pct !== null && (
           <>
             {" "}Your concept is broader than about{" "}
-            <strong style={{ color: colour }}>{pct}%</strong>{" "}of the people who have taken this
-            before you.
+            <strong style={{ color: colour }}>{pct}%</strong>{" "}of the people in that study.
           </>
         )}
       </div>
@@ -451,31 +429,31 @@ export default function Experiment({
           Psychologists led by Nick Haslam have argued that harm-related concepts like{" "}
           <em>trauma</em>{" "}and{" "}<em>mental disorder</em>{" "}have expanded their meanings over
           recent decades &mdash; a process they call{" "}<strong>concept creep</strong>. The two
-          tasks you just did are the instruments his team built to measure how broad{" "}
-          <em>your</em>{" "}versions of those concepts are, in the two directions they distinguish.
+          tasks you just did are the instruments his team built to measure how broad experimental
+          participants&rsquo; versions of those concepts are, in the two dimensions they
+          distinguish.
         </p>
         <p style={base.body}>
-          Part 1 measured{" "}<strong style={{ color: C.vert }}>vertical breadth</strong>: all five
-          descriptions were the same condition &mdash; depression &mdash; graded from most to least
-          severe, and your score is how far down the severity ladder you kept saying &ldquo;mental
-          disorder&rdquo;. Part 2 measured{" "}
-          <strong style={{ color: C.horiz }}>horizontal breadth</strong>: ten qualitatively
-          different situations, from events that would satisfy a psychiatric manual&rsquo;s
-          definition of a traumatic stressor to ordinary losses and setbacks, and your score is how
-          many kinds of thing you counted as traumatic, and how strongly.
+          Part 1 measured{" "}<strong style={{ color: C.vert }}>vertical extent</strong>: all five
+          descriptions were examples of depression graded from most to least severe, and your score
+          is how far down the severity scale you were willing to describe the case as a
+          &ldquo;mental disorder&rdquo;. Part 2 measured{" "}
+          <strong style={{ color: C.horiz }}>horizontal extent</strong>: how many of the ten
+          different situations describing varieties of trauma and losses and setbacks you were
+          willing to count as traumatic, and how strongly.
         </p>
 
         {scoreRow(
-          "Part 1 · Vertical — the depression ladder",
+          "Part 1 · Vertical — the depression scale",
           `${ladderScore} of 5 rungs`,
-          `In the authors' US sample (N = 502), the average respondent said Yes to ${PUBLISHED.mddDepth} of these five descriptions, and ${Math.round(PUBLISHED.mddRung4Yes * 100)}% said Yes to the second-mildest one on its own.`,
+          `In the original US sample (N = 502), the average respondent said Yes to ${PUBLISHED.mddDepth} of these five descriptions, and ${Math.round(PUBLISHED.mddRung4Yes * 100)}% said Yes to the second-mildest one.`,
           ladderPct,
           C.vert
         )}
         {scoreRow(
           "Part 2 · Horizontal — the trauma scenarios",
           `${traumaScore} of 60 (average ${traumaMean.toFixed(1)} per scenario)`,
-          `In the authors' US sample (N = 301), the average rating was ${PUBLISHED.traumaItemMean} per scenario on the same six-point scale.`,
+          `In the original US sample (N = 301), the average rating was ${PUBLISHED.traumaItemMean} per scenario on the same six-point scale.`,
           traumaPct,
           C.horiz
         )}
@@ -483,7 +461,7 @@ export default function Experiment({
         {submitStatus === "err" && (
           <p style={{ ...base.small, color: C.vert }}>
             Your response could not be saved to the running totals. Everything above still works,
-            but the comparison figures will not include you.
+            but the live class results will not include you.
           </p>
         )}
 
@@ -491,20 +469,19 @@ export default function Experiment({
 
         <h2 style={base.h2}>Where the materials come from</h2>
         <p style={base.body}>
-          The depression ladder is one of seven such ladders in Tse and Haslam&rsquo;s Concept
-          Breadth&ndash;Vertical scale; the full instrument runs the same five-step design for
+          The depression scale is one of seven scales in Tse and Haslam&rsquo;s Concept
+          Breadth&ndash;Vertical scale; the full experiment runs the same five-step design for
           bipolar disorder, anxiety, OCD, and more. The trauma scenarios are the complete Trauma
           subscale of McGrath and Haslam&rsquo;s Harm Concept Breadth Scale, which has parallel
           subscales for bullying, prejudice, and mental disorder. Both are reproduced verbatim from
           the authors&rsquo; published materials (CC-BY). Their studies found that people who score
-          broadly on one harm concept tend to score broadly on the others &mdash; and that broader
-          mental-disorder concepts predict self-diagnosis, over and above how much distress a
-          person reports.
+          broadly on one harm concept tend to score broadly on the others, and that broader
+          mental-disorder concepts predict self-diagnosis.
         </p>
         <p style={base.small}>
           One design note: this demonstration presents one ladder and one subscale, back to back,
-          with the scenarios in random order &mdash; scores here are indicative, not a validated
-          administration of either full instrument.
+          with the scenarios in random order &mdash; scores here are indicative, and not intended
+          as a replication of either experiment.
         </p>
 
         <p style={base.small}>

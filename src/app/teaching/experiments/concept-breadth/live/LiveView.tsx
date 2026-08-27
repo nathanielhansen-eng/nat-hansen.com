@@ -54,7 +54,13 @@ function meanLadderDepth(agg: Agg | null): number | null {
 }
 
 /** Rung labels: the design's severity gradient, mildest wording last. */
-const RUNG_LABELS = ["Rung 1 — most severe", "Rung 2", "Rung 3", "Rung 4", "Rung 5 — least severe"];
+const RUNG_LABELS = [
+  "Degree 1 — most severe",
+  "Degree 2",
+  "Degree 3",
+  "Degree 4",
+  "Degree 5 — least severe",
+];
 
 export default function LiveView({ session }: { session: string }) {
   const [room, setRoom] = useState<Agg | null>(null);
@@ -134,7 +140,7 @@ export default function LiveView({ session }: { session: string }) {
         <div style={{ flex: 1 }}>
           <div style={eyebrow}>Live &middot; session {session}</div>
           <h1 style={{ fontSize: "40px", fontWeight: 400, color: C.text, margin: "6px 0 10px" }}>
-            Where do the concepts stop?
+            How far do concepts extend?
           </h1>
           <div style={{ ...mono, fontSize: "16px", color: C.body, wordBreak: "break-all" }}>{joinUrl}</div>
         </div>
@@ -143,9 +149,9 @@ export default function LiveView({ session }: { session: string }) {
         </div>
         <div style={{ textAlign: "center", minWidth: "150px" }}>
           <div style={{ ...mono, fontSize: "64px", color: C.text, lineHeight: 1 }}>{roomN}</div>
-          <div style={{ ...eyebrow, marginTop: "8px" }}>responses in the room</div>
+          <div style={{ ...eyebrow, marginTop: "8px" }}>responses in this group</div>
           <div style={{ ...mono, fontSize: "13px", color: C.muted, marginTop: "10px" }}>
-            {poolN} everyone, ever
+            {poolN} everyone studied
           </div>
         </div>
       </div>
@@ -163,7 +169,7 @@ export default function LiveView({ session }: { session: string }) {
             Part 1 &middot; Vertical — the depression ladder
           </div>
           <div style={{ fontSize: "17px", color: C.muted, marginBottom: "20px" }}>
-            Percent saying &ldquo;mental disorder&rdquo;, by severity rung
+            Percent saying &ldquo;mental disorder&rdquo;, by degree of severity
           </div>
           {MDD_LADDER.map((_, i) => {
             const r = pct(room, i);
@@ -223,10 +229,11 @@ export default function LiveView({ session }: { session: string }) {
             );
           })}
           <div style={{ fontSize: "15px", color: C.muted, marginTop: "14px", lineHeight: 1.6 }}>
-            Every rung is the same condition, graded down in severity. Room in{" "}
+            Every degree is supposed to be the same condition, in decreasing severity. This group
+            represented in{" "}
             <strong style={{ color: C.vert }}>red</strong>, everyone in{" "}
-            <strong style={{ color: C.pool }}>gray</strong>; the black tick is the published 53%
-            for rung 4 alone (N&nbsp;=&nbsp;502). Mean depth: room{" "}
+            <strong style={{ color: C.pool }}>gray</strong>; the black tick is the published result
+            of 53% for degree 4 alone (N&nbsp;=&nbsp;502). Mean depth: this group{" "}
             <strong style={{ color: C.text }}>{roomDepth === null ? "—" : roomDepth.toFixed(2)}</strong>, everyone{" "}
             <strong style={{ color: C.text }}>{poolDepth === null ? "—" : poolDepth.toFixed(2)}</strong>, published{" "}
             <strong style={{ color: C.text }}>{PUBLISHED.mddDepth.toFixed(2)}</strong>{" "}of 5.
@@ -300,8 +307,8 @@ export default function LiveView({ session }: { session: string }) {
             </div>
           ))}
           <div style={{ fontSize: "15px", color: C.muted, marginTop: "14px", lineHeight: 1.6 }}>
-            Ten qualitatively different events, ordered by how traumatic everyone has rated them.
-            Room in{" "}<strong style={{ color: C.horiz }}>green</strong>, everyone in{" "}
+            Ten qualitatively different events, ordered by how traumatic everyone rated them. This
+            group in{" "}<strong style={{ color: C.horiz }}>green</strong>, everyone in{" "}
             <strong style={{ color: C.pool }}>gray</strong>; the faint tick is the published
             per-scenario mean of {PUBLISHED.traumaItemMean} (N&nbsp;=&nbsp;301).
           </div>

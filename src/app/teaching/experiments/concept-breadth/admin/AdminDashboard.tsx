@@ -201,7 +201,7 @@ export default function AdminDashboard() {
       <div style={{ maxWidth: "860px", margin: "0 auto" }}>
         <div style={{ ...eyebrow, marginBottom: "8px" }}>Instructor dashboard</div>
         <h1 style={{ fontSize: "32px", fontWeight: 400, color: C.text, marginBottom: "24px" }}>
-          Where do the concepts stop? — class data
+          How far do concepts extend? — class data
         </h1>
 
         {/* session controls */}

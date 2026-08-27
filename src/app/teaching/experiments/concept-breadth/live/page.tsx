@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LiveView from "./LiveView";
 
 export const metadata: Metadata = {
-  title: "Where Do the Concepts Stop? — live results",
+  title: "How far do concepts extend? — live results",
   robots: { index: false, follow: false },
 };
 
