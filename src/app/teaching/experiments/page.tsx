@@ -40,7 +40,7 @@ const experiments: ExperimentCard[] = [
     subtitle: "The Harm Concept Breadth Scale & the Concept Breadth Scales",
     slug: "concept-breadth",
     blurb:
-      "How broad are your concepts of trauma and mental disorder? These are two of the instruments Haslam's team built to measure 'concept creep': five descriptions of depression graded from most to least severe. How far down the scale, would you say, is an example of 'mental disorder'? Then ten scenarios, from hearing about an armed mugging to a teenager moving to a new town, rated according to whether what happened was traumatic. You'll see what your own breadth scores are compared with the published US samples and with everyone who has answered before you.",
+      "How broad are your concepts of trauma and mental disorder? These are two of the instruments Haslam's team built to measure 'concept creep': five descriptions of depression graded from most to least severe. How far down the scale, would you say, is an example of 'mental disorder'? Then ten scenarios, from hearing about an armed mugging to a teenager moving to a new town, rated according to whether what happened was traumatic. You'll see what your own breadth scores are compared with the published US samples.",
   },
   {
     title: "Knobe (2003)",

@@ -44,13 +44,19 @@ Your edits are now implemented in the source. Where I touched your wording:
      extend?". The participant page title is also "How far do concepts extend? — …" (your
      §9 edit) while its on-page H1 is "Applying concepts" (your §1 edit) — kept both as
      written.
-5. **⚠ Remaining tension, not resolved by me:** the index card still promises scores
-   "compared … **with everyone who has answered before you**", but after your edits the
-   debrief compares only with the published samples (the everyone-pool now appears only on
-   the live projector view). Either trim that clause from the card, or say the word and
-   I'll add a second, pool-based percentile sentence back into the debrief.
+5. *(Resolved in round 3 — see below.)*
 6. Your other changes resolved two round-1 flags: the Criterion-A gesture is gone from the
    debrief, and "from **hearing about** an armed mugging" fixes the Kate shorthand.
+
+## Round 3 (2026-08-27): group-vs-published only
+
+Per Nat: comparisons are the CURRENT GROUP (one session id) against the PUBLISHED results,
+nowhere an all-time visitor pool — cross-group reveals (the Edinburgh/UCL move) happen by
+switching sessions on the admin dashboard. Implemented: the live view now shows only this
+group's bars against the published ticks (no gray "everyone" ghosts, no "everyone" counter);
+the trauma rows are ordered by this group's own means; the summary endpoint serves one
+session and requires it; the card clause "and with everyone who has answered before you"
+is trimmed on both sites. This also resolves round-2 item 5.
 
 ---
 
@@ -166,18 +172,17 @@ Ladder axis labels (live view): "Degree 1 — most severe" … "Degree 5 — lea
 
 ## 6. Live projector view — `LiveView.tsx` (headers ~150–165, glosses ~230–240 and ~330–340)
 
-> How far do concepts extend? · Live · session *X* · *N* responses in this group ·
-> *N* everyone studied
+> How far do concepts extend? · Live · session *X* · *N* responses in this group
 >
-> **Part 1 · Vertical — the depression ladder** — Percent saying "mental disorder", by degree of
-> severity. … Every degree is supposed to be the same condition, in decreasing severity. This group represented in
-> red, everyone in gray; the black tick is the published result of 53% for degree 4 alone (N = 502).
-> Mean depth: room *x.xx*, everyone *x.xx*, published 3.29 of 5.
+> **Part 1 · Vertical — the depression scale** — Percent saying "mental disorder", by degree
+> of severity. … Every degree is supposed to be the same condition, in decreasing severity.
+> This group represented in red; the black tick is the published result of 53% for degree 4
+> alone (N = 502). Mean depth: this group *x.xx*, published 3.29 of 5.
 >
 > **Part 2 · Horizontal — the trauma scenarios** — Mean agreement that the event was
-> traumatic (1–6). … Ten qualitatively different events, ordered by how traumatic
-> everyone rated them. This group in green, everyone in gray; the faint tick is the
-> published per-scenario mean of 4.16 (N = 301).
+> traumatic (1–6). … Ten qualitatively different events, ordered by how traumatic this
+> group rated them. This group in green; the faint tick is the published per-scenario mean
+> of 4.16 (N = 301).
 
 ## 7. Admin dashboard notes — `AdminDashboard.tsx` (~330 and ~415)
 
@@ -199,7 +204,7 @@ Ladder axis labels (live view): "Degree 1 — most severe" … "Degree 5 — lea
 > from most to least severe. How far down the scale, would you say, is an example of 'mental
 > disorder'? Then ten scenarios, from hearing about an armed mugging to a teenager moving to a new
 > town, rated according to whether what happened was traumatic. You'll see what your own breadth scores are compared with
-> the published US samples and with everyone who has answered before you.
+> the published US samples.
 
 *(Round-1 mugging flag resolved by your "hearing about" edit.)*
 

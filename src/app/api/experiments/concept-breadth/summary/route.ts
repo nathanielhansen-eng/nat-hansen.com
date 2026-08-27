@@ -1,11 +1,11 @@
 import { list, get } from "@vercel/blob";
 import { TRAUMA_IDS } from "@/app/teaching/experiments/concept-breadth/stimuli";
 
-// PUBLIC aggregate-only summary. Two consumers: the participant debrief
-// (percentile against the whole pool) and the live projector view (one
-// session's running totals against the pool). Never serves raw
-// submissions — counts and means only, so leaving it open matches the
-// class-summary endpoint's privacy posture.
+// PUBLIC aggregate-only summary for ONE session (group). Sole consumer is
+// the live projector view; comparisons between groups happen from the
+// instructor dashboard's session picker. Never serves raw submissions —
+// counts and means only, so leaving it open matches the class-summary
+// endpoint's privacy posture.
 
 export const dynamic = "force-dynamic";
 
@@ -67,61 +67,51 @@ function addTo(agg: Agg, s: Record<string, unknown>): void {
   }
 }
 
-async function loadAll(): Promise<Record<string, unknown>[]> {
+async function loadSession(session: string): Promise<Agg> {
   const pathnames: string[] = [];
   let cursor: string | undefined;
   do {
-    const page = await list({ prefix: "concept-breadth/", cursor, limit: 1000 });
+    const page = await list({ prefix: `concept-breadth/${session}/`, cursor, limit: 1000 });
     for (const b of page.blobs) pathnames.push(b.pathname);
     cursor = page.cursor;
   } while (cursor);
 
+  const agg = emptyAgg();
   const fetched = await Promise.all(
     pathnames.map(async (p) => {
       try {
         const r = await get(p, { access: "private" });
         if (!r || r.statusCode !== 200) return null;
         const text = await new Response(r.stream).text();
-        const parsed = JSON.parse(text) as Record<string, unknown>;
-        // Recover the session from the pathname so old records need no field.
-        const parts = p.split("/");
-        if (parts.length >= 3) parsed.__session = parts[1];
-        return parsed;
+        return JSON.parse(text) as Record<string, unknown>;
       } catch {
         return null;
       }
     })
   );
-  return fetched.filter((x): x is Record<string, unknown> => x !== null);
+  for (const s of fetched) if (s) addTo(agg, s);
+  return agg;
 }
 
 // The live view polls every few seconds; a short per-instance cache keeps
-// each poll from re-listing and re-reading every blob. Best-effort only
-// (serverless instances each hold their own), which is fine for a cadence
-// where a few seconds of staleness is invisible.
-let cache: { at: number; submissions: Record<string, unknown>[] } | null = null;
-const CACHE_MS = 5000;
+// each poll from re-listing and re-reading the session's blobs. Best-effort
+// only (serverless instances each hold their own), which is fine for a
+// cadence where a few seconds of staleness is invisible.
+const cache = new Map<string, { at: number; agg: Agg }>();
+const CACHE_MS = 3000;
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const sessionParam = url.searchParams.get("session");
-  const session = sessionParam ? sanitizeSession(sessionParam) : null;
+  const session = sessionParam ? sanitizeSession(sessionParam) : "";
+  if (!session) {
+    return Response.json({ ok: false, error: "session required" }, { status: 400 });
+  }
 
   const now = Date.now();
-  if (!cache || now - cache.at > CACHE_MS) {
-    cache = { at: now, submissions: await loadAll() };
-  }
+  const hit = cache.get(session);
+  const agg = hit && now - hit.at <= CACHE_MS ? hit.agg : await loadSession(session);
+  if (!hit || now - hit.at > CACHE_MS) cache.set(session, { at: now, agg });
 
-  const pool = emptyAgg();
-  const sess = emptyAgg();
-  for (const s of cache.submissions) {
-    addTo(pool, s);
-    if (session && s.__session === session) addTo(sess, s);
-  }
-
-  return Response.json({
-    ok: true,
-    pool,
-    ...(session ? { session, sessionAgg: sess } : {}),
-  });
+  return Response.json({ ok: true, session, agg });
 }

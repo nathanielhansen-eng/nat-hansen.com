@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { MDD_LADDER, PUBLISHED, TRAUMA_VIGNETTES } from "../stimuli";
 
-// Projector view: polls the public aggregate endpoint and draws the room's
-// distribution filling in live, next to the public pool and the published
-// anchors. Aggregate-only data; the page carries nothing worth gating.
+// Projector view: polls the public aggregate endpoint and draws this
+// group's distribution filling in live against the published anchors.
+// One group per session id; comparisons BETWEEN groups happen from the
+// admin dashboard's session picker, not here. Aggregate-only data; the
+// page carries nothing worth gating.
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`;
 
@@ -19,7 +21,6 @@ const C = {
   body: "#44403C",
   vert: "#8C3A2E",
   horiz: "#4A6B4F",
-  pool: "#A8A29E",
   well: "#FAFAF9",
 };
 
@@ -53,7 +54,7 @@ function meanLadderDepth(agg: Agg | null): number | null {
   return agg.ladderScoreHist.reduce((a, c, i) => a + c * i, 0) / agg.n;
 }
 
-/** Rung labels: the design's severity gradient, mildest wording last. */
+/** Axis labels: the design's severity gradient, mildest wording last. */
 const RUNG_LABELS = [
   "Degree 1 — most severe",
   "Degree 2",
@@ -63,8 +64,7 @@ const RUNG_LABELS = [
 ];
 
 export default function LiveView({ session }: { session: string }) {
-  const [room, setRoom] = useState<Agg | null>(null);
-  const [pool, setPool] = useState<Agg | null>(null);
+  const [group, setGroup] = useState<Agg | null>(null);
   const [err, setErr] = useState(false);
   const qrRef = useRef<HTMLCanvasElement | null>(null);
   const [joinUrl, setJoinUrl] = useState("");
@@ -90,8 +90,7 @@ export default function LiveView({ session }: { session: string }) {
         if (!r.ok) throw new Error();
         const d = await r.json();
         if (stop || !d?.ok) return;
-        setPool(d.pool as Agg);
-        setRoom((d.sessionAgg as Agg) ?? null);
+        setGroup((d.agg as Agg) ?? null);
         setErr(false);
       } catch {
         if (!stop) setErr(true);
@@ -105,23 +104,19 @@ export default function LiveView({ session }: { session: string }) {
     };
   }, [session]);
 
-  const roomN = room?.n ?? 0;
-  const poolN = pool?.n ?? 0;
-  const roomDepth = meanLadderDepth(room);
-  const poolDepth = meanLadderDepth(pool);
+  const groupN = group?.n ?? 0;
+  const groupDepth = meanLadderDepth(group);
 
-  // Trauma rows ordered by the pool's mean (falling back to the room's,
-  // then to the instrument's own numbering) so the core→periphery gradient
-  // is data-driven, not editorial.
+  // Trauma rows ordered by this group's own means (instrument order until
+  // data arrives) so the gradient the group draws is the one on screen.
   const rows = TRAUMA_VIGNETTES.map((v) => ({
     v,
-    roomM: traumaMean(room, v.id),
-    poolM: traumaMean(pool, v.id),
-  })).sort((a, b) => (b.poolM ?? b.roomM ?? 0) - (a.poolM ?? a.roomM ?? 0));
+    m: traumaMean(group, v.id),
+  })).sort((a, b) => (b.m ?? 0) - (a.m ?? 0));
 
-  const pct = (agg: Agg | null, rung: number): number | null => {
-    if (!agg || !agg.n) return null;
-    return (agg.ladderYes[rung] / agg.n) * 100;
+  const pct = (rung: number): number | null => {
+    if (!group || !group.n) return null;
+    return (group.ladderYes[rung] / group.n) * 100;
   };
 
   return (
@@ -148,11 +143,8 @@ export default function LiveView({ session }: { session: string }) {
           <canvas ref={qrRef} style={{ border: `1px solid ${C.border}`, background: "#FFF" }} />
         </div>
         <div style={{ textAlign: "center", minWidth: "150px" }}>
-          <div style={{ ...mono, fontSize: "64px", color: C.text, lineHeight: 1 }}>{roomN}</div>
+          <div style={{ ...mono, fontSize: "64px", color: C.text, lineHeight: 1 }}>{groupN}</div>
           <div style={{ ...eyebrow, marginTop: "8px" }}>responses in this group</div>
-          <div style={{ ...mono, fontSize: "13px", color: C.muted, marginTop: "10px" }}>
-            {poolN} everyone studied
-          </div>
         </div>
       </div>
 
@@ -166,46 +158,29 @@ export default function LiveView({ session }: { session: string }) {
         {/* Part 1 — the ladder */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "28px 30px" }}>
           <div style={{ ...eyebrow, color: C.vert, marginBottom: "6px" }}>
-            Part 1 &middot; Vertical — the depression ladder
+            Part 1 &middot; Vertical — the depression scale
           </div>
           <div style={{ fontSize: "17px", color: C.muted, marginBottom: "20px" }}>
             Percent saying &ldquo;mental disorder&rdquo;, by degree of severity
           </div>
           {MDD_LADDER.map((_, i) => {
-            const r = pct(room, i);
-            const p = pct(pool, i);
+            const p = pct(i);
             return (
               <div key={i} style={{ marginBottom: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
                   <span style={{ ...mono, fontSize: "12px", color: C.muted }}>{RUNG_LABELS[i]}</span>
                   <span style={{ ...mono, fontSize: "15px", color: C.text }}>
-                    {r === null ? "—" : `${Math.round(r)}%`}
+                    {p === null ? "—" : `${Math.round(p)}%`}
                   </span>
                 </div>
                 <div style={{ position: "relative", height: "26px", background: "#E7E5E4" }}>
-                  {/* pool ghost */}
-                  {p !== null && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        height: "100%",
-                        width: `${p}%`,
-                        background: C.pool,
-                        opacity: 0.45,
-                        transition: "width 0.8s ease",
-                      }}
-                    />
-                  )}
-                  {/* room */}
                   <div
                     style={{
                       position: "absolute",
                       top: "5px",
                       left: 0,
                       height: "16px",
-                      width: `${r ?? 0}%`,
+                      width: `${p ?? 0}%`,
                       background: C.vert,
                       transition: "width 0.8s ease",
                     }}
@@ -230,12 +205,10 @@ export default function LiveView({ session }: { session: string }) {
           })}
           <div style={{ fontSize: "15px", color: C.muted, marginTop: "14px", lineHeight: 1.6 }}>
             Every degree is supposed to be the same condition, in decreasing severity. This group
-            represented in{" "}
-            <strong style={{ color: C.vert }}>red</strong>, everyone in{" "}
-            <strong style={{ color: C.pool }}>gray</strong>; the black tick is the published result
-            of 53% for degree 4 alone (N&nbsp;=&nbsp;502). Mean depth: this group{" "}
-            <strong style={{ color: C.text }}>{roomDepth === null ? "—" : roomDepth.toFixed(2)}</strong>, everyone{" "}
-            <strong style={{ color: C.text }}>{poolDepth === null ? "—" : poolDepth.toFixed(2)}</strong>, published{" "}
+            represented in{" "}<strong style={{ color: C.vert }}>red</strong>; the black tick is
+            the published result of 53% for degree 4 alone (N&nbsp;=&nbsp;502). Mean depth: this
+            group{" "}
+            <strong style={{ color: C.text }}>{groupDepth === null ? "—" : groupDepth.toFixed(2)}</strong>, published{" "}
             <strong style={{ color: C.text }}>{PUBLISHED.mddDepth.toFixed(2)}</strong>{" "}of 5.
           </div>
         </div>
@@ -248,7 +221,7 @@ export default function LiveView({ session }: { session: string }) {
           <div style={{ fontSize: "17px", color: C.muted, marginBottom: "20px" }}>
             Mean agreement that the event was traumatic (1&ndash;6)
           </div>
-          {rows.map(({ v, roomM, poolM }) => (
+          {rows.map(({ v, m }) => (
             <div key={v.id} style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
               <span
                 style={{
@@ -275,42 +248,27 @@ export default function LiveView({ session }: { session: string }) {
                     opacity: 0.35,
                   }}
                 />
-                {poolM !== null && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      height: "100%",
-                      left: 0,
-                      width: `${((poolM - 1) / 5) * 100}%`,
-                      background: C.pool,
-                      opacity: 0.45,
-                      transition: "width 0.8s ease",
-                    }}
-                  />
-                )}
                 <div
                   style={{
                     position: "absolute",
                     top: "4px",
                     height: "14px",
                     left: 0,
-                    width: `${roomM === null ? 0 : ((roomM - 1) / 5) * 100}%`,
+                    width: `${m === null ? 0 : ((m - 1) / 5) * 100}%`,
                     background: C.horiz,
                     transition: "width 0.8s ease",
                   }}
                 />
               </div>
               <span style={{ ...mono, fontSize: "14px", color: C.text, width: "42px", textAlign: "right" }}>
-                {roomM === null ? "—" : roomM.toFixed(1)}
+                {m === null ? "—" : m.toFixed(1)}
               </span>
             </div>
           ))}
           <div style={{ fontSize: "15px", color: C.muted, marginTop: "14px", lineHeight: 1.6 }}>
-            Ten qualitatively different events, ordered by how traumatic everyone rated them. This
-            group in{" "}<strong style={{ color: C.horiz }}>green</strong>, everyone in{" "}
-            <strong style={{ color: C.pool }}>gray</strong>; the faint tick is the published
-            per-scenario mean of {PUBLISHED.traumaItemMean} (N&nbsp;=&nbsp;301).
+            Ten qualitatively different events, ordered by how traumatic this group rated them.
+            This group in{" "}<strong style={{ color: C.horiz }}>green</strong>; the faint tick is
+            the published per-scenario mean of {PUBLISHED.traumaItemMean} (N&nbsp;=&nbsp;301).
           </div>
         </div>
       </div>
