@@ -20,6 +20,7 @@ const BLOB_EXPERIMENTS = new Set([
   "heider-focal-colors",
   "winawer-russian-blues",
   "reuter-truth",
+  "concept-breadth",
   // Side-effect-effect family — served via the generic condition-cell
   // summarizer below (see ASYMMETRY_SPECS).
   "machery-tradeoff",
@@ -810,6 +811,53 @@ function summarizeReuterTruth(submissions: Record<string, unknown>[]) {
   };
 }
 
+// Concept-breadth (Tse & Haslam ladder + McGrath & Haslam trauma subscale).
+// Per-record rows carry the two scores plus the per-rung Yes pattern and
+// per-vignette ratings — everything a class dataviz needs, nothing else.
+function summarizeConceptBreadth(submissions: Record<string, unknown>[], tag: string | null) {
+  const records = submissions
+    .filter(
+      (s) =>
+        Array.isArray(s.ladderYes) &&
+        (s.ladderYes as unknown[]).length === 5 &&
+        (s.ladderYes as unknown[]).every((v) => typeof v === "boolean") &&
+        Array.isArray(s.trauma) &&
+        typeof s.ladderScore === "number" &&
+        typeof s.traumaScore === "number",
+    )
+    .map((s) => ({
+      ladderYes: s.ladderYes as boolean[],
+      ladderScore: s.ladderScore as number,
+      traumaScore: s.traumaScore as number,
+      trauma: (s.trauma as Record<string, unknown>[])
+        .filter((t) => t && typeof t.id === "string" && typeof t.rating === "number")
+        .map((t) => ({ id: t.id as string, rating: t.rating as number })),
+      tag: tagOf(s),
+    }));
+  const n = records.length;
+  const ladderYes = [0, 1, 2, 3, 4].map((i) => records.filter((r) => r.ladderYes[i]).length);
+  const traumaMeans: Record<string, { n: number; mean: number }> = {};
+  for (const r of records) {
+    for (const t of r.trauma) {
+      const cell = (traumaMeans[t.id] ??= { n: 0, mean: 0 });
+      cell.mean = (cell.mean * cell.n + t.rating) / (cell.n + 1);
+      cell.n += 1;
+    }
+  }
+  const own = tag !== null ? records.find((r) => r.tag === tag) : undefined;
+  return {
+    records,
+    aggregate: {
+      n,
+      ladderYes,
+      meanLadderScore: n ? records.reduce((a, r) => a + r.ladderScore, 0) / n : null,
+      meanTraumaScore: n ? records.reduce((a, r) => a + r.traumaScore, 0) / n : null,
+      traumaMeans,
+    },
+    yours: own ? { ladderScore: own.ladderScore, traumaScore: own.traumaScore } : null,
+  };
+}
+
 export async function GET(request: Request) {
   const token = process.env.EXPERIMENTS_SUMMARY_TOKEN;
   if (token) {
@@ -935,6 +983,14 @@ export async function GET(request: Request) {
       experiment,
       session,
       ...summarizeReuterTruth(submissions),
+    });
+  }
+  if (experiment === "concept-breadth") {
+    return Response.json({
+      ok: true,
+      experiment,
+      session,
+      ...summarizeConceptBreadth(submissions, tag),
     });
   }
   const correctKey = experiment === "brown-lenneberg" ? "correct" : "recognized";

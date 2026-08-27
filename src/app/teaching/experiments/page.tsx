@@ -36,6 +36,13 @@ const experiments: ExperimentCard[] = [
       "Is 'true' ambiguous? A three-part replication: read a story where a speaker's answer fits everything they believe but not the facts, then one where it fits the facts but not their beliefs, and say whether each answer was true. A third part runs the paper's checks on whether 'true' really just meant truthful. Reuter & Brun found responses split close to 50/50 — evidence that everyday 'true' has both a correspondence and a coherence sense.",
   },
   {
+    title: "McGrath & Haslam (2020) · Tse & Haslam (2023)",
+    subtitle: "The Harm Concept Breadth Scale & the Concept Breadth Scales",
+    slug: "concept-breadth",
+    blurb:
+      "How broad are your concepts of trauma and mental disorder? The instruments Haslam's team built to measure 'concept creep', verbatim: five descriptions of depression graded from most to least severe — how far down the ladder do you keep saying 'mental disorder'? — then ten scenarios, from an armed mugging to a teenager moving to a new town, rated for whether what happened was traumatic. You get your own breadth scores against the published US samples and against everyone who has answered before you.",
+  },
+  {
     title: "Knobe (2003)",
     subtitle: "Intentional Action and Side Effects in Ordinary Language",
     slug: "knobe-side-effect",
