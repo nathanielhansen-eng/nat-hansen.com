@@ -222,7 +222,7 @@ export default function LiveView({ session }: { session: string }) {
             color: C.body,
           }}
         >
-          The effect of one word:{" "}
+          The effect of adding one modifier:{" "}
           <strong style={{ color: C.vert }}>
             {shiftedUp} of {n}
           </strong>{" "}

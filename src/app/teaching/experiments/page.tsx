@@ -40,7 +40,7 @@ const experiments: ExperimentCard[] = [
     subtitle: "The Harm Concept Breadth Scale & the Concept Breadth Scales",
     slug: "concept-breadth",
     blurb:
-      "How broad are your concepts of trauma and mental disorder — and what does one word do to them? Based on two of the instruments Haslam's team built to measure 'concept creep': five descriptions of depression graded from most to least severe. How far down the scale, would you say, is an example of 'mental disorder'? Then ten scenarios, from hearing about an armed mugging to a teenager moving to a new town, rated according to whether what happened was traumatic. You answer everything twice, in randomized order — once as published, once with 'severe' in the question — and you'll see what the one word does to your own judgments, alongside the published US results.",
+      "How broad are your concepts of trauma and mental disorder? Based on two of the experimental probes Haslam's team built to measure 'concept creep', plus a manipulation designed to test how our concepts shift when they appear in complex phrases.",
   },
   {
     title: "Knobe (2003)",

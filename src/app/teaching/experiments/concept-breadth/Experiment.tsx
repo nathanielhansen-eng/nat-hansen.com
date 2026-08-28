@@ -441,10 +441,10 @@ export default function Experiment({
         <style>{FONTS}</style>
         <div style={base.card}>
           <div style={base.eyebrow}>Round 2 of 2</div>
-          <h2 style={base.h2}>The same descriptions again</h2>
+          <h2 style={base.h2}>The same examples again</h2>
           <p style={base.body}>
-            Round 2 shows you the same descriptions as round 1, but the questions are not quite
-            the same as before. Read each question carefully before answering.
+            Round 2 shows you the same descriptions as round 1, but with questions that are
+            slightly different. Read each question carefully before answering.
           </p>
           <button
             style={base.btn}
@@ -514,9 +514,9 @@ export default function Experiment({
           Psychologists led by Nick Haslam have argued that harm-related concepts like{" "}
           <em>trauma</em>{" "}and{" "}<em>mental disorder</em>{" "}have expanded their meanings over
           recent decades &mdash; a process they call{" "}<strong>concept creep</strong>. The two
-          tasks you just did are based on the instruments his team built to measure how broad
-          experimental participants&rsquo; versions of those concepts are, in the two dimensions
-          they distinguish.
+          tasks you just did are based on the instruments Haslam&rsquo;s team built to measure how
+          broad experimental participants&rsquo; versions of those concepts are, in the two
+          dimensions they distinguish.
         </p>
         <p style={base.body}>
           Part 1 measured{" "}<strong style={{ color: C.vert }}>vertical extent</strong>: all five
@@ -528,10 +528,10 @@ export default function Experiment({
           willing to count as traumatic, and how strongly.
         </p>
         <p style={base.body}>
-          And you did all of it twice, in an order chosen at random: once with the questions
-          exactly as published, and once with a single word &mdash;{" "}
-          <strong>&ldquo;severe&rdquo;</strong>{" "}&mdash; slipped into them. The comparisons with
-          the published samples below use your answers to the unmodified questions.
+          You responded to the same examples twice, but with slightly different prompts. One
+          prompt was exactly as published, and the other was slightly modified, by adding the
+          word{" "}<strong>&ldquo;severe&rdquo;</strong>. The comparisons with the published
+          samples below use your answers to the unmodified questions.
         </p>
 
         {scoreRow(
@@ -558,7 +558,7 @@ export default function Experiment({
           }}
         >
           <div style={{ ...base.mono, fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: "6px" }}>
-            The effect of one word
+            The effect of adding one degree modifier
           </div>
           <div style={{ fontSize: "17px", lineHeight: 1.65, color: C.body }}>
             With &ldquo;severe&rdquo; in the question, you said Yes to{" "}
@@ -607,16 +607,16 @@ export default function Experiment({
           subscale of McGrath and Haslam&rsquo;s Harm Concept Breadth Scale, which has parallel
           subscales for bullying, prejudice, and mental disorder. The unmodified versions are
           reproduced verbatim from the authors&rsquo; published materials (CC-BY); the
-          &ldquo;severe&rdquo; versions are our one-word modifications of them, and are not part
-          of the original instruments. The authors&rsquo; studies found that people who score
+          &ldquo;severe&rdquo; versions are our modifications of them, and are not part of the
+          original experiments. The authors&rsquo; studies found that people who score
           broadly on one harm concept tend to score broadly on the others, and that broader
           mental-disorder concepts predict self-diagnosis.
         </p>
         <p style={base.small}>
-          One design note: this demonstration presents one ladder and one subscale, back to back,
-          twice &mdash; once as published and once with &ldquo;severe&rdquo; inserted, in an order
-          chosen at random for each person &mdash; scores here are indicative, and not intended as
-          a replication of either experiment.
+          One design note: this demonstration presents experimental probes twice &mdash; once as
+          published and once with &ldquo;severe&rdquo; inserted, in an order chosen at random for
+          each person &mdash; scores here are indicative, and not intended as a replication of
+          either experiment.
         </p>
 
         <p style={base.small}>

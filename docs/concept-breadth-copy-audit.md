@@ -87,36 +87,35 @@ Eyebrow: "Concept breadth · Two rounds". Round eyebrows: "Round 1 of 2 · Part 
 "Round 1 of 2 · Part 2 · Scenario x of 10", etc.
 
 **Round-2 interstitial (all new):**
-> **The same descriptions again**
+> **The same examples again**
 >
-> Round 2 shows you the same descriptions as round 1, but the questions are not quite the
-> same as before. Read each question carefully before answering.
+> Round 2 shows you the same descriptions as round 1, but with questions that are slightly different.
+> Read each question carefully before answering.
 
 **Debrief — new third paragraph:**
-> And you did all of it twice, in an order chosen at random: once with the questions exactly
-> as published, and once with a single word — **"severe"** — slipped into them. The
+>You responded to the same examples twice, but with slightly different prompts. One prompt was exactly as published, and the other was slightly modified, by adding the word **"severe"**. The
 > comparisons with the published samples below use your answers to the unmodified questions.
 
-**Debrief — new "effect of one word" panel (template):**
-> **The effect of one word** — With "severe" in the question, you said Yes to *N* of 5 rungs
+**Debrief — new “modifier" panel (template):**
+> **The effect of adding one degree modifier** — With "severe" in the question, you said Yes to *N* of 5 rungs
 > — your threshold moved *k* rung(s) up the severity scale. Your average "severely traumatic"
 > rating was *x.x* per scenario, lower than your "traumatic" ratings by *y.y* points.
 > *(Variants: "the same as without it" / "essentially unchanged" when deltas are zero; "down
 > the severity scale" / "higher" for reversed movers.)*
 
 **Debrief — materials paragraph, changed sentences:**
-> The two tasks you just did are **based on** the instruments his team built … The
+> The two tasks you just did are **based on** the instruments Haslam's team built … The
 > **unmodified** versions are reproduced verbatim from the authors' published materials
-> (CC-BY); the **"severe" versions are our one-word modifications of them, and are not part
-> of the original instruments**. The **authors'** studies found that…
+> (CC-BY); the **"severe" versions are our modifications of them, and are not part
+> of the original experiments**. The **authors'** studies found that…
 
 **Debrief — design note, changed:**
-> …presents one ladder and one subscale, back to back, **twice — once as published and once
+> …presents experimental probes **twice — once as published and once
 > with "severe" inserted, in an order chosen at random for each person** — scores here are
 > indicative, and not intended as a replication of either experiment.
 
 **Live view — new banner (template):**
-> The effect of one word: **X of N** moved their "mental disorder" threshold up the severity
+> The effect of adding one modifier: **X of N** moved their "mental disorder" threshold up the severity
 > scale when the question said **"severe"**; mean "traumatic" ratings shifted **−y.y** points
 > under "severely".
 
@@ -133,14 +132,7 @@ the unmodified questions.
 
 **Cards (both sites) — title now "Based on McGrath & Haslam (2020) · Tse & Haslam (2023)";
 blurb reworked:**
-> How broad are your concepts of trauma and mental disorder — and what does one word do to
-> them? Based on two of the instruments Haslam's team built to measure 'concept creep': five
-> descriptions of depression graded from most to least severe. How far down the scale, would
-> you say, is an example of 'mental disorder'? Then ten scenarios, from hearing about an
-> armed mugging to a teenager moving to a new town, rated according to whether what happened
-> was traumatic. You answer everything twice, in randomized order — once as published, once
-> with 'severe' in the question — and you'll see what the one word does to your own
-> judgments, alongside the published US results.
+> How broad are your concepts of trauma and mental disorder? Based on two of the experimental probes Haslam's team built to measure 'concept creep’, plus a manipulation designed to test how our concepts shift when they appear in complex phrases. 
 
 **Metadata description:**
 > Based on two of the instruments Haslam's team uses to measure concept creep: the depression
@@ -153,6 +145,22 @@ only (the published samples answered unmodified questions — said explicitly in
 Your 2026-08-27 single-pass test record predates this schema and is skipped by all
 dashboards. Sections 1–9 below are the rounds 1–3 record and do not reflect round 4 where
 the two conflict.
+
+---
+
+## Round 5 (2026-08-27): Nat's Round-4 edits applied
+
+All implemented verbatim (interstitial, debrief ¶3, "The effect of adding one degree
+modifier" panel, "Haslam's team" in debrief ¶1, materials-paragraph rewording, design note
+"experimental probes", live banner "The effect of adding one modifier", the new short card
+blurb on both sites). One normalization: the curly apostrophe in the card's 'concept creep’
+→ straight quote, matching the file's house style.
+
+**⚠ One flag, not changed by me:** the card blurb says the manipulation tests "how our
+**concepts** shift when **they** appear in complex phrases" — strictly it's the *words*
+that appear in phrases, and given the talk's own thesis this is a distinction an audience
+member might poke at from the index page. Minimal fix if wanted: "…how our judgments shift
+when the target words appear in complex phrases." Implemented as you wrote it.
 
 ---
 
