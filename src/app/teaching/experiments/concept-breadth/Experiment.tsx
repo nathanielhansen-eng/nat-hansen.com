@@ -571,7 +571,7 @@ export default function Experiment({
               <>
                 {" "}&mdash; your threshold moved{" "}
                 <strong style={{ color: C.vert }}>
-                  {Math.abs(ladderDelta)} rung{Math.abs(ladderDelta) === 1 ? "" : "s"}{" "}
+                  {Math.abs(ladderDelta)} step{Math.abs(ladderDelta) === 1 ? "" : "s"}{" "}
                   {ladderDelta > 0 ? "up the severity scale" : "down the severity scale"}
                 </strong>
                 .

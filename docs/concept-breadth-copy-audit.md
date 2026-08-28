@@ -176,9 +176,7 @@ ink) and the per-scenario trauma statement (21px/700, ink; it was 15px muted).
 ## Round 7 (2026-08-28, Nat): debrief wording tweaks
 
 Score panel and modifier panel now count "*N* of 5 **scenarios**" (was "rungs"); debrief ¶1
-opens "**The** tasks you just did…" (was "The two tasks"). Note the modifier panel still
-says "your threshold moved *k* **rung(s)** up the severity scale" — that phrase describes
-movement, not the count; flag if you want it changed too.
+opens "**The** tasks you just did…" (was "The two tasks"). The modifier panel movement phrase is now "your threshold moved *k* **step(s)** up the severity scale" (Nat).
 
 ---
 
