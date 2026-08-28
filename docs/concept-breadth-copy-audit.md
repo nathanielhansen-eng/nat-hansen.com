@@ -156,11 +156,8 @@ modifier" panel, "Haslam's team" in debrief ¶1, materials-paragraph rewording, 
 blurb on both sites). One normalization: the curly apostrophe in the card's 'concept creep’
 → straight quote, matching the file's house style.
 
-**⚠ One flag, not changed by me:** the card blurb says the manipulation tests "how our
-**concepts** shift when **they** appear in complex phrases" — strictly it's the *words*
-that appear in phrases, and given the talk's own thesis this is a distinction an audience
-member might poke at from the index page. Minimal fix if wanted: "…how our judgments shift
-when the target words appear in complex phrases." Implemented as you wrote it.
+*(Flag resolved, Nat approved the minimal fix: the card blurb now reads "…how our
+judgments shift when the target words appear in complex phrases.")*
 
 ---
 

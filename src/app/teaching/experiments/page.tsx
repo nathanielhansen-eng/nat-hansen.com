@@ -40,7 +40,7 @@ const experiments: ExperimentCard[] = [
     subtitle: "The Harm Concept Breadth Scale & the Concept Breadth Scales",
     slug: "concept-breadth",
     blurb:
-      "How broad are your concepts of trauma and mental disorder? Based on two of the experimental probes Haslam's team built to measure 'concept creep', plus a manipulation designed to test how our concepts shift when they appear in complex phrases.",
+      "How broad are your concepts of trauma and mental disorder? Based on two of the experimental probes Haslam's team built to measure 'concept creep', plus a manipulation designed to test how our judgments shift when the target words appear in complex phrases.",
   },
   {
     title: "Knobe (2003)",
