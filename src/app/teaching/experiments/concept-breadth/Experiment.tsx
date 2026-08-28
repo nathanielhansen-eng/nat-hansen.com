@@ -517,7 +517,7 @@ export default function Experiment({
         <p style={base.body}>
           Psychologists led by Nick Haslam have argued that harm-related concepts like{" "}
           <em>trauma</em>{" "}and{" "}<em>mental disorder</em>{" "}have expanded their meanings over
-          recent decades &mdash; a process they call{" "}<strong>concept creep</strong>. The two
+          recent decades &mdash; a process they call{" "}<strong>concept creep</strong>. The
           tasks you just did are based on the instruments Haslam&rsquo;s team built to measure how
           broad experimental participants&rsquo; versions of those concepts are, in the two
           dimensions they distinguish.
@@ -540,7 +540,7 @@ export default function Experiment({
 
         {scoreRow(
           "Part 1 · Vertical — the depression scale",
-          `${bare.ladderScore} of 5 rungs`,
+          `${bare.ladderScore} of 5 scenarios`,
           `In the original US sample (N = 502), the average respondent said Yes to ${PUBLISHED.mddDepth} of these five descriptions, and ${Math.round(PUBLISHED.mddRung4Yes * 100)}% said Yes to the second-mildest one.`,
           ladderPct,
           C.vert
@@ -566,7 +566,7 @@ export default function Experiment({
           </div>
           <div style={{ fontSize: "17px", lineHeight: 1.65, color: C.body }}>
             With &ldquo;severe&rdquo; in the question, you said Yes to{" "}
-            <strong style={{ color: C.text }}>{severe.ladderScore} of 5</strong>{" "}rungs
+            <strong style={{ color: C.text }}>{severe.ladderScore} of 5</strong>{" "}scenarios
             {ladderDelta !== 0 ? (
               <>
                 {" "}&mdash; your threshold moved{" "}

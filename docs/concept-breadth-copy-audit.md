@@ -97,14 +97,14 @@ Eyebrow: "Concept breadth · Two rounds". Round eyebrows: "Round 1 of 2 · Part 
 > comparisons with the published samples below use your answers to the unmodified questions.
 
 **Debrief — new “modifier" panel (template):**
-> **The effect of adding one degree modifier** — With "severe" in the question, you said Yes to *N* of 5 rungs
+> **The effect of adding one degree modifier** — With "severe" in the question, you said Yes to *N* of 5 scenarios
 > — your threshold moved *k* rung(s) up the severity scale. Your average "severely traumatic"
 > rating was *x.x* per scenario, lower than your "traumatic" ratings by *y.y* points.
 > *(Variants: "the same as without it" / "essentially unchanged" when deltas are zero; "down
 > the severity scale" / "higher" for reversed movers.)*
 
 **Debrief — materials paragraph, changed sentences:**
-> The two tasks you just did are **based on** the instruments Haslam's team built … The
+> The tasks you just did are **based on** the instruments Haslam's team built … The
 > **unmodified** versions are reproduced verbatim from the authors' published materials
 > (CC-BY); the **"severe" versions are our modifications of them, and are not part
 > of the original experiments**. The **authors'** studies found that…
@@ -172,6 +172,13 @@ published materials (CC-BY), **except that one person has been renamed**; …".
 
 Display: the two response prompts are now large and bold — the ladder question (23px/700,
 ink) and the per-scenario trauma statement (21px/700, ink; it was 15px muted).
+
+## Round 7 (2026-08-28, Nat): debrief wording tweaks
+
+Score panel and modifier panel now count "*N* of 5 **scenarios**" (was "rungs"); debrief ¶1
+opens "**The** tasks you just did…" (was "The two tasks"). Note the modifier panel still
+says "your threshold moved *k* **rung(s)** up the severity scale" — that phrase describes
+movement, not the count; flag if you want it changed too.
 
 ---
 
