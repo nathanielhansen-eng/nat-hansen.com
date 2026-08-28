@@ -2,7 +2,8 @@
  * Stimuli for the concept-breadth experiment. Both instruments are
  * reproduced VERBATIM from the authors' own supplementary materials,
  * published under CC-BY licences — do not edit the vignette or
- * instruction strings.
+ * instruction strings. Two marked exceptions: the ADAPTED "severe"
+ * variants below, and the t08 protagonist rename (see its comment).
  *
  * Part 1 (the severity ladder) is the major depressive disorder item
  * (VS02_MDD) of the Concept Breadth–Vertical scale (CB-V):
@@ -87,7 +88,7 @@ export interface TraumaVignette {
   id: string;
   /** Short chart handle (ours, not the authors'): protagonist + situation. */
   label: string;
-  /** Verbatim vignette text. */
+  /** Verbatim vignette text (except t08 — protagonist renamed). */
   text: string;
 }
 
@@ -129,8 +130,11 @@ export const TRAUMA_VIGNETTES: TraumaVignette[] = [
   },
   {
     id: "t08",
-    label: "Teresa — harassing boss",
-    text: "Teresa's boss often makes her feel uncomfortable. He sometimes massages her shoulders while she's working, and often compliments her on her clothes and body. Teresa dreads going to work, and even though it is a great job, she is thinking of leaving.",
+    // ADAPTED: the protagonist is "Teresa" in the published item; renamed
+    // here to avoid sharing a name with a colleague at the first live
+    // deployment. The only deviation from verbatim in the bare stimuli.
+    label: "Paula — harassing boss",
+    text: "Paula's boss often makes her feel uncomfortable. He sometimes massages her shoulders while she's working, and often compliments her on her clothes and body. Paula dreads going to work, and even though it is a great job, she is thinking of leaving.",
   },
   {
     id: "t09",

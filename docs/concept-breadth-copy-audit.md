@@ -161,6 +161,20 @@ judgments shift when the target words appear in complex phrases.")*
 
 ---
 
+## Round 6 (2026-08-28): Teresa renamed; response prompts enlarged
+
+Per Nat (a speaker named Teresa will be at the conference): the t08 harassment vignette's
+protagonist is renamed **Teresa → Paula** in both occurrences — the only deviation from
+verbatim in the bare stimuli, documented at the item in `stimuli.ts` (Paula chosen by me;
+swap freely, no data impact — the stored id stays `t08`; chart label now "Paula — harassing
+boss"). The debrief's materials sentence now reads "…reproduced verbatim from the authors'
+published materials (CC-BY), **except that one person has been renamed**; …".
+
+Display: the two response prompts are now large and bold — the ladder question (23px/700,
+ink) and the per-scenario trauma statement (21px/700, ink; it was 15px muted).
+
+---
+
 ## 1. Participant intro — `Experiment.tsx:240–262`
 
 > **Applying concepts**
@@ -266,7 +280,7 @@ Then the two citations with DOIs (Tse & Haslam 2023; McGrath & Haslam 2020).
 My short handles for the trauma vignettes (used in charts/tables only, participants never
 see them): *Fay — mother's surgery · Jerry — uncle's death · Kate — partner mugged ·
 Colin — laid off · Grace — parents separated · Danny — family moved · Vicky — ostracized
-by a friend · Teresa — harassing boss · Erin — child-protection work · Walter — refugee
+by a friend · Paula — harassing boss (renamed in round 6) · Erin — child-protection work · Walter — refugee
 counselor.*
 
 Ladder axis labels (live view): "Degree 1 — most severe" … "Degree 5 — least severe" (harmonized to your "degree" edits; admin dashboard still says "rung").

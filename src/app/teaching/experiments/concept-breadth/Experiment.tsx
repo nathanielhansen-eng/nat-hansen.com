@@ -297,7 +297,9 @@ export default function Experiment({
         <div style={base.card}>
           <div style={base.eyebrow}>Round {round} of 2 &middot; Part 1</div>
           <p style={base.body}>{LADDER_INSTRUCTIONS}</p>
-          <p style={{ ...base.body, fontWeight: 600 }}>{question}</p>
+          <p style={{ fontSize: "23px", lineHeight: 1.5, fontWeight: 700, color: C.text, marginBottom: "22px" }}>
+            {question}
+          </p>
           {MDD_LADDER.map((text, i) => (
             <div key={i} style={{ marginBottom: "22px" }}>
               <div style={base.vignette}>{text}</div>
@@ -386,7 +388,9 @@ export default function Experiment({
             {draft.order.length}
           </div>
           <div style={{ ...base.vignette, marginBottom: "24px" }}>{v.text}</div>
-          <p style={{ ...base.small, marginBottom: "10px" }}>{TRAUMA_STATEMENT[variant]}</p>
+          <p style={{ fontSize: "21px", lineHeight: 1.5, fontWeight: 700, color: C.text, marginBottom: "14px" }}>
+            {TRAUMA_STATEMENT[variant]}
+          </p>
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             {TRAUMA_SCALE_LABELS.map((label, i) => {
               const val = i + 1;
@@ -606,7 +610,8 @@ export default function Experiment({
           bipolar disorder, anxiety, OCD, and more. The trauma scenarios are the complete Trauma
           subscale of McGrath and Haslam&rsquo;s Harm Concept Breadth Scale, which has parallel
           subscales for bullying, prejudice, and mental disorder. The unmodified versions are
-          reproduced verbatim from the authors&rsquo; published materials (CC-BY); the
+          reproduced verbatim from the authors&rsquo; published materials (CC-BY), except that one
+          person has been renamed; the
           &ldquo;severe&rdquo; versions are our modifications of them, and are not part of the
           original experiments. The authors&rsquo; studies found that people who score
           broadly on one harm concept tend to score broadly on the others, and that broader
