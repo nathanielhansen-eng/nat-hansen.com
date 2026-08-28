@@ -811,50 +811,72 @@ function summarizeReuterTruth(submissions: Record<string, unknown>[]) {
   };
 }
 
-// Concept-breadth (Tse & Haslam ladder + McGrath & Haslam trauma subscale).
-// Per-record rows carry the two scores plus the per-rung Yes pattern and
-// per-vignette ratings — everything a class dataviz needs, nothing else.
+// Concept-breadth (based on the Tse & Haslam ladder + McGrath & Haslam
+// trauma subscale; two passes per person, bare and "severe", pass order
+// randomized). Per-record rows carry the per-pass scores and patterns —
+// everything a class dataviz needs, nothing else. Records from the
+// pre-two-pass schema are skipped.
 function summarizeConceptBreadth(submissions: Record<string, unknown>[], tag: string | null) {
+  const isPass = (p: unknown): p is Record<string, unknown> =>
+    !!p &&
+    typeof p === "object" &&
+    Array.isArray((p as Record<string, unknown>).ladderYes) &&
+    ((p as Record<string, unknown>).ladderYes as unknown[]).length === 5 &&
+    ((p as Record<string, unknown>).ladderYes as unknown[]).every((v) => typeof v === "boolean") &&
+    Array.isArray((p as Record<string, unknown>).trauma) &&
+    typeof (p as Record<string, unknown>).ladderScore === "number" &&
+    typeof (p as Record<string, unknown>).traumaScore === "number";
+  const passOf = (p: Record<string, unknown>) => ({
+    ladderYes: p.ladderYes as boolean[],
+    ladderScore: p.ladderScore as number,
+    traumaScore: p.traumaScore as number,
+    trauma: (p.trauma as Record<string, unknown>[])
+      .filter((t) => t && typeof t.id === "string" && typeof t.rating === "number")
+      .map((t) => ({ id: t.id as string, rating: t.rating as number })),
+  });
   const records = submissions
-    .filter(
-      (s) =>
-        Array.isArray(s.ladderYes) &&
-        (s.ladderYes as unknown[]).length === 5 &&
-        (s.ladderYes as unknown[]).every((v) => typeof v === "boolean") &&
-        Array.isArray(s.trauma) &&
-        typeof s.ladderScore === "number" &&
-        typeof s.traumaScore === "number",
-    )
+    .filter((s) => isPass(s.bare) && isPass(s.severe) && typeof s.passOrder === "string")
     .map((s) => ({
-      ladderYes: s.ladderYes as boolean[],
-      ladderScore: s.ladderScore as number,
-      traumaScore: s.traumaScore as number,
-      trauma: (s.trauma as Record<string, unknown>[])
-        .filter((t) => t && typeof t.id === "string" && typeof t.rating === "number")
-        .map((t) => ({ id: t.id as string, rating: t.rating as number })),
+      passOrder: s.passOrder as string,
+      bare: passOf(s.bare as Record<string, unknown>),
+      severe: passOf(s.severe as Record<string, unknown>),
       tag: tagOf(s),
     }));
   const n = records.length;
-  const ladderYes = [0, 1, 2, 3, 4].map((i) => records.filter((r) => r.ladderYes[i]).length);
-  const traumaMeans: Record<string, { n: number; mean: number }> = {};
-  for (const r of records) {
-    for (const t of r.trauma) {
-      const cell = (traumaMeans[t.id] ??= { n: 0, mean: 0 });
-      cell.mean = (cell.mean * cell.n + t.rating) / (cell.n + 1);
-      cell.n += 1;
+  const variantAgg = (pick: (r: (typeof records)[number]) => ReturnType<typeof passOf>) => {
+    const ladderYes = [0, 1, 2, 3, 4].map((i) => records.filter((r) => pick(r).ladderYes[i]).length);
+    const traumaMeans: Record<string, { n: number; mean: number }> = {};
+    for (const r of records) {
+      for (const t of pick(r).trauma) {
+        const cell = (traumaMeans[t.id] ??= { n: 0, mean: 0 });
+        cell.mean = (cell.mean * cell.n + t.rating) / (cell.n + 1);
+        cell.n += 1;
+      }
     }
-  }
+    return {
+      ladderYes,
+      meanLadderScore: n ? records.reduce((a, r) => a + pick(r).ladderScore, 0) / n : null,
+      meanTraumaScore: n ? records.reduce((a, r) => a + pick(r).traumaScore, 0) / n : null,
+      traumaMeans,
+    };
+  };
   const own = tag !== null ? records.find((r) => r.tag === tag) : undefined;
   return {
     records,
     aggregate: {
       n,
-      ladderYes,
-      meanLadderScore: n ? records.reduce((a, r) => a + r.ladderScore, 0) / n : null,
-      meanTraumaScore: n ? records.reduce((a, r) => a + r.traumaScore, 0) / n : null,
-      traumaMeans,
+      bare: variantAgg((r) => r.bare),
+      severe: variantAgg((r) => r.severe),
+      ladderShiftUp: records.filter((r) => r.severe.ladderScore < r.bare.ladderScore).length,
     },
-    yours: own ? { ladderScore: own.ladderScore, traumaScore: own.traumaScore } : null,
+    yours: own
+      ? {
+          bareLadderScore: own.bare.ladderScore,
+          severeLadderScore: own.severe.ladderScore,
+          bareTraumaScore: own.bare.traumaScore,
+          severeTraumaScore: own.severe.traumaScore,
+        }
+      : null,
   };
 }
 

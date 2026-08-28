@@ -4,12 +4,16 @@ import { useMemo, useState } from "react";
 import {
   LADDER_INSTRUCTIONS,
   LADDER_QUESTION,
+  LADDER_QUESTION_SEVERE,
   MDD_LADDER,
   PUBLISHED,
   TRAUMA_INSTRUCTIONS,
+  TRAUMA_INSTRUCTIONS_SEVERE,
   TRAUMA_SCALE_LABELS,
+  TRAUMA_STATEMENT,
   TRAUMA_VIGNETTES,
 } from "./stimuli";
+import type { PassData, PassOrder, Variant } from "./stimuli";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`;
 
@@ -49,7 +53,7 @@ const base: Record<string, React.CSSProperties> = {
     fontSize: "11px",
     letterSpacing: "0.18em",
     textTransform: "uppercase",
-    color: C.muted,
+    color: "#78716C",
     marginBottom: "12px",
   },
   h1: { fontSize: "34px", fontWeight: 400, lineHeight: 1.15, marginBottom: "28px", color: C.text },
@@ -127,7 +131,8 @@ function YesNo({ value, onPick }: { value: boolean | null; onPick: (v: boolean) 
  * normality: Φ((score − M) / SD) from the published mean and SD (see
  * PUBLISHED in stimuli.ts). An approximation — both distributions are
  * bounded and discrete — hence "about" in the debrief copy. Abramowitz &
- * Stegun 7.1.26 erf; |error| < 1.5e-7.
+ * Stegun 7.1.26 erf; |error| < 1.5e-7. Applies to the bare pass only:
+ * the published samples answered the unmodified instruments.
  */
 function normalPercentile(score: number, m: number, sd: number): number {
   const z = (score - m) / (sd * Math.SQRT2);
@@ -139,7 +144,43 @@ function normalPercentile(score: number, m: number, sd: number): number {
   return Math.round(cdf * 100);
 }
 
-type Phase = "intro" | "ladder" | "break" | "trauma" | "debrief";
+/** Draft state for the pass currently being answered. */
+interface Draft {
+  variant: Variant;
+  ladderYes: (boolean | null)[];
+  ladderShownAt: number | null;
+  ladderRtMs: number;
+  order: number[];
+  tIdx: number;
+  pageShownAt: number;
+  ratings: { id: string; rating: number; position: number; rtMs: number }[];
+}
+
+function newDraft(variant: Variant): Draft {
+  return {
+    variant,
+    ladderYes: [null, null, null, null, null],
+    ladderShownAt: null,
+    ladderRtMs: 0,
+    order: shuffle(TRAUMA_VIGNETTES.map((_, i) => i)),
+    tIdx: 0,
+    pageShownAt: 0,
+    ratings: [],
+  };
+}
+
+function finishPass(d: Draft): PassData {
+  const ladderYes = d.ladderYes.map((v) => v === true);
+  return {
+    ladderYes,
+    ladderScore: ladderYes.filter(Boolean).length,
+    ladderRtMs: d.ladderRtMs,
+    trauma: d.ratings,
+    traumaScore: d.ratings.reduce((a, r) => a + r.rating, 0),
+  };
+}
+
+type Phase = "intro" | "ladder" | "break" | "trauma" | "round2" | "debrief";
 
 export default function Experiment({
   session,
@@ -153,51 +194,48 @@ export default function Experiment({
   const [phase, setPhase] = useState<Phase>("intro");
   const [startedAt, setStartedAt] = useState<number | null>(null);
 
-  // Part 1 — the ladder. Index 0 = most severe.
-  const [ladderYes, setLadderYes] = useState<(boolean | null)[]>([null, null, null, null, null]);
-  const [ladderShownAt, setLadderShownAt] = useState<number | null>(null);
-  const [ladderRtMs, setLadderRtMs] = useState<number>(0);
-
-  // Part 2 — the trauma vignettes, one per page in a per-participant order.
-  // Assigned in the Begin handler, never during render (hydration safety).
-  const [order, setOrder] = useState<number[] | null>(null);
-  const [tIdx, setTIdx] = useState(0);
-  const [pageShownAt, setPageShownAt] = useState<number>(0);
-  const [ratings, setRatings] = useState<
-    { id: string; rating: number; position: number; rtMs: number }[]
-  >([]);
+  // Pass order assigned once, in the Begin click handler — never during
+  // render (hydration safety).
+  const [passOrder, setPassOrder] = useState<PassOrder | null>(null);
+  const [passIdx, setPassIdx] = useState<0 | 1>(0);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [done, setDone] = useState<Partial<Record<Variant, PassData>>>({});
   const [picked, setPicked] = useState<number | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "ok" | "err">("idle");
 
-  const ladderScore = useMemo(() => ladderYes.filter((v) => v === true).length, [ladderYes]);
-  const traumaScore = useMemo(() => ratings.reduce((a, r) => a + r.rating, 0), [ratings]);
+  const variantAt = (order: PassOrder, idx: 0 | 1): Variant =>
+    (order === "bare-first") === (idx === 0) ? "bare" : "severe";
 
-  const begin = (now: number) => {
-    setOrder(shuffle(TRAUMA_VIGNETTES.map((_, i) => i)));
+  const begin = (now: number, assigned: PassOrder) => {
+    setPassOrder(assigned);
     setStartedAt(now);
-    setLadderShownAt(now);
+    const d = newDraft(variantAt(assigned, 0));
+    d.ladderShownAt = now;
+    setDraft(d);
     setPhase("ladder");
   };
 
   const pickRung = (rung: number, v: boolean, now: number) => {
-    setLadderYes((prev) => prev.map((x, i) => (i === rung ? v : x)));
-    if (ladderShownAt !== null) setLadderRtMs(now - ladderShownAt);
+    setDraft((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ladderYes: prev.ladderYes.map((x, i) => (i === rung ? v : x)) };
+      if (prev.ladderShownAt !== null) next.ladderRtMs = now - prev.ladderShownAt;
+      return next;
+    });
   };
 
-  const send = async (finalRatings: typeof ratings) => {
+  const send = async (finalDone: Partial<Record<Variant, PassData>>) => {
     setSubmitting(true);
     const payload = {
       session,
       ...(tag ? { tag } : {}),
       submittedAt: new Date().toISOString(),
       durationMs: startedAt ? Date.now() - startedAt : 0,
-      ladderYes: ladderYes.map((v) => v === true),
-      ladderScore: ladderYes.filter((v) => v === true).length,
-      ladderRtMs,
-      trauma: finalRatings,
-      traumaScore: finalRatings.reduce((a, r) => a + r.rating, 0),
+      passOrder,
+      bare: finalDone.bare,
+      severe: finalDone.severe,
     };
     try {
       const r = await fetch("/api/experiments/concept-breadth", {
@@ -214,17 +252,17 @@ export default function Experiment({
   };
 
   /* ----------------------------- INTRO ----------------------------- */
-  if (phase === "intro" || order === null) {
+  if (phase === "intro" || passOrder === null || draft === null) {
     return (
       <div style={base.wrap}>
         <style>{FONTS}</style>
         <div style={base.card}>
-          <div style={base.eyebrow}>Concept breadth &middot; Two parts</div>
+          <div style={base.eyebrow}>Concept breadth &middot; Two rounds</div>
           <h1 style={base.h1}>Applying concepts</h1>
           <p style={base.body}>
-            You will read fifteen short descriptions of people and situations and make a series of
-            quick judgments about them. It should take no more than five minutes to complete. There
-            are no right or wrong answers. We are interested in how{" "}
+            You will read short descriptions of people and situations and make a series of quick
+            judgments about them, in two rounds. It should take no more than ten minutes to
+            complete. There are no right or wrong answers. We are interested in how{" "}
             <em>you</em>{" "}define or think about two concepts.
           </p>
           <p style={base.small}>
@@ -235,7 +273,10 @@ export default function Experiment({
           <p style={{ ...base.small, marginBottom: 0 }}>
             <span style={base.mono}>SESSION</span> &nbsp;{session}
           </p>
-          <button style={base.btn} onClick={() => begin(Date.now())}>
+          <button
+            style={base.btn}
+            onClick={() => begin(Date.now(), Math.random() < 0.5 ? "bare-first" : "severe-first")}
+          >
             Begin &rarr;
           </button>
         </div>
@@ -243,20 +284,24 @@ export default function Experiment({
     );
   }
 
-  /* ----------------------- PART 1 — THE LADDER ----------------------- */
+  const round = passIdx + 1;
+  const variant = draft.variant;
+
+  /* ------------------------ PART 1 — THE LADDER ------------------------ */
   if (phase === "ladder") {
-    const ready = ladderYes.every((v) => v !== null);
+    const ready = draft.ladderYes.every((v) => v !== null);
+    const question = variant === "bare" ? LADDER_QUESTION : LADDER_QUESTION_SEVERE;
     return (
       <div style={{ ...base.wrap, alignItems: "flex-start", paddingTop: "48px", paddingBottom: "48px" }}>
         <style>{FONTS}</style>
         <div style={base.card}>
-          <div style={base.eyebrow}>Part 1 of 2</div>
+          <div style={base.eyebrow}>Round {round} of 2 &middot; Part 1</div>
           <p style={base.body}>{LADDER_INSTRUCTIONS}</p>
-          <p style={{ ...base.body, fontWeight: 600 }}>{LADDER_QUESTION}</p>
+          <p style={{ ...base.body, fontWeight: 600 }}>{question}</p>
           {MDD_LADDER.map((text, i) => (
             <div key={i} style={{ marginBottom: "22px" }}>
               <div style={base.vignette}>{text}</div>
-              <YesNo value={ladderYes[i]} onPick={(v) => pickRung(i, v, Date.now())} />
+              <YesNo value={draft.ladderYes[i]} onPick={(v) => pickRung(i, v, Date.now())} />
             </div>
           ))}
           <button
@@ -278,13 +323,14 @@ export default function Experiment({
 
   /* ----------------------------- BREAK ----------------------------- */
   if (phase === "break") {
+    const instructions = variant === "bare" ? TRAUMA_INSTRUCTIONS : TRAUMA_INSTRUCTIONS_SEVERE;
     return (
       <div style={base.wrap}>
         <style>{FONTS}</style>
         <div style={base.card}>
-          <div style={base.eyebrow}>Part 2 of 2</div>
+          <div style={base.eyebrow}>Round {round} of 2 &middot; Part 2</div>
           <h2 style={base.h2}>Ten scenarios</h2>
-          <p style={base.body}>{TRAUMA_INSTRUCTIONS}.</p>
+          <p style={base.body}>{instructions}.</p>
           <p style={base.small}>
             Scenarios appear in random order. Rate each one on a six-point scale from{" "}
             &ldquo;strongly disagree&rdquo; to &ldquo;strongly agree&rdquo;.
@@ -292,7 +338,7 @@ export default function Experiment({
           <button
             style={base.btn}
             onClick={() => {
-              setPageShownAt(Date.now());
+              setDraft((prev) => (prev ? { ...prev, pageShownAt: Date.now() } : prev));
               setPhase("trauma");
             }}
           >
@@ -303,26 +349,32 @@ export default function Experiment({
     );
   }
 
-  /* ----------------------- PART 2 — TRAUMA ----------------------- */
+  /* ------------------------ PART 2 — TRAUMA ------------------------ */
   if (phase === "trauma") {
-    const v = TRAUMA_VIGNETTES[order[tIdx]];
-    const isLast = tIdx === order.length - 1;
+    const v = TRAUMA_VIGNETTES[draft.order[draft.tIdx]];
+    const isLastPage = draft.tIdx === draft.order.length - 1;
+    const isLastPass = passIdx === 1;
     const advance = () => {
       if (picked === null) return;
       const rec = {
         id: v.id,
         rating: picked,
-        position: tIdx,
-        rtMs: Date.now() - pageShownAt,
+        position: draft.tIdx,
+        rtMs: Date.now() - draft.pageShownAt,
       };
-      const next = [...ratings, rec];
-      setRatings(next);
+      const ratings = [...draft.ratings, rec];
       setPicked(null);
-      if (isLast) {
-        void send(next);
+      if (!isLastPage) {
+        setDraft({ ...draft, ratings, tIdx: draft.tIdx + 1, pageShownAt: Date.now() });
+        return;
+      }
+      const completed = finishPass({ ...draft, ratings });
+      const nextDone = { ...done, [variant]: completed };
+      setDone(nextDone);
+      if (isLastPass) {
+        void send(nextDone);
       } else {
-        setTIdx(tIdx + 1);
-        setPageShownAt(Date.now());
+        setPhase("round2");
       }
     };
     return (
@@ -330,12 +382,11 @@ export default function Experiment({
         <style>{FONTS}</style>
         <div style={base.card}>
           <div style={base.eyebrow}>
-            Part 2 of 2 &middot; Scenario {tIdx + 1} of {order.length}
+            Round {round} of 2 &middot; Part 2 &middot; Scenario {draft.tIdx + 1} of{" "}
+            {draft.order.length}
           </div>
           <div style={{ ...base.vignette, marginBottom: "24px" }}>{v.text}</div>
-          <p style={{ ...base.small, marginBottom: "10px" }}>
-            What happened to the person named in the scenario was traumatic.
-          </p>
+          <p style={{ ...base.small, marginBottom: "10px" }}>{TRAUMA_STATEMENT[variant]}</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             {TRAUMA_SCALE_LABELS.map((label, i) => {
               const val = i + 1;
@@ -376,7 +427,36 @@ export default function Experiment({
             disabled={picked === null || submitting}
             onClick={advance}
           >
-            {isLast ? (submitting ? "Sending…" : "Finish →") : "Next →"}
+            {isLastPage && passIdx === 1 ? (submitting ? "Sending…" : "Finish →") : "Next →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ------------------------ ROUND 2 INTERSTITIAL ------------------------ */
+  if (phase === "round2") {
+    return (
+      <div style={base.wrap}>
+        <style>{FONTS}</style>
+        <div style={base.card}>
+          <div style={base.eyebrow}>Round 2 of 2</div>
+          <h2 style={base.h2}>The same descriptions again</h2>
+          <p style={base.body}>
+            Round 2 shows you the same descriptions as round 1, but the questions are not quite
+            the same as before. Read each question carefully before answering.
+          </p>
+          <button
+            style={base.btn}
+            onClick={() => {
+              const d = newDraft(variantAt(passOrder, 1));
+              d.ladderShownAt = Date.now();
+              setDraft(d);
+              setPassIdx(1);
+              setPhase("ladder");
+            }}
+          >
+            Continue &rarr;
           </button>
         </div>
       </div>
@@ -384,9 +464,14 @@ export default function Experiment({
   }
 
   /* ---------------------------- DEBRIEF ---------------------------- */
-  const traumaMean = traumaScore / TRAUMA_VIGNETTES.length;
-  const ladderPct = normalPercentile(ladderScore, PUBLISHED.mddDepth, PUBLISHED.mddDepthSd);
-  const traumaPct = normalPercentile(traumaMean, PUBLISHED.traumaItemMean, PUBLISHED.traumaItemSd);
+  const bare = done.bare!;
+  const severe = done.severe!;
+  const bareTraumaMean = bare.traumaScore / TRAUMA_VIGNETTES.length;
+  const severeTraumaMean = severe.traumaScore / TRAUMA_VIGNETTES.length;
+  const ladderPct = normalPercentile(bare.ladderScore, PUBLISHED.mddDepth, PUBLISHED.mddDepthSd);
+  const traumaPct = normalPercentile(bareTraumaMean, PUBLISHED.traumaItemMean, PUBLISHED.traumaItemSd);
+  const ladderDelta = bare.ladderScore - severe.ladderScore;
+  const traumaDelta = bareTraumaMean - severeTraumaMean;
 
   const scoreRow = (
     label: string,
@@ -429,9 +514,9 @@ export default function Experiment({
           Psychologists led by Nick Haslam have argued that harm-related concepts like{" "}
           <em>trauma</em>{" "}and{" "}<em>mental disorder</em>{" "}have expanded their meanings over
           recent decades &mdash; a process they call{" "}<strong>concept creep</strong>. The two
-          tasks you just did are the instruments his team built to measure how broad experimental
-          participants&rsquo; versions of those concepts are, in the two dimensions they
-          distinguish.
+          tasks you just did are based on the instruments his team built to measure how broad
+          experimental participants&rsquo; versions of those concepts are, in the two dimensions
+          they distinguish.
         </p>
         <p style={base.body}>
           Part 1 measured{" "}<strong style={{ color: C.vert }}>vertical extent</strong>: all five
@@ -442,21 +527,68 @@ export default function Experiment({
           different situations describing varieties of trauma and losses and setbacks you were
           willing to count as traumatic, and how strongly.
         </p>
+        <p style={base.body}>
+          And you did all of it twice, in an order chosen at random: once with the questions
+          exactly as published, and once with a single word &mdash;{" "}
+          <strong>&ldquo;severe&rdquo;</strong>{" "}&mdash; slipped into them. The comparisons with
+          the published samples below use your answers to the unmodified questions.
+        </p>
 
         {scoreRow(
           "Part 1 · Vertical — the depression scale",
-          `${ladderScore} of 5 rungs`,
+          `${bare.ladderScore} of 5 rungs`,
           `In the original US sample (N = 502), the average respondent said Yes to ${PUBLISHED.mddDepth} of these five descriptions, and ${Math.round(PUBLISHED.mddRung4Yes * 100)}% said Yes to the second-mildest one.`,
           ladderPct,
           C.vert
         )}
         {scoreRow(
           "Part 2 · Horizontal — the trauma scenarios",
-          `${traumaScore} of 60 (average ${traumaMean.toFixed(1)} per scenario)`,
+          `${bare.traumaScore} of 60 (average ${bareTraumaMean.toFixed(1)} per scenario)`,
           `In the original US sample (N = 301), the average rating was ${PUBLISHED.traumaItemMean} per scenario on the same six-point scale.`,
           traumaPct,
           C.horiz
         )}
+
+        <div
+          style={{
+            borderLeft: `3px solid ${C.text}`,
+            background: C.well,
+            padding: "16px 20px",
+            marginBottom: "14px",
+          }}
+        >
+          <div style={{ ...base.mono, fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: "6px" }}>
+            The effect of one word
+          </div>
+          <div style={{ fontSize: "17px", lineHeight: 1.65, color: C.body }}>
+            With &ldquo;severe&rdquo; in the question, you said Yes to{" "}
+            <strong style={{ color: C.text }}>{severe.ladderScore} of 5</strong>{" "}rungs
+            {ladderDelta !== 0 ? (
+              <>
+                {" "}&mdash; your threshold moved{" "}
+                <strong style={{ color: C.vert }}>
+                  {Math.abs(ladderDelta)} rung{Math.abs(ladderDelta) === 1 ? "" : "s"}{" "}
+                  {ladderDelta > 0 ? "up the severity scale" : "down the severity scale"}
+                </strong>
+                .
+              </>
+            ) : (
+              <>{" "}&mdash; the same as without it.</>
+            )}{" "}
+            Your average &ldquo;severely traumatic&rdquo; rating was{" "}
+            <strong style={{ color: C.text }}>{severeTraumaMean.toFixed(1)}</strong>{" "}per scenario
+            {Math.abs(traumaDelta) >= 0.05 ? (
+              <>
+                , {traumaDelta > 0 ? "lower" : "higher"} than your{" "}
+                &ldquo;traumatic&rdquo; ratings by{" "}
+                <strong style={{ color: C.horiz }}>{Math.abs(traumaDelta).toFixed(1)}</strong>{" "}
+                points.
+              </>
+            ) : (
+              <>, essentially unchanged.</>
+            )}
+          </div>
+        </div>
 
         {submitStatus === "err" && (
           <p style={{ ...base.small, color: C.vert }}>
@@ -473,15 +605,18 @@ export default function Experiment({
           Breadth&ndash;Vertical scale; the full experiment runs the same five-step design for
           bipolar disorder, anxiety, OCD, and more. The trauma scenarios are the complete Trauma
           subscale of McGrath and Haslam&rsquo;s Harm Concept Breadth Scale, which has parallel
-          subscales for bullying, prejudice, and mental disorder. Both are reproduced verbatim from
-          the authors&rsquo; published materials (CC-BY). Their studies found that people who score
+          subscales for bullying, prejudice, and mental disorder. The unmodified versions are
+          reproduced verbatim from the authors&rsquo; published materials (CC-BY); the
+          &ldquo;severe&rdquo; versions are our one-word modifications of them, and are not part
+          of the original instruments. The authors&rsquo; studies found that people who score
           broadly on one harm concept tend to score broadly on the others, and that broader
           mental-disorder concepts predict self-diagnosis.
         </p>
         <p style={base.small}>
           One design note: this demonstration presents one ladder and one subscale, back to back,
-          with the scenarios in random order &mdash; scores here are indicative, and not intended
-          as a replication of either experiment.
+          twice &mdash; once as published and once with &ldquo;severe&rdquo; inserted, in an order
+          chosen at random for each person &mdash; scores here are indicative, and not intended as
+          a replication of either experiment.
         </p>
 
         <p style={base.small}>

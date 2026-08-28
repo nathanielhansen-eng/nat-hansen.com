@@ -25,6 +25,22 @@ export const LADDER_INSTRUCTIONS =
 /** CB-V question text, verbatim. */
 export const LADDER_QUESTION = "Do any of these people described below have a mental disorder?";
 
+/* ------------------------------------------------------------------ *
+ * ADAPTED (not verbatim): the "severe" variants. Each inserts exactly
+ * one word into the corresponding original — the manipulation for the
+ * two-pass design. CC-BY permits adaptation; these are OUR minimal-pair
+ * modifications of the authors' items and are labeled as such in the
+ * debrief. Everything else about the stimuli is held identical.
+ * ------------------------------------------------------------------ */
+
+/** ADAPTED from LADDER_QUESTION: "severe" inserted. */
+export const LADDER_QUESTION_SEVERE =
+  "Do any of these people described below have a severe mental disorder?";
+
+/** The two pass variants. "bare" = the published instruments, verbatim. */
+export type Variant = "bare" | "severe";
+export type PassOrder = "bare-first" | "severe-first";
+
 /**
  * VS02_MDD, verbatim, in the instrument's own order: most severe at the
  * top of the page, least severe at the bottom. Index 0 = rung 1 (most
@@ -41,6 +57,20 @@ export const MDD_LADDER: string[] = [
 /** HCBS Trauma-subscale instruction text (S1 Appendix), verbatim. */
 export const TRAUMA_INSTRUCTIONS =
   "The following descriptions may or may not be considered examples of a traumatic event. Based on the information you are given, please rate whether you agree that what happened to the person named in the scenario was traumatic";
+
+/** ADAPTED from TRAUMA_INSTRUCTIONS: "severely" inserted. */
+export const TRAUMA_INSTRUCTIONS_SEVERE =
+  "The following descriptions may or may not be considered examples of a traumatic event. Based on the information you are given, please rate whether you agree that what happened to the person named in the scenario was severely traumatic";
+
+/** The statement rated on each trauma page, per variant. The bare form
+ * restates the HCBS instruction's embedded clause; the severe form is
+ * the same with "severely" inserted (ADAPTED). Adverbial "severely
+ * traumatic" rather than nominal "a severe trauma" keeps the minimal
+ * pair: one word inserted, the construction unchanged. */
+export const TRAUMA_STATEMENT: Record<Variant, string> = {
+  bare: "What happened to the person named in the scenario was traumatic.",
+  severe: "What happened to the person named in the scenario was severely traumatic.",
+};
 
 /** The HCBS response labels, verbatim (1–6). */
 export const TRAUMA_SCALE_LABELS = [
@@ -141,16 +171,14 @@ export interface TraumaResponse {
   id: string;
   /** 1–6 on the HCBS scale. */
   rating: number;
-  /** 0-based position at which this vignette was shown to this participant. */
+  /** 0-based position at which this vignette was shown to this participant
+   * within its pass (trauma order re-randomized per pass). */
   position: number;
   rtMs: number;
 }
 
-export interface Submission {
-  session: string;
-  tag?: string;
-  submittedAt: string;
-  durationMs: number;
+/** One complete pass (ladder + trauma) under one variant. */
+export interface PassData {
   /** Yes/No per ladder rung, index 0 = most severe. */
   ladderYes: boolean[];
   /** Count of Yes answers, 0–5. */
@@ -160,4 +188,17 @@ export interface Submission {
   trauma: TraumaResponse[];
   /** Sum of the ten ratings, 10–60. */
   traumaScore: number;
+}
+
+export interface Submission {
+  session: string;
+  tag?: string;
+  submittedAt: string;
+  durationMs: number;
+  /** Which variant this participant saw first (assigned at random). */
+  passOrder: PassOrder;
+  /** The published instruments, verbatim. */
+  bare: PassData;
+  /** The one-word "severe" modification. */
+  severe: PassData;
 }

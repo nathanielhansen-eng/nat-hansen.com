@@ -60,6 +60,102 @@ is trimmed on both sites. This also resolves round-2 item 5.
 
 ---
 
+## Round 4 (2026-08-27): the two-pass "severe" design — NEW COPY FOR AUDIT
+
+Per Nat: everyone answers everything twice, once as published (bare) and once with "severe"
+inserted, **pass order randomized per person**; front card re-labeled "Based on…". The severe
+stimuli are one-word insertions, marked ADAPTED in `stimuli.ts` (CC-BY permits adaptation;
+labeled as modified in the debrief). All copy below is new or changed this round — the
+audited copy from rounds 1–3 is otherwise untouched.
+
+**Adapted stimuli (minimal pairs, one word inserted):**
+> Do any of these people described below have a **severe** mental disorder?
+>
+> …please rate whether you agree that what happened to the person named in the scenario was
+> **severely** traumatic *(instruction, severe pass)*
+>
+> What happened to the person named in the scenario was **severely** traumatic. *(rating
+> statement, severe pass; adverbial rather than nominal "a severe trauma" to hold the
+> construction fixed — flag if you want the nominal instead)*
+
+**Intro (changed lines only):**
+> You will read short descriptions of people and situations and make a series of quick
+> judgments about them, **in two rounds**. It should take no more than **ten** minutes to
+> complete.
+
+Eyebrow: "Concept breadth · Two rounds". Round eyebrows: "Round 1 of 2 · Part 1",
+"Round 1 of 2 · Part 2 · Scenario x of 10", etc.
+
+**Round-2 interstitial (all new):**
+> **The same descriptions again**
+>
+> Round 2 shows you the same descriptions as round 1, but the questions are not quite the
+> same as before. Read each question carefully before answering.
+
+**Debrief — new third paragraph:**
+> And you did all of it twice, in an order chosen at random: once with the questions exactly
+> as published, and once with a single word — **"severe"** — slipped into them. The
+> comparisons with the published samples below use your answers to the unmodified questions.
+
+**Debrief — new "effect of one word" panel (template):**
+> **The effect of one word** — With "severe" in the question, you said Yes to *N* of 5 rungs
+> — your threshold moved *k* rung(s) up the severity scale. Your average "severely traumatic"
+> rating was *x.x* per scenario, lower than your "traumatic" ratings by *y.y* points.
+> *(Variants: "the same as without it" / "essentially unchanged" when deltas are zero; "down
+> the severity scale" / "higher" for reversed movers.)*
+
+**Debrief — materials paragraph, changed sentences:**
+> The two tasks you just did are **based on** the instruments his team built … The
+> **unmodified** versions are reproduced verbatim from the authors' published materials
+> (CC-BY); the **"severe" versions are our one-word modifications of them, and are not part
+> of the original instruments**. The **authors'** studies found that…
+
+**Debrief — design note, changed:**
+> …presents one ladder and one subscale, back to back, **twice — once as published and once
+> with "severe" inserted, in an order chosen at random for each person** — scores here are
+> indicative, and not intended as a replication of either experiment.
+
+**Live view — new banner (template):**
+> The effect of one word: **X of N** moved their "mental disorder" threshold up the severity
+> scale when the question said **"severe"**; mean "traumatic" ratings shifted **−y.y** points
+> under "severely".
+
+Chart subtitles now: "Percent saying 'mental disorder' (upper bar) vs 'severe mental
+disorder' (lower bar), by degree of severity" / "Mean agreement: 'traumatic' (upper bar) vs
+'severely traumatic' (lower bar), 1–6". Glosses name upper bar = as published (red/green),
+lower bar = with "severe" (dark red/dark green); published anchors are labeled as answering
+the unmodified questions.
+
+**Admin — new shift panel note:**
+> "Threshold up" = fewer Yes rungs with "severe" in the question. Δ rungs = mean
+> (bare − severe) ladder score; Δ trauma = mean per-item (bare − severe) rating. Pass order
+> was randomized per person — compare the two order rows to eyeball order effects.
+
+**Cards (both sites) — title now "Based on McGrath & Haslam (2020) · Tse & Haslam (2023)";
+blurb reworked:**
+> How broad are your concepts of trauma and mental disorder — and what does one word do to
+> them? Based on two of the instruments Haslam's team built to measure 'concept creep': five
+> descriptions of depression graded from most to least severe. How far down the scale, would
+> you say, is an example of 'mental disorder'? Then ten scenarios, from hearing about an
+> armed mugging to a teenager moving to a new town, rated according to whether what happened
+> was traumatic. You answer everything twice, in randomized order — once as published, once
+> with 'severe' in the question — and you'll see what the one word does to your own
+> judgments, alongside the published US results.
+
+**Metadata description:**
+> Based on two of the instruments Haslam's team uses to measure concept creep: the depression
+> severity scale (Tse & Haslam 2023) and the trauma subscale of the Harm Concept Breadth
+> Scale (McGrath & Haslam 2020) — each answered twice, once as published and once with
+> 'severe' inserted.
+
+**Non-copy notes:** the debrief's published anchors and percentile apply to the bare pass
+only (the published samples answered unmodified questions — said explicitly in the debrief).
+Your 2026-08-27 single-pass test record predates this schema and is skipped by all
+dashboards. Sections 1–9 below are the rounds 1–3 record and do not reflect round 4 where
+the two conflict.
+
+---
+
 ## 1. Participant intro — `Experiment.tsx:240–262`
 
 > **Applying concepts**

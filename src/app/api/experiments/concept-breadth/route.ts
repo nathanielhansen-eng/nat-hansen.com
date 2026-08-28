@@ -1,9 +1,13 @@
 import { put } from "@vercel/blob";
 import { TRAUMA_IDS } from "@/app/teaching/experiments/concept-breadth/stimuli";
 import type {
+  PassData,
+  PassOrder,
   Submission,
   TraumaResponse,
 } from "@/app/teaching/experiments/concept-breadth/stimuli";
+
+const PASS_ORDERS = new Set<string>(["bare-first", "severe-first"]);
 
 function sanitizeTag(v: unknown): string | null {
   if (typeof v !== "string") return null;
@@ -14,16 +18,12 @@ function sanitizeSession(s: string): string {
   return s.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 64) || "default";
 }
 
-function validate(body: unknown): Submission | null {
-  if (!body || typeof body !== "object") return null;
-  const b = body as Record<string, unknown>;
+function validatePass(raw: unknown): PassData | null {
+  if (!raw || typeof raw !== "object") return null;
+  const b = raw as Record<string, unknown>;
 
-  if (typeof b.session !== "string" || typeof b.submittedAt !== "string") return null;
-  if (b.submittedAt.length > 40) return null;
-  for (const k of ["durationMs", "ladderRtMs"] as const) {
-    const v = b[k];
-    if (typeof v !== "number" || !Number.isFinite(v) || v < 0) return null;
-  }
+  if (typeof b.ladderRtMs !== "number" || !Number.isFinite(b.ladderRtMs) || b.ladderRtMs < 0)
+    return null;
 
   if (!Array.isArray(b.ladderYes) || b.ladderYes.length !== 5) return null;
   if (!b.ladderYes.every((v) => typeof v === "boolean")) return null;
@@ -34,9 +34,9 @@ function validate(body: unknown): Submission | null {
   if (!Array.isArray(b.trauma) || b.trauma.length !== TRAUMA_IDS.length) return null;
   const seen = new Set<string>();
   const trauma: TraumaResponse[] = [];
-  for (const raw of b.trauma) {
-    if (!raw || typeof raw !== "object") return null;
-    const r = raw as Record<string, unknown>;
+  for (const t of b.trauma) {
+    if (!t || typeof t !== "object") return null;
+    const r = t as Record<string, unknown>;
     if (typeof r.id !== "string" || !TRAUMA_IDS.includes(r.id) || seen.has(r.id)) return null;
     seen.add(r.id);
     if (typeof r.rating !== "number" || !Number.isInteger(r.rating) || r.rating < 1 || r.rating > 6)
@@ -50,15 +50,36 @@ function validate(body: unknown): Submission | null {
   if (b.traumaScore !== traumaScore) return null;
 
   return {
-    session: sanitizeSession(b.session),
-    ...(sanitizeTag(b.tag) ? { tag: sanitizeTag(b.tag)! } : {}),
-    submittedAt: b.submittedAt,
-    durationMs: b.durationMs as number,
     ladderYes,
     ladderScore,
     ladderRtMs: b.ladderRtMs as number,
     trauma,
     traumaScore,
+  };
+}
+
+function validate(body: unknown): Submission | null {
+  if (!body || typeof body !== "object") return null;
+  const b = body as Record<string, unknown>;
+
+  if (typeof b.session !== "string" || typeof b.submittedAt !== "string") return null;
+  if (b.submittedAt.length > 40) return null;
+  if (typeof b.durationMs !== "number" || !Number.isFinite(b.durationMs) || b.durationMs < 0)
+    return null;
+  if (typeof b.passOrder !== "string" || !PASS_ORDERS.has(b.passOrder)) return null;
+
+  const bare = validatePass(b.bare);
+  const severe = validatePass(b.severe);
+  if (!bare || !severe) return null;
+
+  return {
+    session: sanitizeSession(b.session),
+    ...(sanitizeTag(b.tag) ? { tag: sanitizeTag(b.tag)! } : {}),
+    submittedAt: b.submittedAt,
+    durationMs: b.durationMs,
+    passOrder: b.passOrder as PassOrder,
+    bare,
+    severe,
   };
 }
 

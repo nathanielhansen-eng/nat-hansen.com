@@ -5,7 +5,8 @@ import { TRAUMA_IDS } from "@/app/teaching/experiments/concept-breadth/stimuli";
 // the live projector view; comparisons between groups happen from the
 // instructor dashboard's session picker. Never serves raw submissions —
 // counts and means only, so leaving it open matches the class-summary
-// endpoint's privacy posture.
+// endpoint's privacy posture. Records from the pre-two-pass schema are
+// skipped (they lack the bare/severe passes).
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +14,7 @@ function sanitizeSession(s: string): string {
   return s.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 64);
 }
 
-interface Agg {
-  n: number;
+interface VariantAgg {
   /** Yes-count per ladder rung, index 0 = most severe. */
   ladderYes: number[];
   /** Histogram of ladder scores 0–5. */
@@ -25,11 +25,23 @@ interface Agg {
   trauma: Record<string, number[]>;
 }
 
-function emptyAgg(): Agg {
+interface Agg {
+  /** Complete two-pass records counted. */
+  n: number;
+  bare: VariantAgg;
+  severe: VariantAgg;
+  /** Ladder threshold movement, bare vs severe: "up" = fewer Yes with
+   * "severe" (the threshold climbed the severity scale). */
+  ladderShift: { up: number; same: number; down: number };
+  /** Sum over persons of (bare per-item mean − severe per-item mean),
+   * for the group's mean trauma shift. */
+  traumaDeltaSum: number;
+}
+
+function emptyVariantAgg(): VariantAgg {
   const trauma: Record<string, number[]> = {};
   for (const id of TRAUMA_IDS) trauma[id] = [0, 0, 0, 0, 0, 0];
   return {
-    n: 0,
     ladderYes: [0, 0, 0, 0, 0],
     ladderScoreHist: [0, 0, 0, 0, 0, 0],
     traumaScoreHist: new Array(51).fill(0),
@@ -37,34 +49,65 @@ function emptyAgg(): Agg {
   };
 }
 
-function addTo(agg: Agg, s: Record<string, unknown>): void {
-  if (!Array.isArray(s.ladderYes) || s.ladderYes.length !== 5) return;
-  if (!Array.isArray(s.trauma)) return;
-  const ladderYes = s.ladderYes as unknown[];
-  if (!ladderYes.every((v) => typeof v === "boolean")) return;
-  agg.n += 1;
+function emptyAgg(): Agg {
+  return {
+    n: 0,
+    bare: emptyVariantAgg(),
+    severe: emptyVariantAgg(),
+    ladderShift: { up: 0, same: 0, down: 0 },
+    traumaDeltaSum: 0,
+  };
+}
+
+/** Validates and folds one pass into a variant aggregate; returns the
+ * pass's (ladderScore, trauma per-item mean) or null if malformed. */
+function addPass(agg: VariantAgg, raw: unknown): { ladderScore: number; traumaMean: number } | null {
+  if (!raw || typeof raw !== "object") return null;
+  const s = raw as Record<string, unknown>;
+  if (!Array.isArray(s.ladderYes) || s.ladderYes.length !== 5) return null;
+  if (!(s.ladderYes as unknown[]).every((v) => typeof v === "boolean")) return null;
+  if (!Array.isArray(s.trauma)) return null;
+
   let score = 0;
-  ladderYes.forEach((v, i) => {
+  (s.ladderYes as boolean[]).forEach((v, i) => {
     if (v) {
       agg.ladderYes[i] += 1;
       score += 1;
     }
   });
   agg.ladderScoreHist[score] += 1;
+
   let tScore = 0;
   let tN = 0;
-  for (const raw of s.trauma as unknown[]) {
-    if (!raw || typeof raw !== "object") continue;
-    const r = raw as Record<string, unknown>;
+  for (const t of s.trauma as unknown[]) {
+    if (!t || typeof t !== "object") continue;
+    const r = t as Record<string, unknown>;
     if (typeof r.id !== "string" || !(r.id in agg.trauma)) continue;
     if (typeof r.rating !== "number" || r.rating < 1 || r.rating > 6) continue;
     agg.trauma[r.id][Math.round(r.rating) - 1] += 1;
     tScore += Math.round(r.rating);
     tN += 1;
   }
-  if (tN === TRAUMA_IDS.length && tScore >= 10 && tScore <= 60) {
-    agg.traumaScoreHist[tScore - 10] += 1;
-  }
+  if (tN !== TRAUMA_IDS.length || tScore < 10 || tScore > 60) return null;
+  agg.traumaScoreHist[tScore - 10] += 1;
+  return { ladderScore: score, traumaMean: tScore / TRAUMA_IDS.length };
+}
+
+function addTo(agg: Agg, s: Record<string, unknown>): void {
+  // Fold into copies first so a half-malformed record can't leave one
+  // variant counted and the other not.
+  const bareCopy = JSON.parse(JSON.stringify(agg.bare)) as VariantAgg;
+  const severeCopy = JSON.parse(JSON.stringify(agg.severe)) as VariantAgg;
+  const b = addPass(bareCopy, s.bare);
+  const v = addPass(severeCopy, s.severe);
+  if (!b || !v) return;
+  agg.bare = bareCopy;
+  agg.severe = severeCopy;
+  agg.n += 1;
+  if (v.ladderScore < b.ladderScore) agg.ladderShift.up += 1;
+  else if (v.ladderScore > b.ladderScore) agg.ladderShift.down += 1;
+  else agg.ladderShift.same += 1;
+  agg.traumaDeltaSum += b.traumaMean - v.traumaMean;
 }
 
 async function loadSession(session: string): Promise<Agg> {

@@ -4,7 +4,7 @@ import Experiment from "./Experiment";
 export const metadata: Metadata = {
   title: "How far do concepts extend? — a two-part concept-breadth experiment",
   description:
-    "Respond to two of the instruments Haslam's team uses to measure concept creep: the depression severity scale (Tse & Haslam 2023) and the trauma subscale of the Harm Concept Breadth Scale (McGrath & Haslam 2020).",
+    "Based on two of the instruments Haslam's team uses to measure concept creep: the depression severity scale (Tse & Haslam 2023) and the trauma subscale of the Harm Concept Breadth Scale (McGrath & Haslam 2020) — each answered twice, once as published and once with 'severe' inserted.",
 };
 
 export default async function Page({
