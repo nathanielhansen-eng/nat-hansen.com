@@ -29,6 +29,7 @@
   .card { background:#fff; border:1px solid #ddd; border-radius:4px; padding:10px; }
   .card h3 { margin:0 0 6px; font-size:14px; }
   .card canvas { width:100%; height:auto; display:block; }
+  .card .cap { font-size:11px; color:#666; line-height:1.4; margin:6px 0 0; }
   #analysis { background:#fff; border:1px solid #ddd; border-left:4px solid var(--accent); border-radius:4px; padding:12px 16px; font-size:14px; line-height:1.5; }
   #analysis .num { font-weight:bold; }
   #status { font-size:12px; color:#777; margin-left:12px; }
@@ -101,8 +102,10 @@
     <div class="charts">
       <div class="card netcard"><h3>The community</h3><canvas id="netcv" width="460" height="300"></canvas></div>
       <div class="card"><h3>Outcomes</h3><canvas id="outcv" width="460" height="300"></canvas></div>
-      <div class="card"><h3>Diversity trajectories <span style="font-weight:normal;font-size:11px">(fraction working on the new theory; 40 sample runs)</span></h3><canvas id="trajcv" width="460" height="300"></canvas></div>
-      <div class="card"><h3>When is the question settled? <span style="font-weight:normal;font-size:11px">(round of unanimity)</span></h3><canvas id="histcv" width="460" height="300"></canvas></div>
+      <div class="card"><h3>Diversity trajectories <span style="font-weight:normal;font-size:11px">(average share of scientists on the new theory, round by round, grouped by how the community ends up)</span></h3><canvas id="trajcv" width="460" height="300"></canvas>
+        <p class="cap">Diversity is a line sitting between 0 and 1: some scientists on each theory. It ends when a line reaches 1 (everyone on the new theory) or 0 (everyone back on the old one). This is Zollman's Figure 7 in the paper, drawn as a share rather than a variance.</p></div>
+      <div class="card"><h3>When is the question settled? <span style="font-weight:normal;font-size:11px">(share of communities that have reached their final verdict, by round)</span></h3><canvas id="histcv" width="460" height="300"></canvas>
+        <p class="cap">Each curve climbs as communities reach a verdict they never revisit: blue, the round after the last dissenter joins the new theory; red, the round the last scientist leaves it (from then on no one tests it, so it can never come back). The gap below the two curves at the right edge is the communities still divided at the horizon.</p></div>
       <div class="card" style="grid-column:1/-1"><h3>Sweep: P(settle on truth) by stubbornness &times; network <span style="font-weight:normal;font-size:11px">(the 2010 paper's core interaction; uses current &epsilon;, trials, agents)</span></h3><canvas id="sweepcv" width="960" height="320"></canvas></div>
     </div>
   </div>
@@ -134,19 +137,24 @@ function simulate(P){
   const rng=mulberry32(P.seed),randn=makeRandn(rng),binom=makeBinom(rng,randn);
   const nb=neighbors(P.network,P.agents);
   const pB=0.5+P.eps;
-  const res={success:0,fail:0,unsettled:0,unanimityRound:[],failRound:[],traj:[],outcomes:[]};
-  const trackEvery=Math.max(1,Math.floor(P.steps/300));
+  const trackEvery=Math.max(1,Math.floor(P.steps/300)),nSamp=Math.ceil(P.steps/trackEvery);
+  // truthRound: for communities that end on the truth, the round after their LAST dissent (settled for good).
+  // failRound: the round the last scientist left the new theory (absorbing: no more evidence about it is ever generated).
+  // mean[out][k]: average share of scientists on the new theory at sample k, over the runs with that outcome
+  // (a collapsed community counts as 0 from its collapse onward).
+  const res={success:0,fail:0,unsettled:0,truthRound:[],failRound:[],outcomes:[],trackEvery,nSamp,
+    mean:{success:new Float64Array(nSamp),fail:new Float64Array(nSamp),unsettled:new Float64Array(nSamp)}};
   for(let r=0;r<P.runs;r++){
     const A=new Float64Array(P.agents),B=new Float64Array(P.agents);
     for(let i=0;i<P.agents;i++){A[i]=(rng()*4||1e-9)*P.prior;B[i]=(rng()*4||1e-9)*P.prior}
     const onB=new Uint8Array(P.agents);
     for(let i=0;i<P.agents;i++)onB[i]=A[i]/(A[i]+B[i])>0.5?1:0;
-    const track=r<40?[]:null; let unan=-1,failed=false,t=0;
+    const f=new Float64Array(nSamp); let lastDissent=-1,failed=false,t=0;
     const succ=new Float64Array(P.agents);
     for(t=0;t<P.steps;t++){
       let nOn=0;for(let i=0;i<P.agents;i++)nOn+=onB[i];
-      if(track&&t%trackEvery===0)track.push(nOn/P.agents);
-      if(unan<0&&(nOn===0||nOn===P.agents))unan=t;
+      if(t%trackEvery===0)f[t/trackEvery]=nOn/P.agents;
+      if(nOn<P.agents)lastDissent=t;
       if(nOn===0){failed=true;break}
       for(let i=0;i<P.agents;i++)succ[i]=onB[i]?binom(P.trials,pB):0;
       for(let i=0;i<P.agents;i++){
@@ -162,13 +170,13 @@ function simulate(P){
     }
     let allB=true;for(let i=0;i<P.agents;i++)if(!onB[i]){allB=false;break}
     const out=failed?'fail':(allB?'success':'unsettled');
-    res[out==='fail'?'fail':out==='success'?'success':'unsettled']++;
+    res[out]++;
     if(failed)res.failRound.push(t);
-    if(unan>=0)res.unanimityRound.push(unan);
-    if(track)res.traj.push({f:track,out});
+    if(out==='success')res.truthRound.push(lastDissent+1);
+    const m=res.mean[out];for(let k=0;k<nSamp;k++)m[k]+=f[k];
     res.outcomes.push(out);
   }
-  res.trackEvery=trackEvery;
+  for(const k of ['success','fail','unsettled'])if(res[k])for(let i=0;i<nSamp;i++)res.mean[k][i]/=res[k];
   return res;
 }
 
@@ -236,33 +244,47 @@ function drawTraj(res,P){
   const cv=trajcv,c=frame(cv),W=cv.width,H=cv.height,pad=42;
   axes(c,W,H,pad);
   c.font='11px Georgia';c.fillStyle='#555';
-  c.save();c.translate(13,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('fraction on new theory',0,0);c.restore();
-  c.textAlign='center';c.fillText('round',W/2,H-6);
-  c.textAlign='right';c.fillText('1',pad-4,16);c.fillText('0',pad-4,H-pad+4);
-  const maxLen=Math.max(1,...res.traj.map(t=>t.f.length));
-  c.textAlign='left';
-  for(const t of res.traj){
-    c.strokeStyle=t.out==='success'?'rgba(33,102,172,.45)':t.out==='fail'?'rgba(178,24,43,.45)':'rgba(120,120,120,.6)';
-    c.lineWidth=1;c.beginPath();
-    t.f.forEach((v,i)=>{const x=pad+(W-pad-12)*i/(maxLen-1||1),y=10+(H-pad-10)*(1-v);
-      i?c.lineTo(x,y):c.moveTo(x,y)});
-    c.stroke();}
-  c.fillStyle='#555';c.fillText(`x-axis: 0 … ${maxLen*res.trackEvery} rounds`,pad+4,20);
+  c.save();c.translate(13,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('share of scientists on the new theory',0,0);c.restore();
+  c.textAlign='right';c.fillText('1',pad-4,16);c.fillText('½',pad-4,10+(H-pad-10)/2+4);c.fillText('0',pad-4,H-pad+4);
+  const series=[['success','#2166ac','end on the truth'],['fail','#b2182b','give the new theory up'],['unsettled','#888','still divided at the horizon']];
+  const nS=res.nSamp;
+  // show only the stretch where something still moves: past the last point any mean line is >0.01 from its final value, it is flat
+  let last=0;
+  for(const [k] of series){if(!res[k])continue;const a=res.mean[k],fin=a[nS-1];
+    for(let i=nS-1;i>=0;i--)if(Math.abs(a[i]-fin)>0.01){last=Math.max(last,i);break}}
+  const xN=Math.min(nS,Math.max(12,Math.ceil(last*1.3)+2));
+  const xs=i=>pad+(W-pad-12)*i/(xN-1),ys=v=>10+(H-pad-10)*(1-v);
+  c.strokeStyle='#eee';c.beginPath();c.moveTo(pad,ys(.5));c.lineTo(W-12,ys(.5));c.stroke();
+  series.forEach(([k,col,lab],si)=>{
+    if(!res[k])return;const a=res.mean[k];
+    c.strokeStyle=col;c.lineWidth=2;c.beginPath();
+    for(let i=0;i<xN;i++){i?c.lineTo(xs(i),ys(a[i])):c.moveTo(xs(i),ys(a[i]))}
+    c.stroke();
+    c.fillStyle=col;c.textAlign='left';c.fillText(`${lab} (${res[k]} of ${P.runs})`,pad+8,H-pad-52+si*15);});
+  c.fillStyle='#555';c.textAlign='center';
+  c.fillText(`round — showing 0 … ${Math.min(P.steps,xN*res.trackEvery)} of the ${P.steps}-round horizon (after this every line is flat)`,pad+(W-pad-12)/2,H-6);
 }
-function drawHist(res,P){
+function drawSettle(res,P){
   const cv=histcv,c=frame(cv),W=cv.width,H=cv.height,pad=42;
   axes(c,W,H,pad);
-  const data=res.unanimityRound;
-  c.font='11px Georgia';c.fillStyle='#555';c.textAlign='center';c.fillText('round of first unanimity (either verdict)',W/2,H-6);
-  if(!data.length){c.fillText('no run reached unanimity',W/2,H/2);return}
-  const nb=24,mx=Math.max(...data)+1,bins=new Array(nb).fill(0);
-  data.forEach(d=>bins[Math.min(nb-1,Math.floor(nb*d/mx))]++);
-  const bmax=Math.max(...bins),bw=(W-pad-14)/nb;
-  bins.forEach((b,i)=>{const h=(H-pad-16)*b/bmax;
-    c.fillStyle='#762a83';c.fillRect(pad+i*bw+1,H-pad-h,bw-2,h)});
-  c.fillStyle='#555';c.textAlign='left';
-  const med=data.slice().sort((a,b)=>a-b)[Math.floor(data.length/2)];
-  c.fillText(`median ${med} · range 0–${mx-1} · ${data.length}/${P.runs} runs unanimous`,pad+4,18);
+  const L=Math.log10(P.steps+1),lx=t=>pad+(W-pad-12)*Math.log10(t+1)/L,ly=y=>10+(H-pad-10)*(1-y);
+  c.font='11px Georgia';c.fillStyle='#555';
+  c.save();c.translate(13,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('share of communities',0,0);c.restore();
+  c.textAlign='right';c.fillText('all',pad-4,ly(1)+4);c.fillText('half',pad-4,ly(.5)+4);c.fillText('0',pad-4,ly(0)+4);
+  c.textAlign='center';
+  for(let e=0;Math.pow(10,e)<=P.steps;e++){const t=Math.pow(10,e);c.fillText(t===1?'round 1':t,lx(t),H-pad+14);
+    c.strokeStyle='#eee';c.beginPath();c.moveTo(lx(t),10);c.lineTo(lx(t),H-pad);c.stroke()}
+  c.fillText('round (log scale — most verdicts come early)',pad+(W-pad-12)/2,H-6);
+  const med=a=>a.length?a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)]:null;
+  const series=[[res.truthRound,'#2166ac','settled on the truth for good'],[res.failRound,'#b2182b','gave the new theory up']];
+  series.forEach(([data,col,lab],si)=>{
+    const s=data.slice().sort((a,b)=>a-b);
+    c.strokeStyle=col;c.lineWidth=2;c.beginPath();c.moveTo(lx(0),ly(0));
+    s.forEach((t,i)=>{c.lineTo(lx(t),ly(i/P.runs));c.lineTo(lx(t),ly((i+1)/P.runs))});
+    c.lineTo(lx(P.steps),ly(s.length/P.runs));c.stroke();
+    c.fillStyle=col;c.textAlign='left';
+    c.fillText(`${lab}: ${(100*s.length/P.runs).toFixed(0)}%${s.length?`, half of them by round ${med(s)}`:''}`,pad+8,22+si*15);});
+  if(res.unsettled){c.fillStyle='#888';c.fillText(`still divided at round ${P.steps}: ${(100*res.unsettled/P.runs).toFixed(0)}%`,pad+8,52)}
 }
 function drawSweep(rows,strengths,nets,P){
   const cv=sweepcv,c=frame(cv),W=cv.width,H=cv.height,pad=52;
@@ -288,7 +310,7 @@ function drawSweep(rows,strengths,nets,P){
 function analyze(res,P){
   const pct=x=>'<span class="num">'+(100*x/P.runs).toFixed(1)+'%</span>';
   const med=a=>a.length?a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)]:null;
-  const mUnan=med(res.unanimityRound),mFail=med(res.failRound);
+  const mTruth=med(res.truthRound),mFail=med(res.failRound);
   let regime,mapping;
   const s=res.success/P.runs,f=res.fail/P.runs,u=res.unsettled/P.runs;
   if(u>0.25){regime='<b>permanent diversity</b>: disagreement outlives the horizon — the community maintains rival programs indefinitely and the question is never settled';
@@ -300,7 +322,7 @@ function analyze(res,P){
   let hystNote=P.hyst>0?`<br>Commitment hysteresis &delta;=${P.hyst.toFixed(3)} is on: agents abandon their current theory only below E&thinsp;&lt;&thinsp;${(0.5-P.hyst).toFixed(3)}. Compare the same settings with &delta;=0 to price this knob.`:'';
   return `<b>${P.network}</b> network, ${P.agents} agents, &epsilon;=${fmt(P.eps)}, ${P.trials} trials/round, prior strength ${fmt(P.prior)} — ${P.runs} communities:
   settled on the truth ${pct(res.success)}, abandoned it ${pct(res.fail)}${mFail!==null?` (median collapse at round <span class="num">${mFail}</span>)`:''}, still unsettled ${pct(res.unsettled)}.
-  ${mUnan!==null?`Median time to unanimity <span class="num">${mUnan}</span> rounds.`:'No run reached unanimity.'}
+  ${mTruth!==null?`Of the communities that ended on the truth, half had settled there for good by round <span class="num">${mTruth}</span>.`:''}
   <br>Regime: ${regime}. ${mapping}${hystNote}`;
 }
 
@@ -310,7 +332,7 @@ function runAll(){
   if(busy)return;busy=true;
   runbtn.disabled=sweepbtn.disabled=true;status.textContent='running…';
   setTimeout(()=>{const P=getP(),t0=performance.now(),res=simulate(P);
-    drawNet(P);drawOutcomes(res,P);drawTraj(res,P);drawHist(res,P);
+    drawNet(P);drawOutcomes(res,P);drawTraj(res,P);drawSettle(res,P);
     analysis.innerHTML=analyze(res,P);
     status.textContent=((performance.now()-t0)/1000).toFixed(1)+'s';
     runbtn.disabled=sweepbtn.disabled=false;busy=false;},30);
