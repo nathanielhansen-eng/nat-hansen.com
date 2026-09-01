@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Zollman Lab — original model</title>
+<title>Zollman Lab — the original model</title>
 <style>
   :root { --ink:#1a1a2e; --paper:#f7f5f0; --accent:#2166ac; --fail:#b2182b; --mid:#762a83; }
   * { box-sizing:border-box; }
@@ -19,6 +19,7 @@
   .ctl label .val { font-weight:bold; font-variant-numeric:tabular-nums; }
   .ctl input[type=range] { width:100%; accent-color:var(--accent); }
   .ctl select, .ctl input[type=number] { width:100%; font:inherit; padding:2px 4px; }
+  .ctl.check label { justify-content:flex-start; gap:6px; align-items:flex-start; cursor:pointer; }
   .hint { font-size:11px; color:#777; line-height:1.35; margin-top:1px; }
   button { font:inherit; font-size:14px; padding:7px 14px; cursor:pointer; background:var(--ink); color:#fff; border:none; border-radius:3px; }
   button.secondary { background:#fff; color:var(--ink); border:1px solid var(--ink); }
@@ -39,8 +40,8 @@
 </head>
 <body>
 <header>
-  <h1>Zollman Lab — original model</h1>
-  <p>Bandit networks &amp; transient diversity (Zollman 2007, 2010), his assumptions only. Old theory pays at exactly 0.5; the new one at 0.5&thinsp;+&thinsp;&epsilon;. Will the community find out? &nbsp;·&nbsp; <a href="tutorial.html">&larr; tutorial</a> &nbsp;·&nbsp; <a href="sycophant_vs_advocate.html">the LLM extension &rarr;</a></p>
+  <h1>Zollman Lab — the original model</h1>
+  <p>Bandit networks &amp; transient diversity (Zollman 2010), his assumptions and his code. Two theories, and nobody knows how good either one is: the new one really pays off at 0.5, the old one at 0.5&thinsp;&minus;&thinsp;&epsilon;. Will the community find out? &nbsp;·&nbsp; <a href="tutorial.html">&larr; tutorial</a> &nbsp;·&nbsp; <a href="sycophant_vs_advocate.html">the LLM extension (earlier engine) &rarr;</a></p>
 </header>
 <div class="wrap">
   <div class="controls">
@@ -48,8 +49,8 @@
     <div class="presets">
       <button onclick="preset('baseline')">Zollman baseline</button>
       <button onclick="preset('dense')">Dense &amp; hasty</button>
-      <button onclick="preset('extreme')">Extreme priors</button>
-      <button onclick="preset('locked')">Never settles</button>
+      <button onclick="preset('extreme')">Dense &amp; stubborn</button>
+      <button onclick="preset('locked')">Sparse + stubborn: many never settle</button>
     </div>
 
     <h2>Community</h2>
@@ -59,33 +60,36 @@
         <option value="cycle" selected>cycle (sparse)</option>
         <option value="wheel">wheel (hub + rim)</option>
         <option value="complete">complete (everyone sees all)</option>
-        <option value="line">line (sparsest)</option>
+        <option value="line">line (sparsest; not in the paper)</option>
       </select>
       <div class="hint">who sees whose results — Zollman's headline: sparser networks are slower but likelier to find the truth</div>
     </div>
-    <div class="ctl"><label>agents <span class="val" id="v_agents"></span></label>
+    <div class="ctl"><label>scientists <span class="val" id="v_agents"></span></label>
       <input type="range" id="agents" min="3" max="24" step="1" value="10">
-      <div class="hint">community size — bigger communities are harder to tip into premature consensus</div></div>
+      <div class="hint">community size — his Figure 3 runs 3 to 11, Figures 6–7 use 7</div></div>
 
     <h2>The problem</h2>
-    <div class="ctl"><label>&epsilon; (new theory's edge) <span class="val" id="v_eps"></span></label>
-      <input type="range" id="eps" min="0" max="2.65" step="0.05" value="0">
-      <div class="hint">how much better the new theory really is (its payoff rate is 0.5&thinsp;+&thinsp;&epsilon;) — small &epsilon; = a hard problem, easy to get wrong</div></div>
+    <div class="ctl"><label>&epsilon; (the new theory's edge) <span class="val" id="v_eps"></span></label>
+      <input type="range" id="eps" min="0" max="2.6" step="0.05" value="0">
+      <div class="hint">the new theory pays 0.5, the old one 0.5&thinsp;&minus;&thinsp;&epsilon; (his 0.5 vs 0.499) — small &epsilon; = a hard problem, easy to get wrong</div></div>
     <div class="ctl"><label>trials per round <span class="val" id="v_trials"></span></label>
       <input type="range" id="trials" min="0" max="3" step="0.25" value="3">
-      <div class="hint">how much data each agent generates per round — the size of each "study" before everyone updates</div></div>
+      <div class="hint">how much data each scientist generates per round — the size of each "study" before everyone updates (his 1,000)</div></div>
 
     <h2>The scientists</h2>
     <div class="ctl"><label>prior strength (stubbornness) <span class="val" id="v_prior"></span></label>
       <input type="range" id="prior" min="0" max="3.5" step="0.1" value="0">
-      <div class="hint">Zollman's "extreme beliefs": how much contrary evidence it takes to move an agent off its starting opinion</div></div>
+      <div class="hint">Zollman's "extreme beliefs": every &alpha; and &beta; is drawn from (0,&thinsp;4&thinsp;&times;&thinsp;strength] — his "maximum &alpha;/&beta;" is 4 at strength 1, 10,000 at strength 2,500</div></div>
+    <div class="ctl check"><label><input type="checkbox" id="exact" checked> both theories' rates unknown (Zollman)</label>
+      <div class="hint">every scientist holds a beta belief about EACH theory and works on the one that currently looks better. Untick to recover the earlier build's simplification: the old theory's rate is known exactly, only the new one is learned, and giving the new theory up is then permanent.</div></div>
+
     <h2>Simulation</h2>
     <div class="ctl"><label>runs <span class="val" id="v_runs"></span></label>
       <input type="range" id="runs" min="50" max="1000" step="50" value="300">
       <div class="hint">how many independent communities to simulate — more runs, steadier percentages</div></div>
     <div class="ctl"><label>max rounds <span class="val" id="v_steps"></span></label>
-      <input type="range" id="steps" min="200" max="6000" step="200" value="2000">
-      <div class="hint">the horizon: runs still divided at this point count as "unsettled" (permanent diversity)</div></div>
+      <input type="range" id="steps" min="500" max="10000" step="500" value="5000">
+      <div class="hint">the horizon at which the verdict is read: communities still divided count as "never settled". His paper says 10,000; his code defaults to 2,000; his Figure 6 fits 5,000</div></div>
     <div class="ctl"><label>seed</label><input type="number" id="seed" value="1">
       <div class="hint">random seed — same seed + same settings reproduces the exact same result</div></div>
 
@@ -101,18 +105,34 @@
     <div id="analysis">Press <b>Run</b>.</div>
     <div class="charts">
       <div class="card netcard"><h3>The community</h3><canvas id="netcv" width="460" height="300"></canvas></div>
-      <div class="card"><h3>Outcomes</h3><canvas id="outcv" width="460" height="300"></canvas></div>
+      <div class="card"><h3>Outcomes at the horizon</h3><canvas id="outcv" width="460" height="300"></canvas>
+        <p class="cap" id="outcap"></p></div>
       <div class="card"><h3>Diversity trajectories <span style="font-weight:normal;font-size:11px">(average share of scientists on the new theory, round by round, grouped by how the community ends up)</span></h3><canvas id="trajcv" width="460" height="300"></canvas>
-        <p class="cap">Diversity is a line sitting between 0 and 1: some scientists on each theory. It ends when a line reaches 1 (everyone on the new theory) or 0 (everyone back on the old one). This is Zollman's Figure 7 in the paper, drawn as a share rather than a variance.</p></div>
+        <p class="cap">Diversity is a line sitting between 0 and 1: some scientists on each theory. It ends when a line reaches 1 (everyone on the new theory) or 0 (everyone on the old one). This is Zollman's Figure 7, drawn as a share rather than a variance.</p></div>
       <div class="card"><h3>When is the question settled? <span style="font-weight:normal;font-size:11px">(share of communities that have reached their final verdict, by round)</span></h3><canvas id="histcv" width="460" height="300"></canvas>
-        <p class="cap">Each curve climbs as communities reach a verdict they never revisit: blue, the round after the last dissenter joins the new theory; red, the round the last scientist leaves it (from then on no one tests it, so it can never come back). The gap below the two curves at the right edge is the communities still divided at the horizon.</p></div>
-      <div class="card" style="grid-column:1/-1"><h3>Sweep: P(settle on truth) by stubbornness &times; network <span style="font-weight:normal;font-size:11px">(the 2010 paper's core interaction; uses current &epsilon;, trials, agents)</span></h3><canvas id="sweepcv" width="960" height="320"></canvas></div>
+        <p class="cap" id="setcap"></p></div>
+      <div class="card" style="grid-column:1/-1"><h3>Sweep: P(settle on the truth) by stubbornness &times; network <span style="font-weight:normal;font-size:11px">(his Figure 6; uses current &epsilon;, trials, scientists, horizon, and the checkbox)</span></h3><canvas id="sweepcv" width="960" height="320"></canvas>
+        <p class="cap">Zollman's Figure 6 (7 scientists, 5,000 rounds): the three networks coincide near max &alpha;/&beta; 3,000, and past it the cycle falls away (0.77 at 10,000) while the complete graph holds (0.97). Dotted lines: share of communities still divided at the horizon.</p></div>
     </div>
   </div>
 </div>
 
 <script>
-// ---------- RNG ----------
+// ---------- Zollman (2010) bandit-network engine, faithful build (2026-09-01) ----------
+// Mirrors zollman2010_exact.py, which mirrors Zollman's Java (Agent Based Modeling/models/
+// PayoffLearningModel.java + learningRules/PayoffLearning.java):
+//   * two methodologies, BOTH with unknown success rates: the better one (B, "the new theory")
+//     pays 0.5, the worse one (A, "the old theory") pays 0.5 - eps  (his 0.5 vs 0.499);
+//   * every scientist holds an independent beta belief about EACH: <aA,bA> and <aB,bB>,
+//     drawn U(0,4] x prior (his "maximum alpha/beta" = 4 x prior);
+//   * each round everyone works on the theory whose posterior mean is higher (myopic),
+//     draws Binomial(trials, p) successes, and updates own + neighbours' results per arm;
+//   * all-on-A is NOT absorbing (A's rate keeps being learned); the verdict is read once,
+//     at the horizon: all on B = settled on the truth, all on A = settled on the wrong
+//     theory, otherwise still divided.
+// P.exact=false gives the earlier build's simplification for comparison: A's rate is KNOWN
+// exactly, only B is learned, and all-on-A is absorbing.
+// This text is inlined verbatim into dashboard_original.html and tutorial.html.
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function makeRandn(rng){let spare=null;return function(){if(spare!==null){const v=spare;spare=null;return v}
   let u,v,s;do{u=rng()*2-1;v=rng()*2-1;s=u*u+v*v}while(s>=1||s===0);
@@ -120,65 +140,60 @@ function makeRandn(rng){let spare=null;return function(){if(spare!==null){const 
 function makeBinom(rng,randn){return function(n,p){
   if(n<=40){let s=0;for(let i=0;i<n;i++)if(rng()<p)s++;return s}
   let x=Math.round(n*p+randn()*Math.sqrt(n*p*(1-p)));return x<0?0:(x>n?n:x)}}
-
-// ---------- networks (neighbor lists, self excluded) ----------
 function neighbors(type,n){
   const nb=[];for(let i=0;i<n;i++)nb.push(new Set());
   const link=(a,b)=>{if(a!==b){nb[a].add(b);nb[b].add(a)}};
   if(type==='complete'){for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)link(i,j)}
   else if(type==='cycle'){for(let i=0;i<n;i++)link(i,(i+1)%n)}
   else if(type==='line'){for(let i=0;i<n-1;i++)link(i,i+1)}
-  else if(type==='wheel'){for(let i=1;i<n;i++){link(i,i===n-1?1:i+1);link(0,i)}}
+  else if(type==='wheel'){for(let i=1;i<n;i++){link(i,i===n-1?1:i+1);link(0,i)}}   // rim is a cycle + hub, as in his graphs6.kz
   return nb.map(s=>[...s]);
 }
-
-// ---------- the model (mirrors zollman.py) ----------
 function simulate(P){
+  const exact=P.exact!==false;
   const rng=mulberry32(P.seed),randn=makeRandn(rng),binom=makeBinom(rng,randn);
-  const nb=neighbors(P.network,P.agents);
-  const pB=0.5+P.eps;
+  const nb=neighbors(P.network,P.agents),n=P.agents;
+  const pB=0.5,pA=0.5-P.eps;
   const trackEvery=Math.max(1,Math.floor(P.steps/300)),nSamp=Math.ceil(P.steps/trackEvery);
-  // truthRound: for communities that end on the truth, the round after their LAST dissent (settled for good).
-  // failRound: the round the last scientist left the new theory (absorbing: no more evidence about it is ever generated).
-  // mean[out][k]: average share of scientists on the new theory at sample k, over the runs with that outcome
-  // (a collapsed community counts as 0 from its collapse onward).
-  const res={success:0,fail:0,unsettled:0,truthRound:[],failRound:[],outcomes:[],trackEvery,nSamp,
+  const res={success:0,fail:0,unsettled:0,truthRound:[],failRound:[],outcomes:[],trackEvery,nSamp,exact,
     mean:{success:new Float64Array(nSamp),fail:new Float64Array(nSamp),unsettled:new Float64Array(nSamp)}};
+  const aA=new Float64Array(n),bA=new Float64Array(n),aB=new Float64Array(n),bB=new Float64Array(n);
+  const onB=new Uint8Array(n),sA=new Float64Array(n),sB=new Float64Array(n);
   for(let r=0;r<P.runs;r++){
-    const A=new Float64Array(P.agents),B=new Float64Array(P.agents);
-    for(let i=0;i<P.agents;i++){A[i]=(rng()*4||1e-9)*P.prior;B[i]=(rng()*4||1e-9)*P.prior}
-    const onB=new Uint8Array(P.agents);
-    for(let i=0;i<P.agents;i++)onB[i]=A[i]/(A[i]+B[i])>0.5?1:0;
-    const f=new Float64Array(nSamp); let lastDissent=-1,failed=false,t=0;
-    const succ=new Float64Array(P.agents);
-    for(t=0;t<P.steps;t++){
-      let nOn=0;for(let i=0;i<P.agents;i++)nOn+=onB[i];
-      if(t%trackEvery===0)f[t/trackEvery]=nOn/P.agents;
-      if(nOn<P.agents)lastDissent=t;
-      if(nOn===0){failed=true;break}
-      for(let i=0;i<P.agents;i++)succ[i]=onB[i]?binom(P.trials,pB):0;
-      for(let i=0;i<P.agents;i++){
-        let s=succ[i],n=onB[i]?P.trials:0;
-        for(const j of nb[i]){s+=succ[j];n+=onB[j]?P.trials:0}
-        A[i]+=s;B[i]+=n-s;
-      }
-      for(let i=0;i<P.agents;i++){
-        const e=A[i]/(A[i]+B[i]);
-        if(onB[i]) onB[i]=e>0.5-P.hyst?1:0;      // committed: harder to abandon
-        else onB[i]=e>0.5?1:0;
-      }
+    for(let i=0;i<n;i++){
+      aB[i]=(rng()*4||1e-9)*P.prior;bB[i]=(rng()*4||1e-9)*P.prior;
+      if(exact){aA[i]=(rng()*4||1e-9)*P.prior;bA[i]=(rng()*4||1e-9)*P.prior}
     }
-    let allB=true;for(let i=0;i<P.agents;i++)if(!onB[i]){allB=false;break}
-    const out=failed?'fail':(allB?'success':'unsettled');
+    const eA=i=>exact?aA[i]/(aA[i]+bA[i]):pA;
+    for(let i=0;i<n;i++)onB[i]=aB[i]/(aB[i]+bB[i])>eA(i)?1:0;
+    const f=new Float64Array(nSamp);let lastNotAllB=-1,lastNotAllA=-1,collapsed=false,t;
+    for(t=0;t<P.steps;t++){
+      let nOn=0;for(let i=0;i<n;i++)nOn+=onB[i];
+      if(t%trackEvery===0)f[t/trackEvery]=nOn/n;
+      if(nOn<n)lastNotAllB=t;
+      if(nOn>0)lastNotAllA=t;
+      if(!exact&&nOn===0){collapsed=true;break}          // known-arm build: nobody will ever learn about B again
+      for(let i=0;i<n;i++){if(onB[i]){sB[i]=binom(P.trials,pB);sA[i]=0}else{sA[i]=exact?binom(P.trials,pA):0;sB[i]=0}}
+      for(let i=0;i<n;i++){
+        let s=sB[i],m=onB[i]?P.trials:0,sa=sA[i],ma=onB[i]?0:P.trials;
+        for(const j of nb[i]){s+=sB[j];sa+=sA[j];if(onB[j])m+=P.trials;else ma+=P.trials}
+        aB[i]+=s;bB[i]+=m-s;
+        if(exact){aA[i]+=sa;bA[i]+=ma-sa}
+      }
+      for(let i=0;i<n;i++)onB[i]=aB[i]/(aB[i]+bB[i])>eA(i)?1:0;
+    }
+    let nOn=0;for(let i=0;i<n;i++)nOn+=onB[i];
+    const out=collapsed||nOn===0?'fail':(nOn===n?'success':'unsettled');
     res[out]++;
-    if(failed)res.failRound.push(t);
-    if(out==='success')res.truthRound.push(lastDissent+1);
-    const m=res.mean[out];for(let k=0;k<nSamp;k++)m[k]+=f[k];
+    if(out==='success')res.truthRound.push(lastNotAllB+1);
+    if(out==='fail')res.failRound.push(collapsed?t:lastNotAllA+1);
+    const mm=res.mean[out];for(let k=0;k<nSamp;k++)mm[k]+=f[k];
     res.outcomes.push(out);
   }
   for(const k of ['success','fail','unsettled'])if(res[k])for(let i=0;i<nSamp;i++)res.mean[k][i]/=res[k];
   return res;
 }
+
 
 // ---------- params from UI ----------
 function getP(){return{
@@ -187,24 +202,25 @@ function getP(){return{
   eps:Math.pow(10,-3+ +document.getElementById('eps').value),
   trials:Math.round(Math.pow(10,+document.getElementById('trials').value)),
   prior:Math.pow(10,+document.getElementById('prior').value),
-  hyst:0,
+  exact:document.getElementById('exact').checked,
   runs:+document.getElementById('runs').value,
   steps:+document.getElementById('steps').value,
   seed:+document.getElementById('seed').value||1}}
 function fmt(x,d=3){return x>=100?x.toFixed(0):x>=1?(+x.toFixed(2)).toString():x.toPrecision(d)}
 function refreshLabels(){const P=getP();
   v_agents.textContent=P.agents; v_eps.textContent=fmt(P.eps);
-  v_trials.textContent=P.trials; v_prior.textContent=fmt(P.prior);
+  v_trials.textContent=P.trials; v_prior.textContent=fmt(P.prior)+' (max α/β '+fmt(4*P.prior)+')';
   v_runs.textContent=P.runs; v_steps.textContent=P.steps;}
 document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',refreshLabels));
+const wrongLabel=P=>P.exact?'settled on the old theory':'gave the new theory up';
 
 function preset(name){
   const set=(id,v)=>document.getElementById(id).value=v;
-  set('eps',0);set('trials',3);set('runs',300);set('steps',2000);set('agents',10);
+  set('eps',0);set('trials',3);set('runs',300);set('steps',5000);set('agents',10);document.getElementById('exact').checked=true;
   if(name==='baseline'){set('network','cycle');set('prior',0)}
   if(name==='dense'){set('network','complete');set('prior',0)}
   if(name==='extreme'){set('network','complete');set('prior',2.4)}
-  if(name==='locked'){set('network','line');set('prior',3.3);set('steps',4000)}
+  if(name==='locked'){set('network','cycle');set('prior',3.4);set('agents',7)}
   refreshLabels();runAll();
 }
 
@@ -225,11 +241,11 @@ function drawNet(P){
   for(let i=0;i<n;i++){c.beginPath();c.arc(pos[i][0],pos[i][1],9,0,7);c.fillStyle='#2166ac';c.fill();
     c.strokeStyle='#fff';c.stroke()}
   c.fillStyle='#555';c.font='12px Georgia';
-  c.fillText(`${P.network}, ${n} agents — each round every agent shares its results with its neighbors`,12,H-8);
+  c.fillText(`${P.network}, ${n} scientists — each round every scientist sees the results of its neighbours`,12,H-8);
 }
 function drawOutcomes(res,P){
   const cv=outcv,c=frame(cv),W=cv.width,H=cv.height;
-  const cats=[['settled on truth',res.success,'#2166ac'],['abandoned it',res.fail,'#b2182b'],['still unsettled',res.unsettled,'#999']];
+  const cats=[['settled on the truth',res.success,'#2166ac'],[wrongLabel(P),res.fail,'#b2182b'],['still divided',res.unsettled,'#999']];
   const bw=90,gap=45,x0=70,base=H-60,scale=(H-110);
   c.font='13px Georgia';
   cats.forEach((k,i)=>{const p=k[1]/P.runs,x=x0+i*(bw+gap),h=p*scale;
@@ -238,7 +254,10 @@ function drawOutcomes(res,P){
     c.fillText((100*p).toFixed(1)+'%',x+bw/2,base-h-7);
     c.fillText(k[0],x+bw/2,base+18);});
   c.textAlign='left';c.fillStyle='#555';
-  c.fillText(`${P.runs} communities, horizon ${P.steps} rounds`,12,H-8);
+  c.fillText(`${P.runs} communities, verdict read at round ${P.steps}`,12,H-8);
+  outcap.textContent=P.exact
+    ?'Read once, at the horizon, as in Zollman’s code. A community settled on the old theory is not doomed in principle: it keeps learning the old theory’s true rate, and any scientist whose belief about the new theory sits above it will go back and try it. In practice, by the horizon, almost none do.'
+    :'Earlier-build simplification (checkbox off): the old theory’s rate is known, so the moment the last scientist leaves the new theory no evidence about it is ever generated again. Giving it up is permanent.';
 }
 function drawTraj(res,P){
   const cv=trajcv,c=frame(cv),W=cv.width,H=cv.height,pad=42;
@@ -246,9 +265,8 @@ function drawTraj(res,P){
   c.font='11px Georgia';c.fillStyle='#555';
   c.save();c.translate(13,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('share of scientists on the new theory',0,0);c.restore();
   c.textAlign='right';c.fillText('1',pad-4,16);c.fillText('½',pad-4,10+(H-pad-10)/2+4);c.fillText('0',pad-4,H-pad+4);
-  const series=[['success','#2166ac','end on the truth'],['fail','#b2182b','give the new theory up'],['unsettled','#888','still divided at the horizon']];
+  const series=[['success','#2166ac','end on the truth'],['fail','#b2182b',P.exact?'end on the old theory':'give the new theory up'],['unsettled','#888','still divided at the horizon']];
   const nS=res.nSamp;
-  // show only the stretch where something still moves: past the last point any mean line is >0.01 from its final value, it is flat
   let last=0;
   for(const [k] of series){if(!res[k])continue;const a=res.mean[k],fin=a[nS-1];
     for(let i=nS-1;i>=0;i--)if(Math.abs(a[i]-fin)>0.01){last=Math.max(last,i);break}}
@@ -276,7 +294,7 @@ function drawSettle(res,P){
     c.strokeStyle='#eee';c.beginPath();c.moveTo(lx(t),10);c.lineTo(lx(t),H-pad);c.stroke()}
   c.fillText('round (log scale — most verdicts come early)',pad+(W-pad-12)/2,H-6);
   const med=a=>a.length?a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)]:null;
-  const series=[[res.truthRound,'#2166ac','settled on the truth for good'],[res.failRound,'#b2182b','gave the new theory up']];
+  const series=[[res.truthRound,'#2166ac','settled on the truth for good'],[res.failRound,'#b2182b',P.exact?'settled on the old theory for good':'gave the new theory up']];
   series.forEach(([data,col,lab],si)=>{
     const s=data.slice().sort((a,b)=>a-b);
     c.strokeStyle=col;c.lineWidth=2;c.beginPath();c.moveTo(lx(0),ly(0));
@@ -285,25 +303,30 @@ function drawSettle(res,P){
     c.fillStyle=col;c.textAlign='left';
     c.fillText(`${lab}: ${(100*s.length/P.runs).toFixed(0)}%${s.length?`, half of them by round ${med(s)}`:''}`,pad+8,22+si*15);});
   if(res.unsettled){c.fillStyle='#888';c.fillText(`still divided at round ${P.steps}: ${(100*res.unsettled/P.runs).toFixed(0)}%`,pad+8,52)}
+  setcap.textContent='Each curve climbs as communities reach the verdict they will still hold at the horizon: blue, the round after the last dissenter joins the new theory; red, the round after the last scientist leaves it. The gap below the two curves at the right edge is the communities still divided.';
 }
-function drawSweep(rows,strengths,nets,P){
+function drawSweep(rows,unset,strengths,nets,P){
   const cv=sweepcv,c=frame(cv),W=cv.width,H=cv.height,pad=52;
   axes(c,W,H,pad);
   const colors={cycle:'#2166ac',wheel:'#762a83',complete:'#b2182b',line:'#4d9221'};
   const lx=x=>pad+(W-pad-140)*(Math.log10(x)-Math.log10(strengths[0]))/(Math.log10(strengths[strengths.length-1])-Math.log10(strengths[0]));
   const ly=y=>12+(H-pad-12)*(1-y);
   c.font='11px Georgia';c.fillStyle='#555';
-  c.textAlign='center';c.fillText('prior strength (log scale)',(W-120)/2,H-6);
-  c.save();c.translate(13,H/2);c.rotate(-Math.PI/2);c.fillText('P(settle on truth)',0,0);c.restore();
+  c.textAlign='center';c.fillText('maximum α, β of the starting beliefs (log scale) — Zollman’s x-axis; = 4 × prior strength',(W-120)/2,H-6);
+  c.save();c.translate(13,H/2);c.rotate(-Math.PI/2);c.fillText('P(settle on the truth)',0,0);c.restore();
   c.textAlign='right';c.fillText('1.0',pad-4,ly(1)+4);c.fillText('0.5',pad-4,ly(.5)+4);c.fillText('0',pad-4,ly(0)+4);
-  c.textAlign='center';strengths.forEach(s=>c.fillText(fmt(s),lx(s),H-pad+14));
+  c.textAlign='center';strengths.forEach(s=>c.fillText(fmt(4*s),lx(s),H-pad+14));
   c.strokeStyle='#eee';c.beginPath();c.moveTo(pad,ly(.5));c.lineTo(W-140,ly(.5));c.stroke();
   nets.forEach((net,ni)=>{
+    if(!rows[ni].length)return;
     c.strokeStyle=colors[net];c.fillStyle=colors[net];c.lineWidth=2;c.beginPath();
-    strengths.forEach((s,i)=>{const x=lx(s),y=ly(rows[ni][i]);i?c.lineTo(x,y):c.moveTo(x,y)});
+    rows[ni].forEach((v,i)=>{const x=lx(strengths[i]),y=ly(v);i?c.lineTo(x,y):c.moveTo(x,y)});
     c.stroke();
-    strengths.forEach((s,i)=>{c.beginPath();c.arc(lx(s),ly(rows[ni][i]),3.5,0,7);c.fill()});
+    rows[ni].forEach((v,i)=>{c.beginPath();c.arc(lx(strengths[i]),ly(v),3.5,0,7);c.fill()});
+    c.setLineDash([2,4]);c.lineWidth=1.4;c.beginPath();
+    unset[ni].forEach((v,i)=>{const x=lx(strengths[i]),y=ly(v);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();c.setLineDash([]);
     c.textAlign='left';c.fillText(net,W-125,30+ni*18);});
+  c.lineWidth=1;
 }
 
 // ---------- analysis prose ----------
@@ -311,19 +334,14 @@ function analyze(res,P){
   const pct=x=>'<span class="num">'+(100*x/P.runs).toFixed(1)+'%</span>';
   const med=a=>a.length?a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)]:null;
   const mTruth=med(res.truthRound),mFail=med(res.failRound);
-  let regime,mapping;
+  let regime;
   const s=res.success/P.runs,f=res.fail/P.runs,u=res.unsettled/P.runs;
-  if(u>0.25){regime='<b>permanent diversity</b>: disagreement outlives the horizon — the community maintains rival programs indefinitely and the question is never settled';
-    mapping='This is the Charybdis pole: contrariness. Individually principled, collectively unable to close inquiry.';}
-  else if(f>s){regime='<b>premature convergence</b>: the community usually kills the better theory on early unlucky evidence (the Palmer/H. pylori failure)';
-    mapping='This is the Scylla pole: epistemic sycophancy. Everyone updates on everyone; one bad early study cascades.';}
-  else{regime='<b>transient diversity</b>: rival programs coexist long enough for the truth to prove itself, then the community closes ranks';
-    mapping='This is the target regime — the community-level face of "giving a damn": hold long enough to matter, concede when the evidence really tells.';}
-  let hystNote=P.hyst>0?`<br>Commitment hysteresis &delta;=${P.hyst.toFixed(3)} is on: agents abandon their current theory only below E&thinsp;&lt;&thinsp;${(0.5-P.hyst).toFixed(3)}. Compare the same settings with &delta;=0 to price this knob.`:'';
-  return `<b>${P.network}</b> network, ${P.agents} agents, &epsilon;=${fmt(P.eps)}, ${P.trials} trials/round, prior strength ${fmt(P.prior)} — ${P.runs} communities:
-  settled on the truth ${pct(res.success)}, abandoned it ${pct(res.fail)}${mFail!==null?` (median collapse at round <span class="num">${mFail}</span>)`:''}, still unsettled ${pct(res.unsettled)}.
-  ${mTruth!==null?`Of the communities that ended on the truth, half had settled there for good by round <span class="num">${mTruth}</span>.`:''}
-  <br>Regime: ${regime}. ${mapping}${hystNote}`;
+  if(u>=0.15)regime='<b>permanent diversity</b> (for a substantial share of communities): disagreement outlives the horizon — the community maintains rival programs indefinitely and the question is never settled. Zollman’s closing point: two protections at once (sparse network + extreme priors) make diversity too stable.';
+  else if(f>s)regime='<b>premature convergence</b>: the community usually ends up on the worse theory — misleading early results, widely shared, take everyone off the better one before it can prove itself (the Palmer / <i>H. pylori</i> failure).';
+  else regime='<b>transient diversity</b>: rival programs coexist long enough for the truth to prove itself, then the community closes ranks. This is the regime Zollman’s title recommends.';
+  return `<b>${P.network}</b> network, ${P.agents} scientists, &epsilon;=${fmt(P.eps)}, ${P.trials} trials/round, prior strength ${fmt(P.prior)} (max &alpha;/&beta; ${fmt(4*P.prior)}), ${P.exact?'both rates unknown':'old theory’s rate known (earlier build)'} — ${P.runs} communities, verdict at round ${P.steps}:
+  settled on the truth ${pct(res.success)}${mTruth!==null?` (half of them for good by round <span class="num">${mTruth}</span>)`:''}, ${wrongLabel(P)} ${pct(res.fail)}${mFail!==null?` (half of them by round <span class="num">${mFail}</span>)`:''}, still divided ${pct(res.unsettled)}.
+  <br>Regime: ${regime}`;
 }
 
 // ---------- runners ----------
@@ -340,17 +358,16 @@ function runAll(){
 async function runSweep(){
   if(busy)return;busy=true;runbtn.disabled=sweepbtn.disabled=true;
   const P=getP();
-  const strengths=[1,3,10,30,100,300,1000],nets=['complete','wheel','cycle','line'];
-  const rows=nets.map(()=>[]);const runs=Math.min(P.runs,150);
+  const strengths=[1,3,10,30,100,300,1000,2500],nets=['complete','wheel','cycle','line'];
+  const rows=nets.map(()=>[]),unset=nets.map(()=>[]);const runs=Math.min(P.runs,150),steps=Math.min(P.steps,5000);
   for(let ni=0;ni<nets.length;ni++)for(let si=0;si<strengths.length;si++){
     status.textContent=`sweep ${ni*strengths.length+si+1}/${nets.length*strengths.length}…`;
     await new Promise(r=>setTimeout(r,10));
-    const res=simulate({...P,network:nets[ni],prior:strengths[si],runs,steps:Math.min(P.steps,2500)});
-    rows[ni][si]=res.success/runs;
-    drawSweep(rows.map((r,i)=>i<=ni?r.map(x=>x??0):[]),strengths,nets.slice(0,ni+1),P);
+    const res=simulate({...P,network:nets[ni],prior:strengths[si],runs,steps});
+    rows[ni][si]=res.success/runs;unset[ni][si]=res.unsettled/runs;
+    drawSweep(rows,unset,strengths,nets,P);
   }
-  drawSweep(rows,strengths,nets,P);
-  status.textContent='sweep done';
+  status.textContent=`sweep done (${runs} runs × ${steps} rounds per point)`;
   runbtn.disabled=sweepbtn.disabled=false;busy=false;
 }
 refreshLabels();runAll();

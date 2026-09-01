@@ -33,6 +33,8 @@
   .status { font-size:12px; color:#777; margin-left:10px; }
   .try { font-size:13.5px; background:#fbf9f4; border:1px dashed #c9c2b2; border-radius:4px; padding:9px 13px; margin-top:12px; }
   .try b { text-transform:uppercase; font-size:11px; letter-spacing:1px; color:#8a7d55; }
+  .paper { font-size:13px; color:#666; margin-top:8px; }
+  .paper b { color:var(--mid); text-transform:uppercase; font-size:11px; letter-spacing:1px; }
   .fineprint li { margin-bottom:7px; font-size:14px; }
   .fineprint li b { font-style:normal; }
   a { color:var(--accent); }
@@ -46,12 +48,13 @@
 <body>
 <header>
   <h1>How Zollman's model works, one assumption at a time</h1>
-  <p>An interactive tutorial on the bandit-network model of scientific communities
-  (Zollman 2007, 2010). Six assumptions and two LLM extensions, each with its own
-  laboratory — adjust the dials at every stage and watch what each contributes, alone
-  and in interaction. Everything runs in this page; nothing leaves your browser.
-  &nbsp;·&nbsp; <a href="dashboard_original.html">Zollman's original model &rarr;</a>
-  &nbsp;·&nbsp; <a href="sycophant_vs_advocate.html">sycophant vs. devil's advocate lab &rarr;</a></p>
+  <p>An interactive tutorial on the bandit-network model of scientific communities in
+  "The Epistemic Benefit of Transient Diversity" (Zollman 2010). Six assumptions, each with
+  its own laboratory — adjust the dials at every stage and watch what each contributes, alone
+  and in interaction. The engine on this page follows Zollman's own code, and each of the
+  community-level widgets reproduces one of his figures. Everything runs in this page;
+  nothing leaves your browser.
+  &nbsp;·&nbsp; <a href="dashboard_original.html">the full dashboard &rarr;</a></p>
 </header>
 <main>
 
@@ -72,9 +75,8 @@
     <li><a href="#s4">Evidence flows through a network</a></li>
     <li><a href="#s5">Beliefs can start extreme</a></li>
     <li><a href="#s6">The assumptions in interaction</a></li>
-    <li><a href="#s7">The sycophantic LLM</a></li>
-    <li><a href="#s8">The devil's advocate</a></li>
-    <li><a href="#s9">The fine print</a></li>
+    <li><a href="#s7">Extensions (being rebuilt)</a></li>
+    <li><a href="#s8">The fine print</a></li>
   </ol>
 </div>
 
@@ -82,17 +84,18 @@
 <section id="s1">
   <h2><span class="astag">Assumption 1</span>Inquiry is a two-armed bandit problem</h2>
   <div class="prose">
-    <p>The model reduces theory choice to a gambler facing two slot machines. The
-    old, established methodology <b>A</b> pays off at a rate everyone already knows:
-    exactly <b>0.5</b>. The new challenger <b>B</b> pays off at an unknown rate
-    <b>0.5&thinsp;+&thinsp;&epsilon;</b> — in fact slightly better, but nobody knows that. The only
-    way to learn about B is to <i>work on B</i>: run trials, count successes. Working
-    on A teaches you nothing about B.</p>
-    <p>This is the assumption that makes the whole problem hard. If &epsilon; is large,
-    a single study settles the matter. If &epsilon; is small — a genuinely hard scientific
-    question — then honest, well-run studies of B will regularly come out
-    <i>below</i> 0.5, making the better theory look worse. Palmer's study was one of
-    these unlucky draws. Try generating some studies yourself.</p>
+    <p>The model reduces theory choice to a gambler facing two slot machines. Call them
+    the established methodology <b>A</b> and the challenger <b>B</b>. Each pays off at
+    some fixed rate, and — this is the point — <b>nobody knows either rate</b>. In fact B
+    is slightly better: it pays at <b>0.5</b>, A at <b>0.5&thinsp;&minus;&thinsp;&epsilon;</b>
+    (Zollman's 0.5 against 0.499). The only way to learn about a theory is to <i>work on
+    it</i>: run trials, count successes. Working on A teaches you about A and nothing about
+    B, and vice versa.</p>
+    <p>This is the assumption that makes the whole problem hard. If &epsilon; is large, a
+    single study of each settles the matter. If &epsilon; is small — a genuinely hard
+    scientific question — then two honest, well-run studies, one of each theory, will
+    regularly rank them the <i>wrong</i> way round. Palmer's study was one of these unlucky
+    draws. Try generating some yourself: each click runs one study of A and one of B.</p>
   </div>
   <div class="widget">
     <div class="controls">
@@ -100,16 +103,17 @@
         <input type="range" id="w1_eps" min="0" max="2.5" step="0.05" value="0"></div>
       <div class="ctl"><label>trials per study <span class="val" id="v1_trials"></span></label>
         <input type="range" id="w1_trials" min="1" max="3" step="0.25" value="3"></div>
-      <div><button onclick="w1Study()">Run one study</button>
+      <div><button onclick="w1Study()">Run a study of each</button>
         <button class="secondary" onclick="w1Reset()">Clear</button></div>
     </div>
     <canvas id="w1_cv" width="880" height="260"></canvas>
     <div class="readout" id="w1_read"></div>
     <div class="try"><b>Try</b> — &epsilon; = 0.001 with 1000-trial studies: nearly half of
-    all honest studies point the wrong way. Now raise &epsilon; to 0.1: the wrong-way rate
-    collapses to zero and there is no interesting problem left. Zollman's results live
-    in the small-&epsilon; regime, where evidence is real but noisy. Then try shrinking the
-    study size at fixed &epsilon; — smaller studies mean more Palmers.</div>
+    all honest pairs of studies rank the theories the wrong way. Now raise &epsilon; to 0.1: the
+    wrong-way rate collapses to zero and there is no interesting problem left. Zollman's
+    results live in the small-&epsilon; regime, where evidence is real but noisy. Then shrink
+    the study size at fixed &epsilon; — smaller studies mean more Palmers.</div>
+    <div class="paper"><b>In the paper</b> §2.1 and footnote 12: each "pull" is 1,000 trials at 0.5 and 0.499.</div>
   </div>
 </section>
 
@@ -117,20 +121,24 @@
 <section id="s2">
   <h2><span class="astag">Assumption 2</span>Scientists are Bayesian learners with beta priors</h2>
   <div class="prose">
-    <p>Each scientist's opinion about B is a <b>beta distribution</b> — a curve over
+    <p>Each scientist's opinion about a theory is a <b>beta distribution</b> — a curve over
     the possible payoff rates, summarized by two numbers &lang;&alpha;, &beta;&rang;. Its mean,
-    &alpha;/(&alpha;+&beta;), is the scientist's current best estimate of B's rate; the total
-    mass &alpha;+&beta; is how much "weight of experience" the opinion carries. Updating is
-    exact Bayesian conditioning and couldn't be simpler: observe <i>s</i> successes in
-    <i>n</i> trials, and &alpha; grows by <i>s</i>, &beta; by <i>n&thinsp;&minus;&thinsp;s</i>.</p>
+    &alpha;/(&alpha;+&beta;), is the scientist's current best estimate of that theory's rate; the
+    total mass &alpha;+&beta; is how much "weight of experience" the opinion carries. Every
+    scientist holds <i>two</i> such curves, one for A and one for B. Updating is exact Bayesian
+    conditioning and couldn't be simpler: observe <i>s</i> successes in <i>n</i> trials of a
+    theory, and that theory's &alpha; grows by <i>s</i>, its &beta; by <i>n&thinsp;&minus;&thinsp;s</i>.</p>
     <p>Two things follow. First, these agents are <i>ideally honest with evidence</i> —
     no bias, no wishful thinking, no fraud. Whatever goes wrong later cannot be blamed
     on bad individual reasoning. Second, the prior's <b>mass</b> acts as inertia:
     an opinion carrying 4 pseudo-observations is swamped by one 1000-trial study
     (250-to-1); an opinion carrying 4,000 shrugs it off. Zollman's baseline agents
-    start with &alpha;, &beta; drawn uniformly from (0,&thinsp;4] — nearly weightless opinions,
-    at the mercy of the first study they see. Keep that in mind; it becomes a dial
-    in step 5.</p>
+    start with every &alpha; and &beta; drawn uniformly from (0,&thinsp;4] — nearly weightless
+    opinions, at the mercy of the first study they see. Keep that in mind; it becomes a
+    dial in step 5.</p>
+    <p>The widget shows one of the two curves — a scientist's belief about B — and where
+    it stands relative to what that scientist currently thinks A pays. That comparison,
+    not a fixed line at 0.5, is what decides which theory gets worked on next.</p>
   </div>
   <div class="widget">
     <div class="controls">
@@ -142,37 +150,50 @@
         <input type="range" id="w2_eps" min="0" max="2.5" step="0.05" value="0"></div>
       <div class="ctl"><label>study size <span class="val" id="v2_trials"></span></label>
         <input type="range" id="w2_trials" min="1" max="3" step="0.25" value="3"></div>
+      <div class="ctl"><label>current estimate of A <span class="val" id="v2_ea"></span></label>
+        <input type="range" id="w2_ea" min="0.40" max="0.60" step="0.001" value="0.499"></div>
     </div>
     <div class="controls">
-      <button onclick="w2Feed(false)">Observe an honest study</button>
+      <button onclick="w2Feed(false)">Observe an honest study of B</button>
       <button class="secondary" onclick="w2Feed(true)">Observe an unlucky study (worst of 10 draws)</button>
       <button class="secondary" onclick="w2Reset()">Reset to prior</button>
     </div>
     <canvas id="w2_cv" width="880" height="270"></canvas>
     <div class="readout" id="w2_read"></div>
     <div class="try"><b>Try</b> — with the default near-weightless prior, feed one
-    unlucky study and watch the whole curve leap below 0.5: the agent now "knows" B is
-    worse. Reset, crank the prior mass to its maximum, and feed the same unlucky study —
+    unlucky study and watch the whole curve leap left of the A line: the agent now "knows" B
+    is worse. Reset, crank the prior mass to its maximum, and feed the same unlucky study —
     the curve barely moves. Neither response is a reasoning error; the difference is
-    entirely in how much the starting opinion weighs.</div>
+    entirely in how much the starting opinion weighs. Then drag the estimate of A: the same
+    belief about B leads to opposite decisions depending on what A is thought to pay.</div>
+    <div class="paper"><b>In the paper</b> §2.3 and Figure 1; footnote 11 explains the choice of (0,&thinsp;4]: "so that the initial beliefs do not swamp even a single experimental result."</div>
   </div>
 </section>
 
 <!-- ============================================================ STEP 3 -->
 <section id="s3">
-  <h2><span class="astag">Assumption 3</span>Scientists are myopic — and that makes abandonment a trap</h2>
+  <h2><span class="astag">Assumption 3</span>Scientists are myopic — and the theory you're not working on stops teaching you anything</h2>
   <div class="prose">
     <p>Each round, every scientist works on whichever theory <i>currently looks
-    better</i>: B if the posterior mean exceeds 0.5, A otherwise. Nobody runs an
-    experiment purely for its information value; nobody thinks "B looks slightly worse,
-    but it's worth one more study to be sure." Zollman motivates this psychologically:
-    careers reward present success — grants, tenure, promotion — not exploration.</p>
-    <p>Combined with Assumption 1, myopia has a brutal consequence: <b>abandoning B is
-    self-sealing</b>. The moment an agent's estimate dips below 0.5 they stop working
-    on B, so they generate no more evidence about B, so nothing can ever change their
-    mind. For an isolated scientist, one unlucky study is a life sentence for the
-    better theory. Watch it happen to a population of solo agents — each line is one
-    scientist's estimate of B; a line that crosses the dashed line flatlines forever.</p>
+    better</i>: B if their estimate of B exceeds their estimate of A, A otherwise. Nobody
+    runs an experiment purely for its information value; nobody thinks "B looks slightly
+    worse, but it's worth one more study to be sure." Zollman motivates this
+    psychologically: careers reward present success — grants, tenure, promotion — not
+    exploration.</p>
+    <p>Combined with Assumption 1, myopia has a subtle consequence. The moment a scientist
+    moves to A they stop generating evidence about B, so their belief about B <b>freezes</b>
+    at whatever it was when they left. Meanwhile their belief about A keeps sharpening
+    toward A's true rate. Zollman's own example: a scientist who starts thinking A pays 0.25
+    and B pays 0.75 will work on B, and "so long as the results he receives do not take him
+    too far from the expectation of action 2, he will continue to believe that action 2 is
+    superior and will never learn that his priors regarding action 1 are skewed." The trap
+    is symmetric: whichever theory you are <i>not</i> working on is the one you can never
+    be corrected about. An isolated scientist who leaves B while still believing B is at
+    least as good as A really is will eventually come back, once the evidence about A has
+    disappointed them enough. One who leaves believing B is <i>worse</i> than A really is
+    never will. Each line below is one solo scientist's estimate of B minus their estimate
+    of A; blue while they work on B, red while they work on A; a line stuck below zero is a
+    scientist who has stopped learning about the better theory.</p>
   </div>
   <div class="widget">
     <div class="controls">
@@ -186,12 +207,13 @@
     </div>
     <canvas id="w3_cv" width="880" height="300"></canvas>
     <div class="readout" id="w3_read"></div>
-    <div class="try"><b>Try</b> — at &epsilon; = 0.001, note the two ways to die: agents whose
-    random prior starts below 0.5 never touch B at all (flat from round zero), and
-    agents who start optimistic but draw an early unlucky study drop out and freeze. Then
-    raise the prior mass multiplier: fewer early casualties — stubbornness is already
-    working, one agent at a time. Raise &epsilon; instead and the evidence itself rescues
+    <div class="try"><b>Try</b> — at &epsilon; = 0.001, count the ways a solo scientist ends on
+    A: some never touch B at all (their random prior about B was below their prior about A, and
+    working on A only ever teaches them about A); some tried B, drew an unlucky study, left, and
+    froze. Now raise the prior mass multiplier: fewer early casualties — stubbornness is already
+    working, one scientist at a time. Raise &epsilon; instead and the evidence itself rescues
     them.</div>
+    <div class="paper"><b>In the paper</b> §2.4 (myopia) and the single-learner example that opens §3.</div>
   </div>
 </section>
 
@@ -201,26 +223,28 @@
   <div class="prose">
     <p>Now the scientists form a community. Each agent has a fixed set of
     <b>neighbors</b> — the colleagues whose experimental results they see — and each
-    round they update on their own trials <i>plus all of theirs</i>. Sharing is
-    symmetric, honest, and complete; crucially, what travels across an edge is
-    <b>evidence</b> (trial counts), never opinion or deference. Four canonical
-    structures: the <b>complete</b> graph (everyone sees everything — one big lab
-    meeting), the <b>wheel</b> (a hub sees all, the rim sees little), the
-    <b>cycle</b> (a ring, two neighbors each), and the <b>line</b> (a ring cut open —
-    sparsest of all).</p>
+    round they update on their own trials <i>plus all of theirs</i>, each result counting
+    toward the theory it was a study of. Sharing is symmetric, honest, and complete;
+    crucially, what travels across an edge is <b>evidence</b> (trial counts), never
+    opinion or deference. Zollman's three structures: the <b>complete</b> graph (everyone
+    sees everything — one big lab meeting), the <b>wheel</b> (a hub sees all; the rim is a
+    ring, each rim scientist seeing two neighbours and the hub), and the <b>cycle</b> (a
+    ring, two neighbors each). A fourth, the <b>line</b> (a ring cut open — sparsest of
+    all), is not in the paper but is the natural next step down.</p>
     <p>Naïvely, more communication should help: more data per update, faster learning.
     That is exactly half right — it is faster. Here is Zollman's headline result:
     it is faster <i>and less reliable</i>. In a dense network, one Palmer-grade unlucky
-    study reaches everyone at once, everyone's weightless prior capsizes together, and
-    the community abandons B in unison — absorbingly, by Assumption 3. In a sparse
+    study of B reaches everyone at once, everyone's weightless prior capsizes together, and
+    the community moves to A in unison — after which nobody is generating evidence about B,
+    and (Assumption 3) nobody's frozen belief about B can be corrected. In a sparse
     network the same bad news only poisons a neighborhood; somewhere on the far side of
     the ring, someone is still working on B, still generating the evidence that will
-    eventually correct the error.</p>
+    eventually reach the others and correct the error.</p>
   </div>
   <div class="widget">
     <div class="controls">
       <div class="ctl"><label>community size <span class="val" id="v4_agents"></span></label>
-        <input type="range" id="w4_agents" min="4" max="16" step="1" value="10"></div>
+        <input type="range" id="w4_agents" min="3" max="16" step="1" value="10"></div>
       <div class="ctl"><label>&epsilon; (B's real edge) <span class="val" id="v4_eps"></span></label>
         <input type="range" id="w4_eps" min="0" max="2.5" step="0.05" value="0"></div>
       <div class="ctl"><label>trials per round <span class="val" id="v4_trials"></span></label>
@@ -230,13 +254,13 @@
     <canvas id="w4_nets" width="880" height="150"></canvas>
     <canvas id="w4_cv" width="880" height="300"></canvas>
     <div class="readout" id="w4_read"></div>
-    <div class="try"><b>Try</b> — defaults first (&epsilon; = 0.001, 1000 trials, 10 agents):
+    <div class="try"><b>Try</b> — defaults first (&epsilon; = 0.001, 1000 trials, 10 scientists):
     the ordering cycle &gt; wheel &gt; complete, with the complete graph finding the truth
-    roughly a fifth of the time. Then make the problem easy (&epsilon; = 0.05): all four
-    networks succeed and density stops mattering — the connectivity effect is a
-    hard-problem phenomenon. Shrink the community to 4: even the cycle is now dense
-    relative to its size, and reliability drops. More communication is not an
-    unconditional good; it trades reliability for speed.</div>
+    about three times in five and the cycle better than nine in ten. Then make the problem
+    easy (&epsilon; = 0.05): all four networks succeed and density stops mattering — the
+    connectivity effect is a hard-problem phenomenon. Shrink the community: his Figure 3 shows
+    every network's reliability falling with size, the cycle's most steeply.</div>
+    <div class="paper"><b>In the paper</b> §3, Figures 2–3 (sizes 3–11, 10,000 rounds; this widget uses 5,000) and Figure 4 (every network of size 6, ordered by density).</div>
   </div>
 </section>
 
@@ -245,34 +269,37 @@
   <h2><span class="astag">Assumption 5</span>Beliefs can start extreme — stubbornness as a second mechanism</h2>
   <div class="prose">
     <p>Zollman's baseline agents hold nearly weightless priors (step 2). His second
-    experiment turns that into a dial: multiply everyone's initial &lang;&alpha;, &beta;&rang; mass
-    by a constant, keeping each agent's <i>opinion</i> (the mean) fixed. The agents
-    believe the same things, but it now takes proportionally more contrary evidence to
-    move them. This is his model of "extreme beliefs" — in personality terms, a
-    community-wide dose of stubbornness.</p>
+    experiment turns that into a dial: raise the <b>maximum</b> from which every initial
+    &alpha; and &beta; is drawn, from 4 up to 10,000. The agents' opinions are as varied as
+    before, but on average they carry far more weight, so it takes proportionally more
+    contrary evidence to move them. This is his model of "extreme beliefs" — in
+    personality terms, a community-wide dose of stubbornness. (Popper: "A limited amount
+    of dogmatism is necessary for progress.")</p>
     <p>The result mirrors the network result from the other side: <b>stubbornness
     protects diversity too</b>. In a dense network, extreme priors mean the first
     unlucky study can no longer capsize everyone at once; the initially-optimistic
     agents ride out the bad news, keep working on B, and the truth accumulates. The
-    sweep below shows the interaction — success probability as a function of prior
-    mass, one line per network. Watch the complete graph climb as stubbornness rises,
-    and watch what happens at the far right of the sparse networks' lines.</p>
+    sweep below is his Figure 6 — success probability as a function of the maximum
+    &alpha;/&beta;, one line per network, seven scientists. Watch the complete graph climb as
+    stubbornness rises, watch all three lines meet near 3,000, and watch what happens to the
+    sparse networks past that point.</p>
   </div>
   <div class="widget">
     <div class="controls">
       <div class="ctl"><label>&epsilon; (B's real edge) <span class="val" id="v5_eps"></span></label>
         <input type="range" id="w5_eps" min="0" max="2.5" step="0.05" value="0"></div>
       <div class="ctl"><label>community size <span class="val" id="v5_agents"></span></label>
-        <input type="range" id="w5_agents" min="4" max="16" step="1" value="10"></div>
-      <div><button onclick="w5Run()" id="w5_btn">Sweep prior mass &times; all networks</button><span class="status" id="w5_status"></span></div>
+        <input type="range" id="w5_agents" min="3" max="16" step="1" value="7"></div>
+      <div><button onclick="w5Run()" id="w5_btn">Sweep stubbornness &times; all networks</button><span class="status" id="w5_status"></span></div>
     </div>
     <canvas id="w5_cv" width="880" height="330"></canvas>
-    <div class="readout" id="w5_read">Press the sweep button (≈15–30&nbsp;seconds; 36 conditions run live).</div>
-    <div class="try"><b>Try</b> — read the complete (dense) line first: it climbs from ≈0.2 to
-    ≈1.0 as stubbornness rises — dense-and-stubborn works. Now follow the cycle and line to the
-    far right: past mass 1000 they crash, and by mass 5000 their dotted "never settles" lines are
-    near the top — <b>90%+ of sparse communities permanently split</b>. Same dial, opposite
-    effect, set by the network. That overdose is step 6.</div>
+    <div class="readout" id="w5_read">Press the sweep button (about a minute; 32 conditions of 150 communities × 5,000 rounds run live, and the plot fills in as they finish).</div>
+    <div class="try"><b>Try</b> — read the complete (dense) line first: it climbs from ≈0.6 to
+    ≈0.98 as stubbornness rises — dense-and-stubborn works. Now follow the cycle to the far
+    right: past 3,000 it falls away, and by 10,000 roughly a quarter of cycle communities are
+    still split at the horizon (the dotted "never settles" line). Same dial, opposite effect,
+    set by the network. That overdose is step 6.</div>
+    <div class="paper"><b>In the paper</b> §4 and Figures 5–6. His Figure 6 reads cycle 0.77, wheel 0.91, complete 0.97 at max 10,000; his code's horizon for that sweep works out at 5,000 rounds, which is what this widget uses.</div>
   </div>
 </section>
 
@@ -285,13 +312,13 @@
     (extreme priors). Each works by the same mechanism — keeping <i>somebody</i> working
     on the minority theory through the dangerous early rounds. Zollman's closing point
     is what happens when you stack them: a community that is both sparse <i>and</i>
-    stubborn never converges at all. Everyone tends their own theory forever; inquiry
-    stays open but never closes. Diversity was only ever instrumentally valuable — the
-    goal is <b>transient</b> diversity: disagreement that lasts long enough to test the
-    alternatives, and then ends.</p>
+    stubborn never converges at all. Everyone tends their own theory; inquiry stays open
+    but never closes within any reasonable horizon. Diversity was only ever
+    instrumentally valuable — the goal is <b>transient</b> diversity: disagreement that
+    lasts long enough to test the alternatives, and then ends.</p>
     <p>This is the full model, every assumption live at once. The three outcomes map
     onto the three regimes: <span style="color:var(--fail)"><b>premature
-    convergence</b></span> (the community abandons the better theory — the Palmer
+    convergence</b></span> (the community ends on the worse theory — the Palmer
     failure), <span style="color:var(--accent)"><b>transient diversity</b></span>
     (disagreement, then truth), and <span style="color:#777"><b>permanent
     diversity</b></span> (still split at the horizon — the question is never settled).</p>
@@ -303,181 +330,116 @@
           <option value="complete">complete (dense)</option>
           <option value="wheel">wheel</option>
           <option value="cycle" selected>cycle (sparse)</option>
-          <option value="line">line (sparsest)</option>
+          <option value="line">line (sparsest; not in the paper)</option>
         </select></div>
-      <div class="ctl"><label>prior mass (stubbornness) <span class="val" id="v6_prior"></span></label>
+      <div class="ctl"><label>max &alpha;/&beta; (stubbornness) <span class="val" id="v6_prior"></span></label>
         <input type="range" id="w6_prior" min="0" max="3.5" step="0.1" value="0"></div>
       <div class="ctl"><label>&epsilon; <span class="val" id="v6_eps"></span></label>
         <input type="range" id="w6_eps" min="0" max="2.5" step="0.05" value="0"></div>
       <div class="ctl"><label>community size <span class="val" id="v6_agents"></span></label>
-        <input type="range" id="w6_agents" min="4" max="16" step="1" value="10"></div>
+        <input type="range" id="w6_agents" min="3" max="16" step="1" value="10"></div>
       <div class="ctl"><label>horizon (rounds) <span class="val" id="v6_steps"></span></label>
-        <input type="range" id="w6_steps" min="500" max="4000" step="250" value="2000"></div>
+        <input type="range" id="w6_steps" min="1000" max="10000" step="500" value="5000"></div>
     </div>
     <div class="controls">
       <button onclick="w6Run()" id="w6_btn">Run 300 communities</button>
       <button class="secondary" onclick="w6Preset('palmer')">Preset: dense &amp; hasty</button>
       <button class="secondary" onclick="w6Preset('zollman')">Preset: sparse baseline</button>
       <button class="secondary" onclick="w6Preset('stubborn')">Preset: dense &amp; stubborn</button>
-      <button class="secondary" onclick="w6Preset('locked')">Preset: sparse + stubborn = frozen</button>
+      <button class="secondary" onclick="w6Preset('locked')">Preset: sparse + stubborn: many never settle</button>
       <span class="status" id="w6_status"></span>
     </div>
     <div class="readout verdict" id="w6_read">Press Run.</div>
     <canvas id="w6_cv" width="880" height="300"></canvas>
     <canvas id="w6_traj" width="880" height="300"></canvas>
     <div class="try"><b>Try</b> — walk the four presets in order. (1) <i>Dense &amp;
-    hasty</i>: mostly red — fast, confident, wrong. (2) <i>Sparse baseline</i>: mostly
-    blue — Zollman's recommendation. (3) <i>Dense &amp; stubborn</i>: blue again, by the
-    other mechanism. (4) <i>Sparse + stubborn</i>: grey takes over — permanent
-    diversity, inquiry never closes. In the trajectory plot, blue runs converge to the
-    top, red runs crash to the bottom, grey runs are still wandering mid-plot when the
-    horizon cuts them off. The sweet spot is a <i>moderate</i> amount of exactly one
-    protection.</div>
+    hasty</i>: two in five communities end on the wrong theory — fast, confident, wrong.
+    (2) <i>Sparse baseline</i>: mostly blue — Zollman's recommendation. (3) <i>Dense &amp;
+    stubborn</i>: blue again, by the other mechanism. (4) <i>Sparse + stubborn</i>: grey
+    appears — about a fifth of communities still split at 5,000 rounds, permanent diversity
+    by Zollman's own standard; push the horizon slider right and watch how slowly it clears. In the trajectory plot, the blue communities' average climbs
+    to the top, the red ones' falls to the bottom, and the grey ones' is still wandering
+    mid-plot when the horizon cuts them off. The sweet spot is a <i>moderate</i> amount of
+    exactly one protection.</div>
+    <div class="paper"><b>In the paper</b> §4–5 and Figure 7 (mean variance in actions over 300 rounds, seven scientists, max &alpha;/&beta; 7,000 vs 4).</div>
   </div>
 </section>
 
-<!-- ============================================================ EXTENSION 1 -->
+<!-- ============================================================ EXTENSIONS -->
 <section id="s7">
-  <h2><span class="astag">Extension 1</span>The sycophantic LLM — an edge that carries opinion, not evidence</h2>
+  <h2><span class="astag">Extensions</span>The sycophantic LLM and the devil's advocate — being rebuilt</h2>
   <div class="prose">
-    <p>Every result so far rests on the rule from Assumption&nbsp;4: what crosses an edge is
-    <b>evidence</b> — trial counts — never opinion. Now relax exactly that. Give each
-    scientist a private model to consult. It has read everything and discovered nothing, so
-    it contributes no trials; what it does, as real models measurably do, is <b>reflect the
-    scientist's own current view back with confidence</b>, and they update as if they had been
-    independently corroborated.</p>
-    <p>The mechanism is precise. A scientist whose current estimate of B is <i>e</i> consults
-    the model with <b>deference</b> <i>c</i> — how many pseudo-observations they treat the
-    reply as worth. The model hands them <i>c</i> pseudo-trials split to match what they already
-    think: <b>&alpha;&nbsp;+=&nbsp;c·e</b>, <b>&beta;&nbsp;+=&nbsp;c·(1&thinsp;&minus;&thinsp;e)</b>.
-    Notice what this does and doesn't do. It is <i>mean-preserving</i>: their estimate <i>e</i>
-    doesn't move at all — only the mass &alpha;+&beta; behind it grows. This is not persuasion;
-    it is <b>confidence without information</b>. It is Assumption&nbsp;5's stubbornness,
-    manufactured on the fly and aimed at whatever they happen to believe.</p>
-    <p>Two things make it more dangerous than a step-5 prior. It is a <b>ratchet</b>: the
-    pseudo-mass is topped up every round and never gets swamped by real evidence, whereas a
-    one-time prior eventually is. And it <b>re-centers</b> on their current view each round,
-    freezing whatever position they have drifted into. So it does what stubbornness does —
-    rescue the dense network, deadlock the sparse one — but it reaches the deadlock at a small
-    fraction of the nominal strength a one-time prior needs.</p>
-  </div>
-  <div class="widget">
-    <div class="controls">
-      <div class="ctl"><label>network</label>
-        <select id="w7_net">
-          <option value="complete" selected>complete (dense)</option>
-          <option value="wheel">wheel</option>
-          <option value="cycle">cycle (sparse)</option>
-          <option value="line">line (sparsest)</option>
-        </select></div>
-      <div class="ctl"><label>deference to the LLM <span class="val" id="v7_def"></span></label>
-        <input type="range" id="w7_def" min="0" max="3" step="0.1" value="2.5"></div>
-      <div class="ctl"><label>&epsilon; <span class="val" id="v7_eps"></span></label>
-        <input type="range" id="w7_eps" min="0" max="2.5" step="0.05" value="0"></div>
-      <div><button onclick="w7Run()" id="w7_btn">Run 250 communities</button><span class="status" id="w7_status"></span></div>
-    </div>
-    <canvas id="w7_cv" width="880" height="280"></canvas>
-    <div class="readout" id="w7_read">Press Run.</div>
-    <div class="try"><b>Try</b> — start on the <i>complete</i> graph: the sycophant lifts it
-    from ≈0.20 toward the truth, exactly as an extreme prior would — endogenous stubbornness
-    helping the dense network. Now switch to the <i>cycle</i> or <i>line</i>: the grey "never
-    settles" bar takes over. Same intervention, opposite sign, because the sparse network was
-    already diverse and the ratchet overdoses it. Crank deference to the top and the sparse
-    deadlock climbs past 80% — a level a one-time prior (step&nbsp;5) only reaches near mass
-    5000.</div>
+    <p>An earlier version of this tutorial ended with two extensions that relax Assumption 4:
+    each scientist consults a private language model that carries <i>opinion</i> rather than
+    evidence, either a <b>sycophant</b> that reflects their own view back with confidence
+    (manufactured stubbornness) or a <b>devil's advocate</b> that argues the other side
+    (forced exploration). Those results were computed on a simplified engine in which the
+    old theory's rate was known and giving the new theory up was permanent. On the faithful
+    engine used here, where both rates are unknown and a community on the wrong theory can in
+    principle recover, they have to be re-derived before they can be stated. Until then the
+    earlier pages remain available as a record:
+    <a href="sycophant_vs_advocate.html">sycophant vs. devil's advocate (earlier engine)</a>.</p>
   </div>
 </section>
 
-<!-- ============================================================ EXTENSION 2 -->
+<!-- ============================================================ FINE PRINT -->
 <section id="s8">
-  <h2><span class="astag">Extension 2</span>The devil's advocate — the sign-flipped intervention</h2>
-  <div class="prose">
-    <p>What if the model <i>disagreed</i> with the scientist instead of flattering them? Flip
-    the split. Where the sycophant injects toward their own view, a <b>devil's advocate</b>
-    injects toward the opposite — <b>&alpha;&nbsp;+=&nbsp;c·(1&thinsp;&minus;&thinsp;e)</b>,
-    <b>&beta;&nbsp;+=&nbsp;c·e</b> — which <i>does</i> move their estimate, dragging it back
-    toward the theory they are drifting away from. The sycophant is a <b>stubbornness dial</b>;
-    the devil's advocate is an <b>exploration dial</b>.</p>
-    <p>They are not mirror images in their effects, and the difference is the whole moral of
-    the model. Stubbornness is network-contingent — good for the dense graph, poison for the
-    sparse one. Forced exploration is <b>network-robust</b>, for a reason worth stating: it is
-    <b>self-limiting</b>. Because it only ever pushes against whatever the scientist currently
-    believes, real evidence keeps the last word — push them toward a genuinely worse theory and
-    their own experiments send them away from it again. A devil's advocate cannot force a
-    community onto an inferior theory; a sycophantic ratchet has no such brake.</p>
-    <p>The panel runs both against the no-LLM baseline across all four networks. One
-    conversation at a time, sycophancy and contrariness look like symmetric vices — a Scylla
-    and a Charybdis to steer between. Across a network they are nothing of the kind: one
-    manufactures premature consensus, the other guards against it. If you don't know which
-    network you're in, the disagreeable model is the safer bet.</p>
-  </div>
-  <div class="widget">
-    <div class="controls">
-      <div class="ctl"><label>deference to the LLM <span class="val" id="v8_def"></span></label>
-        <input type="range" id="w8_def" min="0" max="3" step="0.1" value="2.5"></div>
-      <div class="ctl"><label>&epsilon; <span class="val" id="v8_eps"></span></label>
-        <input type="range" id="w8_eps" min="0" max="2.5" step="0.05" value="0"></div>
-      <div><button onclick="w8Run()" id="w8_btn">Sycophant vs. devil's advocate &times; all networks</button><span class="status" id="w8_status"></span></div>
-    </div>
-    <canvas id="w8_cv" width="880" height="320"></canvas>
-    <div class="readout" id="w8_read">Press Run (12 conditions run live).</div>
-    <div class="try"><b>Try</b> — at strong deference, read the four networks left to right: the
-    <span style="color:#762a83"><b>sycophant</b></span> is spectacular on the dense complete
-    graph and catastrophic on the sparse line (a tall grey never-settles cap); the
-    <span style="color:#1b7837"><b>devil's advocate</b></span> is good everywhere and never
-    deadlocks. The sycophant is the more powerful tonic <i>if</i> you know you're dense; the
-    devil's advocate is the bet you make when you don't.</div>
-  </div>
-</section>
-
-<!-- ============================================================ STEP 9 -->
-<section id="s9">
   <h2><span class="astag">The fine print</span>Assumptions the dials don't touch</h2>
   <div class="prose">
     <p>Every model earns its clarity by holding things fixed. These are the assumptions
     baked in behind the sliders — each one a place where the model could be challenged,
     and several of them active research questions:</p>
     <ul class="fineprint">
-      <li><b>Exactly two theories,</b> with constant true payoff rates, and the incumbent's
-      rate known with certainty. There is no third option, no theories improving over
-      time, no uncertainty about A.</li>
+      <li><b>Exactly two theories,</b> each with a constant true payoff rate. There is no
+      third option and no theory that improves with work. Successes are independent draws
+      — Zollman flags this himself (§2.1): a theory whose past successes use up its future
+      ones, or open new ones, is outside the model.</li>
       <li><b>Evidence is honestly generated and fully shared.</b> No fraud, no
       publication bias, no file-drawer effect, no persuasion. Neighbors transmit trial
       counts, not opinions — agents update on <i>data</i>, never on each other's
-      <i>confidence</i>. (Relaxing exactly this — letting agents update on reflected
-      opinion instead of data — is what Extensions&nbsp;1&ndash;2 above do.)</li>
+      <i>confidence</i>. (Relaxing exactly this is what the extensions do.)</li>
       <li><b>The network is fixed and connected.</b> Nobody chooses their colleagues,
       changes them, or leaves; there are no disciplinary boundaries that shift.</li>
-      <li><b>Rounds are synchronized.</b> Everyone experiments, publishes, and updates in
-      lockstep, with the same number of trials per round.</li>
+      <li><b>Rounds are synchronized.</b> Everyone chooses, experiments, and updates in
+      lockstep, with the same number of trials per round — the order in his code.</li>
       <li><b>Agents are immortal and identical in method.</b> No retirement, no new PhDs
       arriving with fresh priors (Planck's "science advances one funeral at a time" is
-      outside the model), no division into theorists and experimentalists.</li>
+      outside the model), no division into theorists and experimentalists. His code has a
+      mutation switch that re-randomises a scientist's beliefs; the paper does not use it.</li>
       <li><b>No strategic behavior.</b> Nobody competes for credit or priority; the
       division of labor that emerges is a side effect of belief, not of incentives.
       (Kitcher's and Strevens's credit-driven models occupy this gap.)</li>
-      <li><b>Success is unanimity on the truth.</b> The model scores a community by
-      whether everyone ends up working on B. A permanently split community that
-      contains the truth in a minority is scored as failure-to-settle, not partial
-      success.</li>
+      <li><b>Success is unanimity on the truth, read once at a horizon.</b> The model
+      scores a community by whether everyone is working on B when time is called. A
+      community still split, even one whose minority holds the truth, counts as a failure to
+      settle; the paper says 10,000 rounds, his code defaults to 2,000, and his Figure 6 was
+      evidently run at 5,000 — so "how long is long enough" is a free parameter, and the
+      never-settles result depends on it.</li>
     </ul>
-    <p><b>Where to go next.</b> Two companion labs run this same engine.
-    <a href="dashboard_original.html">Zollman's original model</a> is the six assumptions alone,
-    no LLMs — the cleanest place to replay the network and stubbornness results with every dial
-    on one screen. The <a href="sycophant_vs_advocate.html">sycophant-vs-devil's-advocate
-    dashboard</a> is the focused laboratory for Extensions&nbsp;1&ndash;2: network topology, a
-    private-LLM node drawn on each scientist, a live "which network are we in?" comparison, and a
-    deference dial framed against a round of your own data. (Both use the <i>private</i> mirror,
-    which reflects a scientist's own view; the <i>shared</i> model — one oracle everyone consults,
-    a covert edge between every pair of scientists that quietly turns a cycle into a complete
-    graph — is a further step still.)</p>
+    <p><b>Where to go next.</b> <a href="dashboard_original.html">The full dashboard</a> runs
+    this same engine with every dial on one screen, a checkbox to switch back to the
+    earlier simplification for comparison, and the Figure 6 sweep as a button.</p>
   </div>
 </section>
 
 </main>
 
 <script>
-// ================= shared machinery (verbatim from dashboard.html, verified vs zollman.py) =================
+// ---------- Zollman (2010) bandit-network engine, faithful build (2026-09-01) ----------
+// Mirrors zollman2010_exact.py, which mirrors Zollman's Java (Agent Based Modeling/models/
+// PayoffLearningModel.java + learningRules/PayoffLearning.java):
+//   * two methodologies, BOTH with unknown success rates: the better one (B, "the new theory")
+//     pays 0.5, the worse one (A, "the old theory") pays 0.5 - eps  (his 0.5 vs 0.499);
+//   * every scientist holds an independent beta belief about EACH: <aA,bA> and <aB,bB>,
+//     drawn U(0,4] x prior (his "maximum alpha/beta" = 4 x prior);
+//   * each round everyone works on the theory whose posterior mean is higher (myopic),
+//     draws Binomial(trials, p) successes, and updates own + neighbours' results per arm;
+//   * all-on-A is NOT absorbing (A's rate keeps being learned); the verdict is read once,
+//     at the horizon: all on B = settled on the truth, all on A = settled on the wrong
+//     theory, otherwise still divided.
+// P.exact=false gives the earlier build's simplification for comparison: A's rate is KNOWN
+// exactly, only B is learned, and all-on-A is absorbing.
+// This text is inlined verbatim into dashboard_original.html and tutorial.html.
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function makeRandn(rng){let spare=null;return function(){if(spare!==null){const v=spare;spare=null;return v}
   let u,v,s;do{u=rng()*2-1;v=rng()*2-1;s=u*u+v*v}while(s>=1||s===0);
@@ -491,140 +453,139 @@ function neighbors(type,n){
   if(type==='complete'){for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)link(i,j)}
   else if(type==='cycle'){for(let i=0;i<n;i++)link(i,(i+1)%n)}
   else if(type==='line'){for(let i=0;i<n-1;i++)link(i,i+1)}
-  else if(type==='wheel'){for(let i=1;i<n;i++){link(i,i===n-1?1:i+1);link(0,i)}}
+  else if(type==='wheel'){for(let i=1;i<n;i++){link(i,i===n-1?1:i+1);link(0,i)}}   // rim is a cycle + hub, as in his graphs6.kz
   return nb.map(s=>[...s]);
 }
-function phi(z){const t=1/(1+0.2316419*Math.abs(z));
-  const d=0.3989423*Math.exp(-z*z/2);
-  const p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
-  return z>0?1-p:p;}
-// the model — identical to dashboard.html's simulate(); tutorial calls it with the
-// extension knobs (committed agents, LLM echo) switched off
 function simulate(P){
+  const exact=P.exact!==false;
   const rng=mulberry32(P.seed),randn=makeRandn(rng),binom=makeBinom(rng,randn);
-  const nb=neighbors(P.network,P.agents);
-  const pB=0.5+P.eps;
-  const res={success:0,fail:0,unsettled:0,unanimityRound:[],failRound:[],traj:[],outcomes:[]};
-  const trackEvery=Math.max(1,Math.floor(P.steps/300));
-  const kCom=Math.min(P.committed,P.agents);
+  const nb=neighbors(P.network,P.agents),n=P.agents;
+  const pB=0.5,pA=0.5-P.eps;
+  const trackEvery=Math.max(1,Math.floor(P.steps/300)),nSamp=Math.ceil(P.steps/trackEvery);
+  const res={success:0,fail:0,unsettled:0,truthRound:[],failRound:[],outcomes:[],trackEvery,nSamp,exact,
+    mean:{success:new Float64Array(nSamp),fail:new Float64Array(nSamp),unsettled:new Float64Array(nSamp)}};
+  const aA=new Float64Array(n),bA=new Float64Array(n),aB=new Float64Array(n),bB=new Float64Array(n);
+  const onB=new Uint8Array(n),sA=new Float64Array(n),sB=new Float64Array(n);
   for(let r=0;r<P.runs;r++){
-    const A=new Float64Array(P.agents),B=new Float64Array(P.agents);
-    for(let i=0;i<P.agents;i++){A[i]=(rng()*4||1e-9)*P.prior;B[i]=(rng()*4||1e-9)*P.prior}
-    const doEcho=()=>{if(P.echoC>0&&P.consult>0){
-      let pm=0;for(let i=0;i<P.agents;i++)pm+=A[i]/(A[i]+B[i]);pm/=P.agents;
-      for(let i=0;i<P.agents;i++)if(rng()<P.consult){
-        const e=A[i]/(A[i]+B[i]);let v=(1-P.lam)*e+P.lam*pm;
-        if(P.contra)v=1-v;              // devil's advocate: argue the other side
-        A[i]+=P.echoC*v;B[i]+=P.echoC*(1-v);
-      }
-    }};
-    const onB=new Uint8Array(P.agents);
-    for(let i=0;i<P.agents;i++)onB[i]=A[i]/(A[i]+B[i])>0.5?1:0;
-    const decideAll=()=>{for(let i=0;i<P.agents;i++){
-      const tot=A[i]+B[i],e=A[i]/tot;
-      if(i<kCom&&onB[i]){
-        if(P.rule==='confidence'){
-          const sd=Math.sqrt(Math.max(e*(1-e),1e-12)/(tot+1));
-          onB[i]=phi((0.5-e)/sd)>P.conf?0:1;
-        } else onB[i]=e>0.5-P.hyst?1:0;
-      }
-      else onB[i]=e>0.5?1:0;
-    }};
-    doEcho();decideAll();
-    const track=r<40?[]:null; let unan=-1,failed=false,t=0;
-    const succ=new Float64Array(P.agents);
-    for(t=0;t<P.steps;t++){
-      let nOn=0;for(let i=0;i<P.agents;i++)nOn+=onB[i];
-      if(track&&t%trackEvery===0)track.push(nOn/P.agents);
-      if(unan<0&&(nOn===0||nOn===P.agents))unan=t;
-      if(nOn===0){failed=true;break}
-      for(let i=0;i<P.agents;i++)succ[i]=onB[i]?binom(P.trials,pB):0;
-      for(let i=0;i<P.agents;i++){
-        let s=succ[i],n=onB[i]?P.trials:0;
-        for(const j of nb[i]){s+=succ[j];n+=onB[j]?P.trials:0}
-        A[i]+=s;B[i]+=n-s;
-      }
-      doEcho();decideAll();
+    for(let i=0;i<n;i++){
+      aB[i]=(rng()*4||1e-9)*P.prior;bB[i]=(rng()*4||1e-9)*P.prior;
+      if(exact){aA[i]=(rng()*4||1e-9)*P.prior;bA[i]=(rng()*4||1e-9)*P.prior}
     }
-    let allB=true;for(let i=0;i<P.agents;i++)if(!onB[i]){allB=false;break}
-    const out=failed?'fail':(allB?'success':'unsettled');
-    res[out==='fail'?'fail':out==='success'?'success':'unsettled']++;
-    if(failed)res.failRound.push(t);
-    if(unan>=0)res.unanimityRound.push(unan);
-    if(track)res.traj.push({f:track,out});
+    const eA=i=>exact?aA[i]/(aA[i]+bA[i]):pA;
+    for(let i=0;i<n;i++)onB[i]=aB[i]/(aB[i]+bB[i])>eA(i)?1:0;
+    const f=new Float64Array(nSamp);let lastNotAllB=-1,lastNotAllA=-1,collapsed=false,t;
+    for(t=0;t<P.steps;t++){
+      let nOn=0;for(let i=0;i<n;i++)nOn+=onB[i];
+      if(t%trackEvery===0)f[t/trackEvery]=nOn/n;
+      if(nOn<n)lastNotAllB=t;
+      if(nOn>0)lastNotAllA=t;
+      if(!exact&&nOn===0){collapsed=true;break}          // known-arm build: nobody will ever learn about B again
+      for(let i=0;i<n;i++){if(onB[i]){sB[i]=binom(P.trials,pB);sA[i]=0}else{sA[i]=exact?binom(P.trials,pA):0;sB[i]=0}}
+      for(let i=0;i<n;i++){
+        let s=sB[i],m=onB[i]?P.trials:0,sa=sA[i],ma=onB[i]?0:P.trials;
+        for(const j of nb[i]){s+=sB[j];sa+=sA[j];if(onB[j])m+=P.trials;else ma+=P.trials}
+        aB[i]+=s;bB[i]+=m-s;
+        if(exact){aA[i]+=sa;bA[i]+=ma-sa}
+      }
+      for(let i=0;i<n;i++)onB[i]=aB[i]/(aB[i]+bB[i])>eA(i)?1:0;
+    }
+    let nOn=0;for(let i=0;i<n;i++)nOn+=onB[i];
+    const out=collapsed||nOn===0?'fail':(nOn===n?'success':'unsettled');
+    res[out]++;
+    if(out==='success')res.truthRound.push(lastNotAllB+1);
+    if(out==='fail')res.failRound.push(collapsed?t:lastNotAllA+1);
+    const mm=res.mean[out];for(let k=0;k<nSamp;k++)mm[k]+=f[k];
     res.outcomes.push(out);
   }
-  res.trackEvery=trackEvery;
+  for(const k of ['success','fail','unsettled'])if(res[k])for(let i=0;i<nSamp;i++)res.mean[k][i]/=res[k];
   return res;
 }
-function baseP(over){return Object.assign({network:'cycle',agents:10,eps:0.001,trials:1000,
-  prior:1,committed:0,hyst:0,rule:'margin',conf:0.99,echoC:0,lam:0,consult:0,contra:false,
-  runs:200,steps:1500,seed:1},over)}
+
 
 // ================= small helpers =================
 const $=id=>document.getElementById(id);
 const fmt=(x,d=3)=>x>=100?x.toFixed(0):x>=1?(+x.toFixed(2)).toString():x.toPrecision(d);
 const logv=(id,base)=>Math.pow(10,base+(+$(id).value));
-const defv=id=>{const x=+$(id).value;return x===0?0:Math.round(Math.pow(10,x))};  // deference c (0 = off)
 function frame(cv){const c=cv.getContext('2d');c.clearRect(0,0,cv.width,cv.height);return c}
 function dashLine(c,x1,y1,x2,y2,color){c.save();c.strokeStyle=color;c.setLineDash([4,4]);
   c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();c.restore()}
-const COL={truth:'#2166ac',fail:'#b2182b',unset:'#999',mid:'#762a83'};
+const COL={truth:'#2166ac',fail:'#b2182b',unset:'#999',mid:'#762a83',old:'#8c6d31'};
+function baseP(over){return Object.assign({network:'cycle',agents:10,eps:0.001,trials:1000,prior:1,exact:true,runs:200,steps:5000,seed:1},over)}
+// mean share-on-B trajectories by outcome (the dashboard's panel)
+function drawMeanTraj(cv,res,P,runs){
+  const c=frame(cv),W=cv.width,H=cv.height,pad=48;
+  c.strokeStyle='#999';c.beginPath();c.moveTo(pad,10);c.lineTo(pad,H-34);c.lineTo(W-12,H-34);c.stroke();
+  c.font='12px Georgia';c.fillStyle='#555';
+  c.save();c.translate(15,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('average share of scientists on B',0,0);c.restore();
+  c.textAlign='right';c.fillText('1',pad-4,18);c.fillText('½',pad-4,12+(H-46-12)/2+4);c.fillText('0',pad-4,H-36);
+  const series=[['success',COL.truth,'communities that end on the truth'],['fail',COL.fail,'communities that end on A'],['unsettled','#888','still divided at the horizon']];
+  const nS=res.nSamp;let last=0;
+  for(const [k] of series){if(!res[k])continue;const a=res.mean[k],fin=a[nS-1];
+    for(let i=nS-1;i>=0;i--)if(Math.abs(a[i]-fin)>0.01){last=Math.max(last,i);break}}
+  const xN=Math.min(nS,Math.max(12,Math.ceil(last*1.3)+2));
+  const xs=i=>pad+(W-pad-14)*i/(xN-1),ys=v=>12+(H-46-12)*(1-v);
+  dashLine(c,pad,ys(.5),W-12,ys(.5),'#ddd');
+  series.forEach(([k,col,lab],si)=>{if(!res[k])return;const a=res.mean[k];
+    c.strokeStyle=col;c.lineWidth=2;c.beginPath();
+    for(let i=0;i<xN;i++){i?c.lineTo(xs(i),ys(a[i])):c.moveTo(xs(i),ys(a[i]))}c.stroke();
+    c.fillStyle=col;c.textAlign='left';c.fillText(`${lab} (${res[k]} of ${runs})`,pad+10,H-96+si*16);});
+  c.lineWidth=1;c.fillStyle='#555';c.textAlign='center';
+  c.fillText(`round — showing 0 … ${Math.min(P.steps,xN*res.trackEvery)} of the ${P.steps}-round horizon (after this every line is flat)`,pad+(W-pad-14)/2,H-8);
+  c.textAlign='left';
+}
 
-// ================= widget 1: the bandit =================
-const w1={studies:[],rng:mulberry32(Date.now()&0xffff)};
+// ================= widget 1: the bandit (a study of each theory per click) =================
+const w1={pairs:[],rng:mulberry32(Date.now()&0xffff)};
 function w1Params(){return{eps:logv('w1_eps',-3),trials:Math.round(logv('w1_trials',0))}}
 function w1Labels(){const p=w1Params();$('v1_eps').textContent=fmt(p.eps);$('v1_trials').textContent=p.trials}
 function w1Study(){const p=w1Params(),randn=makeRandn(w1.rng),binom=makeBinom(w1.rng,randn);
-  const s=binom(p.trials,0.5+p.eps);w1.studies.push(s/p.trials);w1Draw()}
-function w1Reset(){w1.studies=[];w1Draw()}
+  w1.pairs.push({a:binom(p.trials,0.5-p.eps)/p.trials,b:binom(p.trials,0.5)/p.trials});w1Draw()}
+function w1Reset(){w1.pairs=[];w1Draw()}
 function w1Draw(){
   const p=w1Params(),cv=$('w1_cv'),c=frame(cv),W=cv.width,H=cv.height,pad=52;
-  // fixed y-window around 0.5, wide enough for the noise at current settings
   const sd=Math.sqrt(0.25/p.trials),half=Math.max(4*sd,p.eps*2.5,0.02);
   const y=v=>H-30-(H-52)*((v-(0.5-half))/(2*half));
   c.font='12px Georgia';c.fillStyle='#555';
   c.strokeStyle='#999';c.beginPath();c.moveTo(pad,10);c.lineTo(pad,H-30);c.lineTo(W-12,H-30);c.stroke();
-  dashLine(c,pad,y(0.5),W-12,y(0.5),'#777');
-  c.fillText('0.5 — the old theory A (known)',pad+6,y(0.5)-5);
-  const yb=y(0.5+p.eps);
-  dashLine(c,pad,yb,W-12,yb,COL.truth);
-  c.fillStyle=COL.truth;c.fillText('0.5+ε — B’s true rate (unknown to everyone)',pad+6,yb-5);
+  dashLine(c,pad,y(0.5-p.eps),W-12,y(0.5-p.eps),COL.old);
+  c.fillStyle=COL.old;c.fillText('0.5−ε — A’s true rate (unknown to everyone)',pad+6,y(0.5-p.eps)+14);
+  dashLine(c,pad,y(0.5),W-12,y(0.5),COL.truth);
+  c.fillStyle=COL.truth;c.fillText('0.5 — B’s true rate (unknown to everyone)',pad+6,y(0.5)-5);
   c.save();c.translate(16,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillStyle='#555';
-  c.fillText('study estimate of B',0,0);c.restore();
-  c.fillStyle='#555';c.textAlign='center';c.fillText('studies, in the order you ran them',W/2,H-8);c.textAlign='left';
-  w1.studies.forEach((v,i)=>{
-    const x=pad+24+i*Math.min(34,(W-pad-60)/Math.max(1,w1.studies.length));
-    const wrong=v<0.5;
-    c.beginPath();c.arc(x,Math.max(12,Math.min(H-32,y(v))),5,0,7);
-    c.fillStyle=wrong?COL.fail:COL.truth;c.fill();
+  c.fillText('study result (success rate)',0,0);c.restore();
+  c.fillStyle='#555';c.textAlign='center';c.fillText('pairs of studies, in the order you ran them — a red pair ranks the theories the wrong way',W/2,H-8);c.textAlign='left';
+  const clampY=v=>Math.max(12,Math.min(H-32,y(v)));
+  w1.pairs.forEach((q,i)=>{
+    const x=pad+24+i*Math.min(34,(W-pad-60)/Math.max(1,w1.pairs.length)),wrong=q.b<q.a;
+    c.strokeStyle=wrong?COL.fail:'#ccc';c.beginPath();c.moveTo(x,clampY(q.a));c.lineTo(x,clampY(q.b));c.stroke();
+    c.beginPath();c.arc(x,clampY(q.a),4.5,0,7);c.fillStyle=wrong?COL.fail:COL.old;c.fill();
+    c.beginPath();c.arc(x,clampY(q.b),4.5,0,7);c.fillStyle=wrong?COL.fail:COL.truth;c.fill();
   });
-  // wrong-way rate at current settings, 2000 simulated studies
   const rng=mulberry32(7),randn=makeRandn(rng),binom=makeBinom(rng,randn);
   let wrong=0;const N=2000;
-  for(let i=0;i<N;i++)if(binom(p.trials,0.5+p.eps)/p.trials<0.5)wrong++;
-  const ran=w1.studies.length,ranWrong=w1.studies.filter(v=>v<0.5).length;
+  for(let i=0;i<N;i++)if(binom(p.trials,0.5)<binom(p.trials,0.5-p.eps))wrong++;
+  const ran=w1.pairs.length,ranWrong=w1.pairs.filter(q=>q.b<q.a).length;
   $('w1_read').innerHTML=`At &epsilon; = <span class="num">${fmt(p.eps)}</span> with
-    <span class="num">${p.trials}</span>-trial studies, an honest study makes the better theory
-    look <i>worse</i> <span class="num">${(100*wrong/N).toFixed(1)}%</span> of the time
-    (2000 simulated studies).${ran?` You have run <span class="num">${ran}</span> — <span class="num">${ranWrong}</span> pointed the wrong way (red).`:''}`;
+    <span class="num">${p.trials}</span>-trial studies, an honest study of each theory ranks the
+    <i>worse</i> one higher <span class="num">${(100*wrong/N).toFixed(1)}%</span> of the time
+    (2000 simulated pairs).${ran?` You have run <span class="num">${ran}</span> pairs — <span class="num">${ranWrong}</span> pointed the wrong way (red).`:''}`;
 }
-['w1_eps','w1_trials'].forEach(id=>$(id).addEventListener('input',()=>{w1Labels();w1.studies=[];w1Draw()}));
+['w1_eps','w1_trials'].forEach(id=>$(id).addEventListener('input',()=>{w1Labels();w1.pairs=[];w1Draw()}));
 
 // ================= widget 2: the Bayesian agent =================
 const w2={s:0,f:0,n:0,rng:mulberry32((Date.now()&0xffff)^99)};
 function w2Params(){return{mean:+$('w2_mean').value,mass:logv('w2_mass',0),
-  eps:logv('w2_eps',-3),trials:Math.round(logv('w2_trials',0))}}
+  eps:logv('w2_eps',-3),trials:Math.round(logv('w2_trials',0)),ea:+$('w2_ea').value}}
 function w2Labels(){const p=w2Params();$('v2_mean').textContent=p.mean.toFixed(2);
   $('v2_mass').textContent=fmt(p.mass)+' pseudo-obs';$('v2_eps').textContent=fmt(p.eps);
-  $('v2_trials').textContent=p.trials}
+  $('v2_trials').textContent=p.trials;$('v2_ea').textContent=p.ea.toFixed(3)}
 function w2Feed(unlucky){const p=w2Params(),randn=makeRandn(w2.rng),binom=makeBinom(w2.rng,randn);
   let s;
-  if(unlucky){s=Infinity;for(let i=0;i<10;i++)s=Math.min(s,binom(p.trials,0.5+p.eps))}
-  else s=binom(p.trials,0.5+p.eps);
+  if(unlucky){s=Infinity;for(let i=0;i<10;i++)s=Math.min(s,binom(p.trials,0.5))}
+  else s=binom(p.trials,0.5);
   w2.s+=s;w2.f+=p.trials-s;w2.n++;w2Draw(s,p.trials)}
 function w2Reset(){w2.s=0;w2.f=0;w2.n=0;w2Draw()}
-function betaShape(a,b,grid){ // max-normalized density on (0,1), safe in log space
+function betaShape(a,b,grid){
   const ys=[];let mx=-Infinity;
   for(const x of grid){const l=(a-1)*Math.log(x)+(b-1)*Math.log(1-x);ys.push(l);if(l>mx)mx=l}
   return ys.map(l=>Math.exp(l-mx));
@@ -632,7 +593,7 @@ function betaShape(a,b,grid){ // max-normalized density on (0,1), safe in log sp
 function w2Draw(lastS,lastN){
   const p=w2Params(),cv=$('w2_cv'),c=frame(cv),W=cv.width,H=cv.height,pad=52;
   const a0=p.mean*p.mass,b0=(1-p.mean)*p.mass,a=a0+w2.s,b=b0+w2.f;
-  const lo=0.35,hi=0.65; // zoom on the decision region
+  const lo=0.35,hi=0.65;
   const grid=[];for(let i=0;i<=400;i++)grid.push(lo+(hi-lo)*i/400);
   const gclip=grid.map(x=>Math.min(Math.max(x,1e-4),1-1e-4));
   const prior=betaShape(a0,b0,gclip),post=betaShape(a,b,gclip);
@@ -641,79 +602,83 @@ function w2Draw(lastS,lastN){
   c.font='12px Georgia';c.fillStyle='#555';c.textAlign='center';
   [0.35,0.4,0.45,0.5,0.55,0.6,0.65].forEach(t=>{c.fillText(t.toFixed(2),X(t),H-18)});
   c.fillText('possible payoff rates of B (zoomed to 0.35–0.65)',W/2,H-4);c.textAlign='left';
-  dashLine(c,X(0.5),12,X(0.5),H-34,'#777');
-  c.fillText('0.5 — work on B only right of this line',X(0.5)+6,22);
+  dashLine(c,X(p.ea),12,X(p.ea),H-34,COL.old);
+  c.fillStyle=COL.old;c.textAlign=p.ea>0.52?'right':'left';c.fillText(`${p.ea.toFixed(3)} — current estimate of A: work on B only right of this line`,X(p.ea)+(p.ea>0.52?-6:6),22);c.textAlign='left';
   c.strokeStyle='#aaa';c.lineWidth=1.5;c.setLineDash([5,4]);c.beginPath();
   grid.forEach((x,i)=>{const px=X(x),py=Y(prior[i]);i?c.lineTo(px,py):c.moveTo(px,py)});c.stroke();c.setLineDash([]);
   c.strokeStyle=COL.truth;c.lineWidth=2.2;c.beginPath();
   grid.forEach((x,i)=>{const px=X(x),py=Y(post[i]);i?c.lineTo(px,py):c.moveTo(px,py)});c.stroke();
   c.lineWidth=1;
-  c.fillStyle='#aaa';c.fillText('dashed: prior',W-130,26);
-  c.fillStyle=COL.truth;c.fillText('solid: posterior',W-130,42);
-  const mean=a/(a+b),onB=mean>0.5;
+  c.fillStyle='#aaa';c.fillText('dashed: prior about B',W-160,40);
+  c.fillStyle=COL.truth;c.fillText('solid: posterior about B',W-160,56);
+  const mean=a/(a+b),onB=mean>p.ea;
   const px=X(Math.min(Math.max(mean,lo),hi));
   c.strokeStyle=onB?COL.truth:COL.fail;c.beginPath();c.moveTo(px,H-34);c.lineTo(px,H-46);c.stroke();
-  $('w2_read').innerHTML=`Prior: &lang;&alpha;,&beta;&rang; = &lang;${fmt(a0)}, ${fmt(b0)}&rang;
+  $('w2_read').innerHTML=`Prior about B: &lang;&alpha;,&beta;&rang; = &lang;${fmt(a0)}, ${fmt(b0)}&rang;
     (mass <span class="num">${fmt(p.mass)}</span>). Evidence so far:
     <span class="num">${w2.s}</span> successes in <span class="num">${w2.s+w2.f}</span> trials
     over ${w2.n} stud${w2.n===1?'y':'ies'}${lastN?` (last: ${lastS}/${lastN} = ${(100*lastS/lastN).toFixed(1)}%)`:''}.
-    Posterior mean <span class="num">${mean.toFixed(4)}</span> &rarr; this agent
-    <span class="num" style="color:${onB?COL.truth:COL.fail}">${onB?'works on B':'abandons B'}</span>.`;
+    Posterior mean <span class="num">${mean.toFixed(4)}</span> vs. estimate of A <span class="num">${p.ea.toFixed(3)}</span> &rarr; this scientist
+    <span class="num" style="color:${onB?COL.truth:COL.fail}">${onB?'works on B':'switches to A'}</span>.`;
 }
-['w2_mean','w2_mass','w2_eps','w2_trials'].forEach(id=>$(id).addEventListener('input',()=>{w2Labels();w2Draw()}));
+['w2_mean','w2_mass','w2_eps','w2_trials','w2_ea'].forEach(id=>$(id).addEventListener('input',()=>{w2Labels();w2Draw()}));
 
-// ================= widget 3: the myopia trap =================
-function w3Params(){return{eps:logv('w3_eps',-3),trials:Math.round(logv('w3_trials',0)),
-  prior:logv('w3_prior',0)}}
+// ================= widget 3: the solo scientist (both rates unknown) =================
+function w3Params(){return{eps:logv('w3_eps',-3),trials:Math.round(logv('w3_trials',0)),prior:logv('w3_prior',0)}}
 function w3Labels(){const p=w3Params();$('v3_eps').textContent=fmt(p.eps);
-  $('v3_trials').textContent=p.trials;$('v3_prior').textContent='×'+fmt(p.prior)}
+  $('v3_trials').textContent=p.trials;$('v3_prior').textContent='×'+fmt(p.prior)+' (max α/β '+fmt(4*p.prior)+')'}
 function w3Run(){
   $('w3_status').textContent='running…';
   setTimeout(()=>{
     const p=w3Params(),rng=mulberry32(11),randn=makeRandn(rng),binom=makeBinom(rng,randn);
-    const N=500,SHOW=30,R=250,pB=0.5+p.eps;
-    let startOpt=0,finalOn=0;const shown=[];
+    const N=500,SHOW=30,R=500,pB=0.5,pA=0.5-p.eps;
+    let startB=0,endB=0,everLeft=0,cameBack=0,neverTried=0;const shown=[];
     for(let i=0;i<N;i++){
-      let a=(rng()*4||1e-9)*p.prior,b=(rng()*4||1e-9)*p.prior;
-      let on=a/(a+b)>0.5;if(on)startOpt++;
-      const tr=i<SHOW?[a/(a+b)]:null;
+      let aA=(rng()*4||1e-9)*p.prior,bA=(rng()*4||1e-9)*p.prior,aB=(rng()*4||1e-9)*p.prior,bB=(rng()*4||1e-9)*p.prior;
+      let on=aB/(aB+bB)>aA/(aA+bA);const s0=on;if(on)startB++;
+      let left=false,tried=on;
+      const tr=i<SHOW?[{d:aB/(aB+bB)-aA/(aA+bA),on}]:null;
       for(let t=0;t<R;t++){
-        if(on){const s=binom(p.trials,pB);a+=s;b+=p.trials-s;on=a/(a+b)>0.5}
-        if(tr)tr.push(a/(a+b));
+        if(on){const s=binom(p.trials,pB);aB+=s;bB+=p.trials-s}
+        else{const s=binom(p.trials,pA);aA+=s;bA+=p.trials-s}
+        const was=on;on=aB/(aB+bB)>aA/(aA+bA);
+        if(was&&!on)left=true;if(on)tried=true;
+        if(tr)tr.push({d:aB/(aB+bB)-aA/(aA+bA),on});
       }
-      if(on)finalOn++;
+      if(on)endB++;if(left)everLeft++;if(left&&on)cameBack++;if(!tried)neverTried++;
       if(tr)shown.push({tr,on});
     }
     const cv=$('w3_cv'),c=frame(cv),W=cv.width,H=cv.height,pad=52;
-    const lo=0.3,hi=0.7,X=t=>pad+(W-pad-14)*t/R,Y=v=>12+(H-52)*(1-(Math.min(Math.max(v,lo),hi)-lo)/(hi-lo));
+    const lim=0.12,X=t=>pad+(W-pad-14)*t/R,Y=v=>12+(H-52)*(1-(Math.min(Math.max(v,-lim),lim)+lim)/(2*lim));
     c.strokeStyle='#999';c.beginPath();c.moveTo(pad,10);c.lineTo(pad,H-34);c.lineTo(W-12,H-34);c.stroke();
     c.font='12px Georgia';c.fillStyle='#555';
     c.save();c.translate(16,H/2);c.rotate(-Math.PI/2);c.textAlign='center';
-    c.fillText('estimate of B (clipped to 0.3–0.7)',0,0);c.restore();
+    c.fillText('estimate of B minus estimate of A (clipped to ±0.12)',0,0);c.restore();
     c.textAlign='center';c.fillText('round',W/2,H-8);c.textAlign='left';
-    dashLine(c,pad,Y(0.5),W-12,Y(0.5),'#777');
-    c.fillText('0.5 — cross below this line and you stop working on B, forever',pad+8,Y(0.5)+16);
+    dashLine(c,pad,Y(0),W-12,Y(0),'#777');
+    c.fillText('0 — above this line you work on B (blue) and learn only about B; below it you work on A (red) and learn only about A',pad+8,Y(0)+16);
     for(const s of shown){
-      c.strokeStyle=s.on?'rgba(33,102,172,.55)':'rgba(178,24,43,.5)';c.lineWidth=1.2;
-      c.beginPath();s.tr.forEach((v,t)=>{const x=X(t),y=Y(v);t?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();
+      c.lineWidth=1.2;
+      for(let t=1;t<s.tr.length;t++){
+        c.strokeStyle=s.tr[t].on?'rgba(33,102,172,.55)':'rgba(178,24,43,.5)';
+        c.beginPath();c.moveTo(X(t-1),Y(s.tr[t-1].d));c.lineTo(X(t),Y(s.tr[t].d));c.stroke();
+      }
     }
-    $('w3_read').innerHTML=`Of <span class="num">500</span> isolated scientists:
-      <span class="num">${startOpt}</span> started optimistic about B (the rest never touch it — no
-      evidence ever arrives to change a pessimist's mind), and after 250 rounds
-      <span class="num" style="color:${COL.truth}">${finalOn}</span> are still on the better theory —
-      <span class="num">${(100*finalOn/Math.max(1,startOpt)).toFixed(0)}%</span> of the optimists survived;
-      the others were knocked off by unlucky early evidence and froze
-      (<span style="color:${COL.fail}">red lines</span> go flat where they died).`;
+    $('w3_read').innerHTML=`Of <span class="num">500</span> isolated scientists over ${R} rounds:
+      <span class="num">${startB}</span> started on B. <span class="num">${neverTried}</span> never tried B at all
+      (their prior about B sat below their prior about A, and working on A only ever teaches you about A).
+      <span class="num">${everLeft}</span> worked on B and left it at some point; of those,
+      <span class="num">${cameBack}</span> came back once A's results disappointed them enough.
+      At the end <span class="num" style="color:${COL.truth}">${endB}</span> are on the better theory and
+      <span class="num" style="color:${COL.fail}">${N-endB}</span> are on A with their belief about B frozen below what A is delivering.`;
     $('w3_status').textContent='';
   },20);
 }
 ['w3_eps','w3_trials','w3_prior'].forEach(id=>$(id).addEventListener('input',w3Labels));
 
-// ================= widget 4: networks =================
-function w4Params(){return{agents:+$('w4_agents').value,eps:logv('w4_eps',-3),
-  trials:Math.round(logv('w4_trials',0))}}
-function w4Labels(){const p=w4Params();$('v4_agents').textContent=p.agents;
-  $('v4_eps').textContent=fmt(p.eps);$('v4_trials').textContent=p.trials}
+// ================= widget 4: networks (his Figure 3) =================
+function w4Params(){return{agents:+$('w4_agents').value,eps:logv('w4_eps',-3),trials:Math.round(logv('w4_trials',0))}}
+function w4Labels(){const p=w4Params();$('v4_agents').textContent=p.agents;$('v4_eps').textContent=fmt(p.eps);$('v4_trials').textContent=p.trials}
 function w4DrawNets(n){
   const cv=$('w4_nets'),c=frame(cv),W=cv.width,H=cv.height;
   const nets=['complete','wheel','cycle','line'];
@@ -733,20 +698,18 @@ function w4DrawNets(n){
 async function w4Run(){
   $('w4_btn').disabled=true;
   const p=w4Params();w4DrawNets(p.agents);
-  const nets=['complete','wheel','cycle','line'],out=[];
+  const nets=['complete','wheel','cycle','line'],out=[],RUNS=200,STEPS=5000;
   for(let k=0;k<nets.length;k++){
     $('w4_status').textContent=`running ${nets[k]}…`;
     await new Promise(r=>setTimeout(r,15));
-    const res=simulate(baseP({network:nets[k],agents:p.agents,eps:p.eps,trials:p.trials,
-      runs:200,steps:1500,seed:3}));
-    out.push(res);
+    out.push(simulate(baseP({network:nets[k],agents:p.agents,eps:p.eps,trials:p.trials,runs:RUNS,steps:STEPS,seed:3})));
   }
   const cv=$('w4_cv'),c=frame(cv),W=cv.width,H=cv.height;
   const bw=120,gap=(W-4*bw)/5,base=H-56,scale=H-116;
   c.font='13px Georgia';
   nets.forEach((net,k)=>{
     const r=out[k],x=gap+(bw+gap)*k;
-    const fr={success:r.success/200,fail:r.fail/200,unsettled:r.unsettled/200};
+    const fr={success:r.success/RUNS,fail:r.fail/RUNS,unsettled:r.unsettled/RUNS};
     let y=base;
     [['success',COL.truth],['fail',COL.fail],['unsettled',COL.unset]].forEach(([key,col])=>{
       const h=fr[key]*scale;c.fillStyle=col;c.fillRect(x,y-h,bw,h);y-=h;});
@@ -755,42 +718,43 @@ async function w4Run(){
     c.fillText((100*fr.success).toFixed(0)+'% truth',x+bw/2,base+38);
   });
   c.textAlign='left';c.fillStyle='#555';
-  c.fillText('stacked outcomes over 200 communities each:',12,20);
-  c.fillStyle=COL.truth;c.fillText('■ settled on truth',330,20);
-  c.fillStyle=COL.fail;c.fillText('■ abandoned it',460,20);
-  c.fillStyle=COL.unset;c.fillText('■ unsettled at horizon',575,20);
-  const s=out.map(r=>r.success/200);
+  c.fillText(`stacked outcomes over ${RUNS} communities each, verdict at round ${STEPS}:`,12,20);
+  c.fillStyle=COL.truth;c.fillText('■ settled on the truth',420,20);
+  c.fillStyle=COL.fail;c.fillText('■ ended on A',570,20);
+  c.fillStyle=COL.unset;c.fillText('■ still divided',670,20);
+  const s=out.map(r=>r.success/RUNS);
+  const fig3={10:[0.60,0.84,0.93],7:[0.60,0.76,0.85],5:[0.58,0.64,0.72]}[p.agents];
   $('w4_read').innerHTML=`Same scientists, same evidence process, same rationality —
-    only the wiring differs. P(settle on truth): complete
+    only the wiring differs. P(settle on the truth): complete
     <span class="num">${s[0].toFixed(2)}</span>, wheel <span class="num">${s[1].toFixed(2)}</span>,
     cycle <span class="num">${s[2].toFixed(2)}</span>, line <span class="num">${s[3].toFixed(2)}</span>.
+    ${fig3&&p.eps<0.0011&&p.trials===1000?`Zollman's Figure 3 at size ${p.agents} reads roughly complete ${fig3[0].toFixed(2)}, wheel ${fig3[1].toFixed(2)}, cycle ${fig3[2].toFixed(2)}.`:''}
     ${s[2]>s[0]?'The sparse networks win: less communication, more reliability.':'At these settings density costs little — make the problem harder (lower ε) to see the effect.'}`;
   $('w4_status').textContent='';$('w4_btn').disabled=false;
 }
 ['w4_agents','w4_eps','w4_trials'].forEach(id=>$(id).addEventListener('input',w4Labels));
 
-// ================= widget 5: stubbornness sweep =================
+// ================= widget 5: stubbornness sweep (his Figure 6) =================
 function w5Params(){return{eps:logv('w5_eps',-3),agents:+$('w5_agents').value}}
-function w5Labels(){const p=w5Params();$('v5_eps').textContent=fmt(p.eps);
-  $('v5_agents').textContent=p.agents}
+function w5Labels(){const p=w5Params();$('v5_eps').textContent=fmt(p.eps);$('v5_agents').textContent=p.agents}
 async function w5Run(){
   $('w5_btn').disabled=true;
   const p=w5Params();
-  const strengths=[1,3,10,30,100,300,1000,3000,5000],nets=['complete','wheel','cycle','line'];
+  const strengths=[1,3,10,30,100,300,1000,2500],nets=['complete','wheel','cycle','line'],RUNS=150,STEPS=5000;
   const colors={complete:COL.fail,wheel:COL.mid,cycle:COL.truth,line:'#4d9221'};
   const succ=nets.map(()=>[]),unset=nets.map(()=>[]);
   const cv=$('w5_cv');
   const draw=()=>{
     const c=frame(cv),W=cv.width,H=cv.height,pad=56;
-    const LMAX=Math.log10(strengths[strengths.length-1]);
-    const lx=x=>pad+(W-pad-130)*(Math.log10(x))/LMAX;
+    const L0=Math.log10(4),L1=Math.log10(4*strengths[strengths.length-1]);
+    const lx=x=>pad+(W-pad-130)*(Math.log10(4*x)-L0)/(L1-L0);
     const ly=y=>14+(H-pad-14)*(1-y);
     c.strokeStyle='#999';c.beginPath();c.moveTo(pad,10);c.lineTo(pad,H-pad);c.lineTo(W-10,H-pad);c.stroke();
     c.font='12px Georgia';c.fillStyle='#555';
-    c.textAlign='center';c.fillText('prior mass multiplier (log scale)',(W-100)/2,H-8);
-    c.save();c.translate(16,H/2);c.rotate(-Math.PI/2);c.fillText('P(settle on truth)  — dotted: P(never settles)',0,0);c.restore();
+    c.textAlign='center';c.fillText('maximum α, β of the starting beliefs (log scale) — Zollman’s x-axis',(W-100)/2,H-8);
+    c.save();c.translate(16,H/2);c.rotate(-Math.PI/2);c.fillText('P(settle on the truth)  — dotted: P(still divided)',0,0);c.restore();
     c.textAlign='right';[0,0.5,1].forEach(v=>c.fillText(v.toFixed(1),pad-5,ly(v)+4));
-    c.textAlign='center';strengths.forEach(s=>c.fillText(s,lx(s),H-pad+15));
+    c.textAlign='center';strengths.forEach(s=>c.fillText(fmt(4*s),lx(s),H-pad+15));
     c.strokeStyle='#eee';c.beginPath();c.moveTo(pad,ly(0.5));c.lineTo(W-130,ly(0.5));c.stroke();
     nets.forEach((net,ni)=>{
       if(!succ[ni].length)return;
@@ -807,19 +771,19 @@ async function w5Run(){
   for(let ni=0;ni<nets.length;ni++)for(let si=0;si<strengths.length;si++){
     $('w5_status').textContent=`condition ${ni*strengths.length+si+1}/${nets.length*strengths.length}…`;
     await new Promise(r=>setTimeout(r,10));
-    const res=simulate(baseP({network:nets[ni],agents:p.agents,eps:p.eps,
-      prior:strengths[si],runs:150,steps:2000,seed:5}));
-    succ[ni][si]=res.success/150;unset[ni][si]=res.unsettled/150;
+    const res=simulate(baseP({network:nets[ni],agents:p.agents,eps:p.eps,prior:strengths[si],runs:RUNS,steps:STEPS,seed:5}));
+    succ[ni][si]=res.success/RUNS;unset[ni][si]=res.unsettled/RUNS;
     draw();
   }
-  const iMax=strengths.length-1, i1000=strengths.indexOf(1000);
+  const iMax=strengths.length-1,i1000=strengths.indexOf(300);
   $('w5_read').innerHTML=`The complete graph climbs from
-    <span class="num">${succ[0][0].toFixed(2)}</span> (mass 1) to
-    <span class="num">${succ[0][i1000].toFixed(2)}</span> (mass 1000) — stubbornness rescues the dense network.
-    Push the sparse networks that far and further and they collapse the other way: by mass
-    <span class="num">${strengths[iMax]}</span> the cycle leaves
-    <span class="num">${(100*unset[2][iMax]).toFixed(0)}%</span> and the line
-    <span class="num">${(100*unset[3][iMax]).toFixed(0)}%</span> of communities permanently unsettled.
+    <span class="num">${succ[0][0].toFixed(2)}</span> (max 4) to
+    <span class="num">${succ[0][i1000].toFixed(2)}</span> (max 1,200) — stubbornness rescues the dense network.
+    Push the sparse networks to the far right and they fall the other way: at max
+    <span class="num">${fmt(4*strengths[iMax])}</span> the cycle settles on the truth
+    <span class="num">${succ[2][iMax].toFixed(2)}</span> of the time and leaves
+    <span class="num">${(100*unset[2][iMax]).toFixed(0)}%</span> of communities still divided
+    ${p.agents===7&&p.eps<0.0011?'(his Figure 6: cycle 0.77, wheel 0.91, complete 0.97 at max 10,000)':''}.
     Each protection alone is medicine; together they overdose — that is step 6.`;
   $('w5_status').textContent='done';$('w5_btn').disabled=false;
 }
@@ -828,150 +792,43 @@ async function w5Run(){
 // ================= widget 6: the full model =================
 function w6Params(){return{network:$('w6_net').value,prior:logv('w6_prior',0),
   eps:logv('w6_eps',-3),agents:+$('w6_agents').value,steps:+$('w6_steps').value}}
-function w6Labels(){const p=w6Params();$('v6_prior').textContent='×'+fmt(p.prior);
-  $('v6_eps').textContent=fmt(p.eps);$('v6_agents').textContent=p.agents;
-  $('v6_steps').textContent=p.steps}
+function w6Labels(){const p=w6Params();$('v6_prior').textContent=fmt(4*p.prior)+' (×'+fmt(p.prior)+')';
+  $('v6_eps').textContent=fmt(p.eps);$('v6_agents').textContent=p.agents;$('v6_steps').textContent=p.steps}
 function w6Preset(name){
   const set=(id,v)=>$(id).value=v;
-  set('w6_eps',0);set('w6_agents',10);set('w6_steps',2000);
+  set('w6_eps',0);set('w6_agents',10);set('w6_steps',5000);
   if(name==='palmer'){set('w6_net','complete');set('w6_prior',0)}
   if(name==='zollman'){set('w6_net','cycle');set('w6_prior',0)}
   if(name==='stubborn'){set('w6_net','complete');set('w6_prior',2.4)}
-  if(name==='locked'){set('w6_net','line');set('w6_prior',3.3);set('w6_steps',4000)}
+  if(name==='locked'){set('w6_net','cycle');set('w6_prior',3.4);set('w6_agents',7)}
   w6Labels();w6Run();
 }
 function w6Run(){
   $('w6_btn').disabled=true;$('w6_status').textContent='running…';
   setTimeout(()=>{
-    const p=w6Params();
-    const res=simulate(baseP({network:p.network,agents:p.agents,eps:p.eps,
-      prior:p.prior,runs:300,steps:p.steps,seed:9}));
-    // outcome bars
+    const p=w6Params(),RUNS=300;
+    const res=simulate(baseP({network:p.network,agents:p.agents,eps:p.eps,prior:p.prior,runs:RUNS,steps:p.steps,seed:9}));
     {const cv=$('w6_cv'),c=frame(cv),W=cv.width,H=cv.height;
-     const cats=[['settled on truth',res.success,COL.truth],['abandoned it',res.fail,COL.fail],['still unsettled',res.unsettled,COL.unset]];
+     const cats=[['settled on the truth',res.success,COL.truth],['ended on A',res.fail,COL.fail],['still divided',res.unsettled,COL.unset]];
      const bw=150,gap=80,x0=120,base=H-56,scale=H-110;
      c.font='13px Georgia';
-     cats.forEach((k,i)=>{const f=k[1]/300,x=x0+i*(bw+gap),h=f*scale;
+     cats.forEach((k,i)=>{const f=k[1]/RUNS,x=x0+i*(bw+gap),h=f*scale;
        c.fillStyle=k[2];c.fillRect(x,base-h,bw,h);
        c.fillStyle='#1a1a2e';c.textAlign='center';
        c.fillText((100*f).toFixed(1)+'%',x+bw/2,base-h-7);
        c.fillText(k[0],x+bw/2,base+20);});
      c.textAlign='left';c.fillStyle='#555';
-     c.fillText(`300 communities · ${p.network} · prior mass ×${fmt(p.prior)} · horizon ${p.steps}`,12,18);}
-    // trajectories
-    {const cv=$('w6_traj'),c=frame(cv),W=cv.width,H=cv.height,pad=48;
-     c.strokeStyle='#999';c.beginPath();c.moveTo(pad,10);c.lineTo(pad,H-34);c.lineTo(W-12,H-34);c.stroke();
-     c.font='12px Georgia';c.fillStyle='#555';
-     c.save();c.translate(15,H/2);c.rotate(-Math.PI/2);c.textAlign='center';
-     c.fillText('fraction working on the new theory',0,0);c.restore();
-     c.textAlign='center';c.fillText('round (40 sample runs)',W/2,H-8);c.textAlign='right';
-     c.fillText('1',pad-4,18);c.fillText('0',pad-4,H-36);c.textAlign='left';
-     const maxLen=Math.max(1,...res.traj.map(t=>t.f.length));
-     for(const t of res.traj){
-       c.strokeStyle=t.out==='success'?'rgba(33,102,172,.45)':t.out==='fail'?'rgba(178,24,43,.45)':'rgba(120,120,120,.6)';
-       c.lineWidth=1;c.beginPath();
-       t.f.forEach((v,i)=>{const x=pad+(W-pad-14)*i/(maxLen-1||1),y=12+(H-46-12)*(1-v);
-         i?c.lineTo(x,y):c.moveTo(x,y)});
-       c.stroke();}
-     c.fillStyle='#555';c.fillText(`x-axis: 0 … ${maxLen*res.trackEvery} rounds`,pad+6,20);}
-    // verdict
-    const s=res.success/300,f=res.fail/300,u=res.unsettled/300;
+     c.fillText(`${RUNS} communities · ${p.network} · ${p.agents} scientists · max α/β ${fmt(4*p.prior)} · verdict at round ${p.steps}`,12,18);}
+    drawMeanTraj($('w6_traj'),res,{steps:p.steps},RUNS);
+    const s=res.success/RUNS,f=res.fail/RUNS,u=res.unsettled/RUNS;
     let verdict;
-    if(u>0.25)verdict=`<b style="color:#777">Permanent diversity.</b> Disagreement outlives the horizon in ${(100*u).toFixed(0)}% of communities — rival programs are maintained indefinitely and inquiry never closes. Diversity has stopped being transient; the protections have overdosed.`;
-    else if(f>s)verdict=`<b style="color:${COL.fail}">Premature convergence.</b> The community usually abandons the better theory on early unlucky evidence — the Palmer failure. Individually flawless updating, collectively fragile.`;
+    if(u>=0.15)verdict=`<b style="color:#777">Permanent diversity is appearing.</b> Disagreement outlives the horizon in ${(100*u).toFixed(0)}% of communities — rival programs are maintained indefinitely and inquiry never closes there. Diversity has stopped being transient; the protections have overdosed. (Push the horizon slider right to see how slowly this clears.)`;
+    else if(f>s)verdict=`<b style="color:${COL.fail}">Premature convergence.</b> The community usually ends on the worse theory — misleading early results, widely shared, take everyone off the better one before it can prove itself. The Palmer failure: individually flawless updating, collectively fragile.`;
     else verdict=`<b style="color:${COL.truth}">Transient diversity.</b> Rival programs coexist long enough for the truth to prove itself, then the community closes ranks. This is the target regime.`;
     $('w6_read').innerHTML=verdict;
     $('w6_status').textContent='';$('w6_btn').disabled=false;
   },25);
 }
-
-// ================= widget 7: the sycophantic LLM =================
-function w7Params(){return{network:$('w7_net').value,def:defv('w7_def'),eps:logv('w7_eps',-3)}}
-function w7Labels(){const p=w7Params();
-  $('v7_def').textContent=p.def===0?'off':`≈${p.def} obs (~${Math.round(p.def/10)}% of a round)`;
-  $('v7_eps').textContent=fmt(p.eps);}
-function w7Run(){
-  $('w7_btn').disabled=true;$('w7_status').textContent='running…';
-  setTimeout(()=>{
-    const p=w7Params();
-    const base=simulate(baseP({network:p.network,eps:p.eps,runs:250,steps:1500,seed:7}));
-    const syc=simulate(baseP({network:p.network,eps:p.eps,echoC:p.def,lam:0,consult:1,contra:false,runs:250,steps:1500,seed:7}));
-    const cv=$('w7_cv'),c=frame(cv),W=cv.width,H=cv.height;
-    const bars=[['no LLM',base],['sycophant',syc]];
-    const bw=150,gap=150,x0=190,baseY=H-52,scale=H-104;
-    c.font='13px Georgia';
-    bars.forEach((bb,i)=>{const r=bb[1],x=x0+i*(bw+gap);
-      const fr={success:r.success/250,fail:r.fail/250,unsettled:r.unsettled/250};
-      let y=baseY;
-      [['success',COL.truth],['unsettled',COL.unset],['fail',COL.fail]].forEach(([k,col])=>{
-        const h=fr[k]*scale;c.fillStyle=col;c.fillRect(x,y-h,bw,h);y-=h;});
-      c.fillStyle='#1a1a2e';c.textAlign='center';
-      c.fillText(bb[0],x+bw/2,baseY+20);
-      c.fillText((100*fr.success).toFixed(0)+'% truth',x+bw/2,baseY+38);});
-    c.textAlign='left';c.fillStyle='#555';c.font='12px Georgia';
-    c.fillText('stacked outcomes, 250 communities:',12,18);
-    c.fillStyle=COL.truth;c.fillText('■ truth',300,18);
-    c.fillStyle=COL.unset;c.fillText('■ never settles',360,18);
-    c.fillStyle=COL.fail;c.fillText('■ abandons B',468,18);
-    const bs=base.success/250,ss=syc.success/250,su=syc.unsettled/250;
-    let msg;
-    if(su>0.15) msg=`On this sparser network the sycophant's ratchet <b>overdoses</b>: P(truth) falls to <span class="num">${ss.toFixed(2)}</span> and <span class="num">${(100*su).toFixed(0)}%</span> of communities <b>never settle</b>. Confidence without evidence, topped up every round, freezes the disagreement in place.`;
-    else if(ss>bs+0.04) msg=`On this dense network the sycophant <b>helps</b>: P(truth) rises from <span class="num">${bs.toFixed(2)}</span> to <span class="num">${ss.toFixed(2)}</span>. The update is mean-preserving, so it adds no opinion — only stubbornness, exactly what an over-connected community lacks.`;
-    else msg=`Here the sycophant moves P(truth) from <span class="num">${bs.toFixed(2)}</span> to <span class="num">${ss.toFixed(2)}</span> (never-settles <span class="num">${(100*su).toFixed(0)}%</span>). Raise deference, or switch networks, to sharpen the effect.`;
-    $('w7_read').innerHTML=msg;
-    $('w7_status').textContent='';$('w7_btn').disabled=false;
-  },20);
-}
-['w7_net','w7_def','w7_eps'].forEach(id=>$(id).addEventListener('input',w7Labels));
-
-// ================= widget 8: sycophant vs. devil's advocate across networks =================
-function w8Params(){return{def:defv('w8_def'),eps:logv('w8_eps',-3)}}
-function w8Labels(){const p=w8Params();
-  $('v8_def').textContent=p.def===0?'off':`≈${p.def} obs (~${Math.round(p.def/10)}% of a round)`;
-  $('v8_eps').textContent=fmt(p.eps);}
-async function w8Run(){
-  $('w8_btn').disabled=true;
-  const p=w8Params(),nets=['complete','wheel','cycle','line'],rows=[];
-  for(let k=0;k<nets.length;k++){
-    $('w8_status').textContent=`${nets[k]}…`;await new Promise(r=>setTimeout(r,12));
-    const b=simulate(baseP({network:nets[k],eps:p.eps,runs:160,steps:1500,seed:8}));
-    const s=simulate(baseP({network:nets[k],eps:p.eps,echoC:p.def,lam:0,consult:1,contra:false,runs:160,steps:1500,seed:8}));
-    const a=simulate(baseP({network:nets[k],eps:p.eps,echoC:p.def,lam:0,consult:1,contra:true,runs:160,steps:1500,seed:8}));
-    rows.push({net:nets[k],base:b.success/160,
-      syc:{t:s.success/160,u:s.unsettled/160},adv:{t:a.success/160,u:a.unsettled/160}});
-  }
-  const cv=$('w8_cv'),c=frame(cv),W=cv.width,H=cv.height,pad=44,baseY=H-40,top=30,scale=baseY-top;
-  c.strokeStyle='#999';c.beginPath();c.moveTo(pad,top-6);c.lineTo(pad,baseY);c.lineTo(W-10,baseY);c.stroke();
-  c.font='12px Georgia';c.textAlign='right';
-  [0,0.5,1].forEach(v=>{const y=baseY-v*scale;c.fillStyle='#999';c.fillText(v.toFixed(1),pad-4,y+4);
-    c.strokeStyle='#eee';c.beginPath();c.moveTo(pad,y);c.lineTo(W-10,y);c.stroke()});
-  const gw=(W-pad-14)/nets.length;
-  rows.forEach((r,i)=>{
-    const cx=pad+gw*(i+0.5),bw=gw*0.28;
-    c.strokeStyle='#bbb';c.setLineDash([3,3]);c.beginPath();
-    c.moveTo(cx-gw*0.42,baseY-r.base*scale);c.lineTo(cx+gw*0.42,baseY-r.base*scale);c.stroke();c.setLineDash([]);
-    [[r.syc,-1,COL.mid],[r.adv,1,'#1b7837']].forEach(([d,off,col])=>{
-      const x=cx+off*bw*0.62-bw/2;
-      c.fillStyle=col;c.fillRect(x,baseY-d.t*scale,bw,d.t*scale);
-      if(d.u>0.015){c.fillStyle='rgba(120,120,120,.85)';c.fillRect(x,baseY-(d.t+d.u)*scale,bw,d.u*scale);}
-    });
-    c.fillStyle='#1a1a2e';c.font='12px Georgia';c.textAlign='center';c.fillText(r.net,cx,baseY+16);
-  });
-  c.textAlign='left';c.font='12px Georgia';
-  c.fillStyle=COL.mid;c.fillText('■ sycophant',pad+4,18);
-  c.fillStyle='#1b7837';c.fillText("■ devil's advocate",pad+96,18);
-  c.fillStyle='rgba(120,120,120,.85)';c.fillText('■ never-settles cap',pad+232,18);
-  c.fillStyle='#bbb';c.fillText('– – no-LLM baseline',pad+366,18);
-  const worstSyc=Math.min(...rows.map(r=>r.syc.t)),worstAdv=Math.min(...rows.map(r=>r.adv.t));
-  const maxSycU=Math.max(...rows.map(r=>r.syc.u));
-  $('w8_read').innerHTML=`Across all four networks, the devil's advocate's <i>worst</i> P(truth) is
-    <span class="num">${worstAdv.toFixed(2)}</span>; the sycophant's is
-    <span class="num">${worstSyc.toFixed(2)}</span>${maxSycU>0.1?`, with up to <span class="num">${(100*maxSycU).toFixed(0)}%</span> of sparse communities frozen`:''}.
-    The sycophant wins where you already know you're dense; the devil's advocate is the robust
-    choice when you don't know the network — which, across a real scientific community, you don't.`;
-  $('w8_status').textContent='';$('w8_btn').disabled=false;
-}
-['w8_def','w8_eps'].forEach(id=>$(id).addEventListener('input',w8Labels));
 
 // ================= boot =================
 w1Labels();w1Draw();
@@ -980,8 +837,6 @@ w3Labels();w3Run();
 w4Labels();w4DrawNets(10);w4Run();
 w5Labels();
 w6Labels();w6Run();
-w7Labels();w7Run();
-w8Labels();
 </script>
 </body>
 </html>
