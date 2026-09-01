@@ -118,6 +118,7 @@
 </div>
 
 <script>
+/*ENGINE-START*/
 // ---------- Zollman (2010) bandit-network engine, faithful build (2026-09-01) ----------
 // Mirrors zollman2010_exact.py, which mirrors Zollman's Java (Agent Based Modeling/models/
 // PayoffLearningModel.java + learningRules/PayoffLearning.java):
@@ -132,7 +133,24 @@
 //     theory, otherwise still divided.
 // P.exact=false gives the earlier build's simplification for comparison: A's rate is KNOWN
 // exactly, only B is learned, and all-on-A is absorbing.
-// This text is inlined verbatim into dashboard_original.html and tutorial.html.
+//
+// The LLM extension (agreed 2026-09-01; see AUDIT §5). Each scientist has a PRIVATE
+// interlocutor consulted before every decision, including the first. Its reply is received
+// as if it were P.def pseudo-trials (deference c). Let H be the theory that currently looks
+// better to the scientist (the one in hand) and O the other; E_H, E_O their current means.
+//   * 'sycophant'  : c pseudo-trials of H at E_H  -> the belief about the theory in hand gets
+//                    heavier at its own mean (confidence without information); O untouched.
+//   * 'sycboth'    : variant for testing -- c pseudo-trials at own mean on BOTH beliefs.
+//   * 'advocate'   : "the grass is greener": c pseudo-trials of H at E_O and of O at E_H,
+//                    i.e. the two estimates are pulled toward each other; pegged to the
+//                    rival's estimate, so the push vanishes as the estimates converge.
+// In the known-arm build (exact=false) the EARLIER BUILD's mechanism is reproduced instead, so
+// that the checkbox means "the earlier page": everyone's belief about B is echoed every round
+// regardless of the theory in hand (sycophant at E_B; advocate flipped, at 1-E_B).
+// Round order (as in the earlier build and his playGen): consult -> decide -> play -> update.
+// With P.llm='none' the RNG stream is identical to the verified baseline engine.
+// This text is inlined verbatim into dashboard_original.html, tutorial.html and
+// sycophant_vs_advocate.html between the ENGINE-START / ENGINE-END comment markers by inline_engine.py.
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function makeRandn(rng){let spare=null;return function(){if(spare!==null){const v=spare;spare=null;return v}
   let u,v,s;do{u=rng()*2-1;v=rng()*2-1;s=u*u+v*v}while(s>=1||s===0);
@@ -154,18 +172,38 @@ function simulate(P){
   const rng=mulberry32(P.seed),randn=makeRandn(rng),binom=makeBinom(rng,randn);
   const nb=neighbors(P.network,P.agents),n=P.agents;
   const pB=0.5,pA=0.5-P.eps;
+  const llm=P.llm||'none',c=llm==='none'?0:(P.def||0),consult=P.consult==null?1:P.consult;
   const trackEvery=Math.max(1,Math.floor(P.steps/300)),nSamp=Math.ceil(P.steps/trackEvery);
   const res={success:0,fail:0,unsettled:0,truthRound:[],failRound:[],outcomes:[],trackEvery,nSamp,exact,
     mean:{success:new Float64Array(nSamp),fail:new Float64Array(nSamp),unsettled:new Float64Array(nSamp)}};
   const aA=new Float64Array(n),bA=new Float64Array(n),aB=new Float64Array(n),bB=new Float64Array(n);
   const onB=new Uint8Array(n),sA=new Float64Array(n),sB=new Float64Array(n);
+  const eA=i=>exact?aA[i]/(aA[i]+bA[i]):pA;
+  const eB=i=>aB[i]/(aB[i]+bB[i]);
+  const consultAll=()=>{if(c<=0)return;for(let i=0;i<n;i++){
+    if(consult<1&&rng()>=consult)continue;
+    const EB=eB(i),EAi=eA(i),inB=EB>EAi;
+    if(!exact){                                     // the EARLIER BUILD's mechanism, for the checkbox-off comparison:
+      const v=llm==='advocate'?1-EB:EB;             // everyone's belief about B, every round, regardless of the theory in hand;
+      aB[i]+=c*v;bB[i]+=c*(1-v);continue;           // sycophant at E_B (mean-preserving), advocate flipped about 0.5
+    }
+    if(llm==='sycophant'){
+      if(inB){aB[i]+=c*EB;bB[i]+=c*(1-EB)}
+      else{aA[i]+=c*EAi;bA[i]+=c*(1-EAi)}
+    }else if(llm==='sycboth'){
+      aB[i]+=c*EB;bB[i]+=c*(1-EB);aA[i]+=c*EAi;bA[i]+=c*(1-EAi);
+    }else if(llm==='advocate'){
+      aB[i]+=c*EAi;bB[i]+=c*(1-EAi);                 // B at A's mean
+      aA[i]+=c*EB;bA[i]+=c*(1-EB);                   // A at B's mean
+    }
+  }};
+  const decideAll=()=>{for(let i=0;i<n;i++)onB[i]=eB(i)>eA(i)?1:0};
   for(let r=0;r<P.runs;r++){
     for(let i=0;i<n;i++){
       aB[i]=(rng()*4||1e-9)*P.prior;bB[i]=(rng()*4||1e-9)*P.prior;
       if(exact){aA[i]=(rng()*4||1e-9)*P.prior;bA[i]=(rng()*4||1e-9)*P.prior}
     }
-    const eA=i=>exact?aA[i]/(aA[i]+bA[i]):pA;
-    for(let i=0;i<n;i++)onB[i]=aB[i]/(aB[i]+bB[i])>eA(i)?1:0;
+    consultAll();decideAll();
     const f=new Float64Array(nSamp);let lastNotAllB=-1,lastNotAllA=-1,collapsed=false,t;
     for(t=0;t<P.steps;t++){
       let nOn=0;for(let i=0;i<n;i++)nOn+=onB[i];
@@ -180,7 +218,7 @@ function simulate(P){
         aB[i]+=s;bB[i]+=m-s;
         if(exact){aA[i]+=sa;bA[i]+=ma-sa}
       }
-      for(let i=0;i<n;i++)onB[i]=aB[i]/(aB[i]+bB[i])>eA(i)?1:0;
+      consultAll();decideAll();
     }
     let nOn=0;for(let i=0;i<n;i++)nOn+=onB[i];
     const out=collapsed||nOn===0?'fail':(nOn===n?'success':'unsettled');
@@ -193,7 +231,7 @@ function simulate(P){
   for(const k of ['success','fail','unsettled'])if(res[k])for(let i=0;i<nSamp;i++)res.mean[k][i]/=res[k];
   return res;
 }
-
+/*ENGINE-END*/
 
 // ---------- params from UI ----------
 function getP(){return{

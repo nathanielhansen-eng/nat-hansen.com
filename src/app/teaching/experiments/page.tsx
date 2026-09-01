@@ -26,7 +26,7 @@ const experiments: ExperimentCard[] = [
     isStatic: true,
     cta: "Open the tutorial →",
     blurb:
-      "An interactive build-up of Zollman's bandit-network model of scientific communities — why more communication can mean less truth — one assumption at a time, on an engine that follows his own code and reproduces the paper's figures. Then a dashboard with every dial on one screen. (The earlier extension, in which each scientist consults a sycophantic or a devil's-advocate LLM, was built on a simplified engine and is being redone; it stays up as a record.) Runs entirely in the browser.",
+      "An interactive build-up of Zollman's bandit-network model of scientific communities — why more communication can mean less truth — one assumption at a time, on an engine that follows his own code and reproduces the paper's figures. Then two labs: the original model with every dial on one screen, and an extension in which each scientist consults a sycophantic or a devil's-advocate LLM — where it turns out that how much the model's word is worth against your own data matters more than whether it agrees with you. Runs entirely in the browser.",
   },
   {
     title: "Reuter & Brun (2022)",
@@ -299,7 +299,7 @@ export default function ExperimentsPage() {
                     href="/teaching/games/zollman/sycophant_vs_advocate.html"
                     className="text-stone-400 text-xs hover:text-stone-700 transition-colors inline-block"
                   >
-                    Sycophant vs. devil&rsquo;s advocate (earlier engine) &rarr;
+                    Sycophant vs. devil&rsquo;s advocate &rarr;
                   </a>
                 </div>
               )}

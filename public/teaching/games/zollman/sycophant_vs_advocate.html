@@ -10,7 +10,7 @@
   body { margin:0; font-family: Georgia, 'Times New Roman', serif; background:var(--paper); color:var(--ink); }
   header { padding:14px 22px 10px; border-bottom:2px solid var(--ink); }
   header h1 { margin:0; font-size:20px; }
-  header p { margin:4px 0 0; font-size:13px; color:#555; max-width:70ch; }
+  header p { margin:4px 0 0; font-size:13px; color:#555; max-width:80ch; }
   .wrap { display:grid; grid-template-columns: 300px 1fr; gap:0; }
   .controls { padding:16px 18px; border-right:1px solid #ccc; background:#f0ede6; min-height:calc(100vh - 60px); }
   .controls h2 { font-size:13px; text-transform:uppercase; letter-spacing:1px; margin:18px 0 8px; border-bottom:1px solid #bbb; padding-bottom:3px;}
@@ -20,6 +20,7 @@
   .ctl label .val { font-weight:bold; font-variant-numeric:tabular-nums; }
   .ctl input[type=range] { width:100%; accent-color:var(--accent); }
   .ctl select, .ctl input[type=number] { width:100%; font:inherit; padding:2px 4px; }
+  .ctl.check label { justify-content:flex-start; gap:6px; align-items:flex-start; cursor:pointer; }
   .hint { font-size:11px; color:#777; line-height:1.35; margin-top:1px; }
   button { font:inherit; font-size:14px; padding:7px 14px; cursor:pointer; background:var(--ink); color:#fff; border:none; border-radius:3px; }
   button:disabled { opacity:.5; cursor:wait; }
@@ -30,26 +31,26 @@
   .card h3 { margin:0 0 6px; font-size:14px; }
   .card .sub { font-weight:normal; font-size:11px; color:#888; }
   .card canvas { width:100%; height:auto; display:block; }
+  .card .cap { font-size:11px; color:#666; line-height:1.4; margin:6px 0 0; }
   #analysis { background:#fff; border:1px solid #ddd; border-left:4px solid var(--accent); border-radius:4px; padding:12px 16px; font-size:14px; line-height:1.5; }
   #analysis b.num { font-variant-numeric:tabular-nums; }
   #status { font-size:12px; color:#777; margin-left:12px; }
-  .footnote { font-size:11px; color:#888; margin-top:16px; line-height:1.5; max-width:80ch; }
+  .footnote { font-size:11px; color:#888; margin-top:16px; line-height:1.5; max-width:90ch; }
   .footnote b { color:#555; }
 </style>
 </head>
 <body>
 <header>
   <h1>Sycophant vs. Devil's Advocate</h1>
-  <p>A single addition to Zollman's bandit-network model. Each scientist holds a <b>credence</b> that the new
-     theory is the better one, updated on evidence like coin-flips. A private consultation adds
-     <i>c</i>&nbsp;imaginary observations that carry <i>no real data</i>.
-     A <b style="color:var(--syc)">sycophant</b> ("you're right") makes them match your current credence — believe
-     70%? it hands you ~0.7<i>c</i> confirmations and ~0.3<i>c</i> doubts: the number <b>stays put</b> but grows
-     more confident and harder to shift (reinforcement as pure stubbornness).
-     A <b style="color:var(--adv)">devil's advocate</b> ("you're wrong") flips the split (~0.3<i>c</i> / ~0.7<i>c</i>),
-     <b>dragging your credence toward the rival theory</b>. "Deference" (the slider) is how large <i>c</i> is.
-     Old theory pays 0.5, the new one 0.5&thinsp;+&thinsp;&epsilon; — who finds out, and does the LLM help or hurt?
-     &nbsp;·&nbsp; <a href="tutorial.html">&larr; tutorial</a></p>
+  <p>One addition to Zollman's model, on the faithful engine (both theories' success rates unknown; every scientist
+     holds a belief about each and works on the one that currently looks better). Each scientist now also has a
+     <b>private interlocutor</b> that has run no trials but talks as if it had: its reply is received as
+     <i>c</i>&nbsp;pseudo-trials (the <b>deference</b> slider). A <b style="color:var(--syc)">sycophant</b> hands back the
+     scientist's own belief about the theory in hand — the estimate stays put, it just gets heavier and harder to move.
+     A <b style="color:var(--adv)">devil's advocate</b> says "the grass is greener": the theory in hand is no better than the
+     other, and the other no worse than this one — pulling the two estimates toward each other, and pushing toward switching.
+     The new theory pays 0.5, the old one 0.5&thinsp;&minus;&thinsp;&epsilon;. Who finds out, and does the interlocutor help or hurt?
+     &nbsp;·&nbsp; <a href="tutorial.html">&larr; tutorial</a> &nbsp;·&nbsp; <a href="dashboard_original.html">the original model &rarr;</a></p>
 </header>
 
 <div class="wrap">
@@ -60,90 +61,137 @@
         <option value="complete">complete — everyone sees everyone (dense)</option>
         <option value="wheel">wheel — hub + rim</option>
         <option value="cycle" selected>cycle — each sees two neighbours (sparse)</option>
-        <option value="line">line — a chain</option>
+        <option value="line">line — a chain (not in the paper)</option>
       </select>
       <div class="hint">who sees whose results. Zollman's headline: sparser networks are slower but likelier to find the truth</div></div>
     <div class="ctl"><label>scientists <span class="val" id="v_agents"></span></label>
       <input type="range" id="agents" min="3" max="20" step="1" value="10"></div>
-    <div class="ctl"><label>&epsilon; (how much better the new theory is) <span class="val" id="v_eps"></span></label>
+    <div class="ctl"><label>&epsilon; (the new theory's edge) <span class="val" id="v_eps"></span></label>
       <input type="range" id="eps" min="0" max="2" step="0.05" value="0"></div>
     <div class="ctl"><label>trials / round <span class="val" id="v_trials"></span></label>
       <input type="range" id="trials" min="1" max="4" step="0.1" value="3">
-      <div class="hint">how much evidence each working scientist generates each round — the yardstick the LLM's word is measured against</div></div>
+      <div class="hint">how much evidence each working scientist generates each round — the yardstick the interlocutor's word is measured against</div></div>
     <div class="ctl"><label>prior strength <span class="val" id="v_prior"></span></label>
-      <input type="range" id="prior" min="0" max="3.7" step="0.1" value="0">
-      <div class="hint">Zollman's "extreme beliefs": how much contrary evidence it takes to move a scientist off its starting opinion (the stubbornness they start with). Cranked to the top on the <b>cycle</b>, it reproduces Zollman's sparse-network collapse — everyone stays put and the community never settles; on the <b>complete</b> graph the same extremity instead rescues it.</div></div>
+      <input type="range" id="prior" min="0" max="3.5" step="0.1" value="0">
+      <div class="hint">Zollman's "extreme beliefs" (max &alpha;/&beta; = 4 &times; strength): the stubbornness scientists start with. The sycophant manufactures the same thing on the fly.</div></div>
+    <div class="ctl check"><label><input type="checkbox" id="exact" checked> both theories' rates unknown (Zollman)</label>
+      <div class="hint">untick to replay the EARLIER BUILD: the old theory's rate is known, giving the new theory up is permanent, the sycophant echoes everyone's belief about the new theory whatever they are working on, and the devil's advocate flips that belief about 0.5. Its findings (challenge is network-robust, sycophancy deadlocks sparse networks) live there.</div></div>
 
-    <h2>The LLM (private)</h2>
+    <h2>The interlocutor (private)</h2>
     <div class="ctl"><label>the model is a</label>
       <select id="llm">
-        <option value="none">— no LLM (Zollman baseline) —</option>
-        <option value="sycophant">sycophant — affirms your view</option>
-        <option value="advocate" selected>devil's advocate — challenges your view</option>
+        <option value="none">— none (Zollman baseline) —</option>
+        <option value="sycophant">sycophant — affirms your belief about the theory in hand</option>
+        <option value="sycboth">sycophant, variant — affirms both your beliefs</option>
+        <option value="advocate" selected>devil's advocate — "the grass is greener"</option>
       </select>
-      <div class="hint">each scientist consults a private model about their own current view. Sycophant = a stubbornness dial; devil's advocate = an exploration dial</div></div>
-    <div class="ctl"><label>deference to the LLM <span class="val" id="v_def"></span></label>
-      <input type="range" id="def" min="0" max="3" step="0.05" value="2">
+      <div class="hint">each scientist consults a private model before every decision, including the first. Sycophant = a stubbornness dial; devil's advocate = an exploration dial</div></div>
+    <div class="ctl"><label>deference <span class="val" id="v_def"></span></label>
+      <input type="range" id="def" min="0" max="3.5" step="0.05" value="3">
       <div class="hint" id="def_hint"></div></div>
 
     <h2>Simulation</h2>
     <div class="ctl"><label>runs <span class="val" id="v_runs"></span></label>
-      <input type="range" id="runs" min="50" max="600" step="50" value="200">
-      <div class="hint">independent communities to simulate — more runs, steadier percentages (heavier compute: the panels sweep many conditions)</div></div>
-    <div class="ctl"><label>max rounds <span class="val" id="v_steps"></span></label>
-      <input type="range" id="steps" min="200" max="4000" step="200" value="1500"></div>
+      <input type="range" id="runs" min="50" max="500" step="50" value="150">
+      <div class="hint">independent communities per condition — more runs, steadier percentages (the network and dose panels run 24 conditions each)</div></div>
+    <div class="ctl"><label>horizon (rounds) <span class="val" id="v_steps"></span></label>
+      <input type="range" id="steps" min="1000" max="10000" step="500" value="5000">
+      <div class="hint">when the verdict is read. The sycophant's harm on sparse networks is a delay, so it shrinks as this grows — try 2,000 and 10,000</div></div>
     <div class="ctl"><label>seed</label><input type="number" id="seed" value="1"></div>
 
     <div style="margin-top:14px">
       <button id="runbtn" onclick="runAll()">Recompute</button>
       <span id="status"></span>
-      <div class="hint" style="margin-top:5px">Panels update automatically as you change anything; "Recompute" just reruns at the current settings (e.g. after a new seed).</div>
+      <div class="hint" style="margin-top:5px">Panels recompute when you change anything, top to bottom; the heavy ones fill in as they finish.</div>
     </div>
     <div style="margin-top:10px" class="presets">
-      <button onclick="preset('dense')">Dense: sycophant helps</button>
-      <button onclick="preset('sparse')">Sparse: sycophant blows up</button>
+      <button onclick="preset('dense')">Dense, deference 1,000: sycophant rescues</button>
+      <button onclick="preset('sparse')">Sparse, deference 1,000: both stall</button>
+      <button onclick="preset('sweet')">Sparse, deference 300: both help</button>
+      <button onclick="preset('over')">Dense, deference 3,000: overdose</button>
     </div>
     <div class="footnote">Log sliders: &epsilon; = 10<sup>&minus;3+x</sup>, trials = 10<sup>x</sup>, prior = 10<sup>x</sup>,
-      deference = pseudo-observations = 10<sup>x</sup>. Everything runs client-side; nothing leaves this page.</div>
+      deference = pseudo-trials = 10<sup>x</sup>. Everything runs client-side; nothing leaves this page.</div>
   </div>
 
   <div class="main">
-    <div id="analysis">Press <b>Run</b>.</div>
+    <div id="analysis">Computing…</div>
     <div class="charts">
-      <div class="card"><h3>The community <span class="sub">(topology + each scientist's private LLM)</span></h3>
+      <div class="card"><h3>The community <span class="sub">(topology + each scientist's private interlocutor)</span></h3>
         <canvas id="netcv" width="460" height="300"></canvas></div>
-      <div class="card"><h3>Effect on this community <span class="sub">(outcome probabilities here)</span></h3>
-        <canvas id="cmpcv" width="460" height="300"></canvas></div>
-      <div class="card"><h3>Which network are we in? <span class="sub">(P settle on truth vs. never-settle, across networks)</span></h3>
-        <canvas id="netcmpcv" width="460" height="300"></canvas></div>
+      <div class="card"><h3>Effect on this community <span class="sub">(outcomes at the horizon: none / sycophant / devil's advocate at this deference)</span></h3>
+        <canvas id="cmpcv" width="460" height="300"></canvas>
+        <p class="cap">Grey is the share still divided when the verdict is read. In this engine a community on the wrong theory is not doomed in principle, and a divided one is not stuck: grey means "not yet", and shrinks with the horizon.</p></div>
+      <div class="card"><h3>Which network are we in? <span class="sub">(P settle on the truth, across networks, at this deference)</span></h3>
+        <canvas id="netcmpcv" width="460" height="300"></canvas>
+        <p class="cap">Dashed tick: no interlocutor. Grey cap on a bar: still divided at the horizon.</p></div>
       <div class="card"><h3>Dose&ndash;response on this network <span class="sub">(vs. deference)</span></h3>
-        <canvas id="sweepcv" width="460" height="300"></canvas></div>
-      <div class="card" style="grid-column:1/-1"><h3>Sample trajectories <span class="sub">(fraction on the new theory; the selected LLM)</span></h3>
-        <canvas id="trajcv" width="940" height="230"></canvas></div>
+        <canvas id="sweepcv" width="460" height="300"></canvas>
+        <p class="cap">Solid: P(settle on the truth). Dashed: still divided at the horizon.</p></div>
+      <div class="card"><h3>Diversity trajectories <span class="sub">(average share of scientists on the new theory, grouped by how the community ends up; the selected interlocutor)</span></h3>
+        <canvas id="trajcv" width="460" height="300"></canvas></div>
+      <div class="card"><h3>When is the question settled? <span class="sub">(share of communities at their final verdict, by round; the selected interlocutor)</span></h3>
+        <canvas id="setcv" width="460" height="300"></canvas>
+        <p class="cap">This is where the sycophant's cost on a sparse network shows first: the blue curve climbs later. Log axis.</p></div>
     </div>
     <div class="footnote">
-      <b>What "deference" is, exactly.</b> Each scientist holds a Beta(&alpha;,&nbsp;&beta;) belief with credence
-      <i>e</i>&nbsp;=&nbsp;&alpha;/(&alpha;+&beta;). A consultation does &alpha;&nbsp;+=&nbsp;<i>c&middot;v</i>,
-      &beta;&nbsp;+=&nbsp;<i>c&middot;</i>(1&minus;<i>v</i>), with <i>v</i>&nbsp;=&nbsp;<i>e</i> for the
-      <b style="color:var(--syc)">sycophant</b> — mean-preserving, so <i>e</i> is <i>unchanged</i> while the total mass
-      &alpha;+&beta; grows (more confidence, no new information) — and <i>v</i>&nbsp;=&nbsp;1&minus;<i>e</i> for the
-      <b style="color:var(--adv)">devil's advocate</b>, which shifts <i>e</i> toward the rival theory. The LLM adds
-      no evidence; <i>c</i> (deference) is how many pseudo-observations its reply is worth. At 0 it is ignored; when
-      <i>c</i> approaches a round of your own work (<i>trials</i>) it starts to rival real data.<br>
-      <b>Private only, for now.</b> Here each scientist consults a model that mirrors <i>their own</i> view. The
-      <i>shared</i> model — one foundation model everyone consults, reflecting the community's consensus — is held in
-      reserve: it behaves differently (it adds a covert edge between every pair of scientists, densifying the network),
-      and a shared sycophant is harmful across the board. That's the sequel.<br>
-      <b>The result to watch.</b> The devil's advocate is the network-robust choice: it helps dense communities and does
-      not wreck sparse ones. The sycophant is a stubbornness dial — a targeted tonic for over-connected communities that
-      overshoots into permanent diversity (the grey "never settles" bar) on sparse ones. If you don't know which network
-      you're in, challenge dominates.
+      <b>What "deference" is, exactly.</b> Each scientist holds a Beta(&alpha;,&nbsp;&beta;) belief about each theory,
+      with estimate <i>E</i>&nbsp;=&nbsp;&alpha;/(&alpha;+&beta;). Let H be the theory that currently looks better to them
+      and O the other. A consultation adds <i>c</i> pseudo-trials. <b style="color:var(--syc)">Sycophant</b>: H's belief gets
+      <i>c</i> trials at <i>E<sub>H</sub></i> (&alpha;<sub>H</sub>&nbsp;+=&nbsp;<i>c&middot;E<sub>H</sub></i>, &beta;<sub>H</sub>&nbsp;+=&nbsp;<i>c&middot;</i>(1&minus;<i>E<sub>H</sub></i>)) —
+      mean-preserving, so the estimate is unchanged while its weight grows; O is untouched (the variant touches both).
+      <b style="color:var(--adv)">Devil's advocate</b>: H's belief gets <i>c</i> trials at <i>E<sub>O</sub></i> and O's belief
+      gets <i>c</i> trials at <i>E<sub>H</sub></i> — each estimate is pulled toward the other's, so the push is exactly as large
+      as the gap the scientist perceives, and vanishes as the two estimates converge. Neither adds evidence; <i>c</i> is
+      how many observations the reply is worth. When <i>c</i> approaches a round of your own work (<i>trials</i>) it rivals real data.<br>
+      <b>Why the sycophant is Zollman's Assumption 5 in disguise.</b> At the first consultation a weightless prior
+      (mass ≈ 4) receives <i>c</i> pseudo-trials at its own mean: that is his "extreme belief" with maximum &alpha;/&beta; ≈ <i>c</i>,
+      and his Figure 6 says extreme beliefs rescue the dense network and slow the sparse one. Thereafter the weight is topped up
+      every round, so unlike a one-time prior it is never swamped: the scientist's learning rate is permanently scaled by
+      real trials ÷ (real trials + <i>c</i>).<br>
+      <b>Why the devil's advocate touches the belief his Assumption 3 freezes.</b> A scientist on A generates no evidence about
+      B, so their belief about B is frozen. The devil's advocate is the one voice that keeps moving it — a stand-in for the
+      exploratory experiment a myopic scientist refuses to run.<br>
+      <b>Private only, for now.</b> A <i>shared</i> model that everyone consults, reflecting the community's consensus, is a
+      different object (a covert edge between every pair of scientists) and is not on this page.
     </div>
   </div>
 </div>
 
 <script>
-// ---------- RNG ----------
+/*ENGINE-START*/
+// ---------- Zollman (2010) bandit-network engine, faithful build (2026-09-01) ----------
+// Mirrors zollman2010_exact.py, which mirrors Zollman's Java (Agent Based Modeling/models/
+// PayoffLearningModel.java + learningRules/PayoffLearning.java):
+//   * two methodologies, BOTH with unknown success rates: the better one (B, "the new theory")
+//     pays 0.5, the worse one (A, "the old theory") pays 0.5 - eps  (his 0.5 vs 0.499);
+//   * every scientist holds an independent beta belief about EACH: <aA,bA> and <aB,bB>,
+//     drawn U(0,4] x prior (his "maximum alpha/beta" = 4 x prior);
+//   * each round everyone works on the theory whose posterior mean is higher (myopic),
+//     draws Binomial(trials, p) successes, and updates own + neighbours' results per arm;
+//   * all-on-A is NOT absorbing (A's rate keeps being learned); the verdict is read once,
+//     at the horizon: all on B = settled on the truth, all on A = settled on the wrong
+//     theory, otherwise still divided.
+// P.exact=false gives the earlier build's simplification for comparison: A's rate is KNOWN
+// exactly, only B is learned, and all-on-A is absorbing.
+//
+// The LLM extension (agreed 2026-09-01; see AUDIT §5). Each scientist has a PRIVATE
+// interlocutor consulted before every decision, including the first. Its reply is received
+// as if it were P.def pseudo-trials (deference c). Let H be the theory that currently looks
+// better to the scientist (the one in hand) and O the other; E_H, E_O their current means.
+//   * 'sycophant'  : c pseudo-trials of H at E_H  -> the belief about the theory in hand gets
+//                    heavier at its own mean (confidence without information); O untouched.
+//   * 'sycboth'    : variant for testing -- c pseudo-trials at own mean on BOTH beliefs.
+//   * 'advocate'   : "the grass is greener": c pseudo-trials of H at E_O and of O at E_H,
+//                    i.e. the two estimates are pulled toward each other; pegged to the
+//                    rival's estimate, so the push vanishes as the estimates converge.
+// In the known-arm build (exact=false) the EARLIER BUILD's mechanism is reproduced instead, so
+// that the checkbox means "the earlier page": everyone's belief about B is echoed every round
+// regardless of the theory in hand (sycophant at E_B; advocate flipped, at 1-E_B).
+// Round order (as in the earlier build and his playGen): consult -> decide -> play -> update.
+// With P.llm='none' the RNG stream is identical to the verified baseline engine.
+// This text is inlined verbatim into dashboard_original.html, tutorial.html and
+// sycophant_vs_advocate.html between the ENGINE-START / ENGINE-END comment markers by inline_engine.py.
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function makeRandn(rng){let spare=null;return function(){if(spare!==null){const v=spare;spare=null;return v}
   let u,v,s;do{u=rng()*2-1;v=rng()*2-1;s=u*u+v*v}while(s>=1||s===0);
@@ -151,60 +199,80 @@ function makeRandn(rng){let spare=null;return function(){if(spare!==null){const 
 function makeBinom(rng,randn){return function(n,p){
   if(n<=40){let s=0;for(let i=0;i<n;i++)if(rng()<p)s++;return s}
   let x=Math.round(n*p+randn()*Math.sqrt(n*p*(1-p)));return x<0?0:(x>n?n:x)}}
-
-// ---------- networks (neighbour lists, self excluded) ----------
 function neighbors(type,n){
   const nb=[];for(let i=0;i<n;i++)nb.push(new Set());
   const link=(a,b)=>{if(a!==b){nb[a].add(b);nb[b].add(a)}};
   if(type==='complete'){for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)link(i,j)}
   else if(type==='cycle'){for(let i=0;i<n;i++)link(i,(i+1)%n)}
   else if(type==='line'){for(let i=0;i<n-1;i++)link(i,i+1)}
-  else if(type==='wheel'){for(let i=1;i<n;i++){link(i,i===n-1?1:i+1);link(0,i)}}
+  else if(type==='wheel'){for(let i=1;i<n;i++){link(i,i===n-1?1:i+1);link(0,i)}}   // rim is a cycle + hub, as in his graphs6.kz
   return nb.map(s=>[...s]);
 }
-
-// ---------- the model (myopic agents + a private LLM; mirrors zollman.py) ----------
-// llm: 'none' | 'sycophant' | 'advocate'; def = pseudo-observations per consult (c).
-// Private mirror (lambda=0): the reflected view is the agent's OWN current mean.
-// Sycophant injects toward it (affirm); advocate injects toward 1-it (challenge).
-// Order matches zollman.py: consult+decide before the first round of evidence,
-// then each round decide -> absorb-check -> evidence -> pool -> consult+decide.
-function simulate(P, track){
+function simulate(P){
+  const exact=P.exact!==false;
   const rng=mulberry32(P.seed),randn=makeRandn(rng),binom=makeBinom(rng,randn);
-  const nb=neighbors(P.network,P.agents), pB=0.5+P.eps, n=P.agents;
-  const c=P.llm==='none'?0:P.def, contra=P.llm==='advocate';
-  const res={success:0,fail:0,unsettled:0, traj:[]};
-  const trackEvery=Math.max(1,Math.floor(P.steps/240));
+  const nb=neighbors(P.network,P.agents),n=P.agents;
+  const pB=0.5,pA=0.5-P.eps;
+  const llm=P.llm||'none',c=llm==='none'?0:(P.def||0),consult=P.consult==null?1:P.consult;
+  const trackEvery=Math.max(1,Math.floor(P.steps/300)),nSamp=Math.ceil(P.steps/trackEvery);
+  const res={success:0,fail:0,unsettled:0,truthRound:[],failRound:[],outcomes:[],trackEvery,nSamp,exact,
+    mean:{success:new Float64Array(nSamp),fail:new Float64Array(nSamp),unsettled:new Float64Array(nSamp)}};
+  const aA=new Float64Array(n),bA=new Float64Array(n),aB=new Float64Array(n),bB=new Float64Array(n);
+  const onB=new Uint8Array(n),sA=new Float64Array(n),sB=new Float64Array(n);
+  const eA=i=>exact?aA[i]/(aA[i]+bA[i]):pA;
+  const eB=i=>aB[i]/(aB[i]+bB[i]);
+  const consultAll=()=>{if(c<=0)return;for(let i=0;i<n;i++){
+    if(consult<1&&rng()>=consult)continue;
+    const EB=eB(i),EAi=eA(i),inB=EB>EAi;
+    if(!exact){                                     // the EARLIER BUILD's mechanism, for the checkbox-off comparison:
+      const v=llm==='advocate'?1-EB:EB;             // everyone's belief about B, every round, regardless of the theory in hand;
+      aB[i]+=c*v;bB[i]+=c*(1-v);continue;           // sycophant at E_B (mean-preserving), advocate flipped about 0.5
+    }
+    if(llm==='sycophant'){
+      if(inB){aB[i]+=c*EB;bB[i]+=c*(1-EB)}
+      else{aA[i]+=c*EAi;bA[i]+=c*(1-EAi)}
+    }else if(llm==='sycboth'){
+      aB[i]+=c*EB;bB[i]+=c*(1-EB);aA[i]+=c*EAi;bA[i]+=c*(1-EAi);
+    }else if(llm==='advocate'){
+      aB[i]+=c*EAi;bB[i]+=c*(1-EAi);                 // B at A's mean
+      aA[i]+=c*EB;bA[i]+=c*(1-EB);                   // A at B's mean
+    }
+  }};
+  const decideAll=()=>{for(let i=0;i<n;i++)onB[i]=eB(i)>eA(i)?1:0};
   for(let r=0;r<P.runs;r++){
-    const A=new Float64Array(n),B=new Float64Array(n);
-    for(let i=0;i<n;i++){A[i]=(rng()*4||1e-9)*P.prior;B[i]=(rng()*4||1e-9)*P.prior}
-    const onB=new Uint8Array(n);
-    const consult=()=>{if(c>0)for(let i=0;i<n;i++){
-      const e=A[i]/(A[i]+B[i]), v=contra?1-e:e;   // challenge or affirm the own view
-      A[i]+=c*v; B[i]+=c*(1-v);                    // confidence without evidence
-    }};
-    const decide=()=>{for(let i=0;i<n;i++)onB[i]=A[i]/(A[i]+B[i])>0.5?1:0};
-    consult(); decide();                            // before any evidence
-    const tr=(track&&r<40)?[]:null; let unan=-1, failed=false, t=0;
-    const succ=new Float64Array(n);
+    for(let i=0;i<n;i++){
+      aB[i]=(rng()*4||1e-9)*P.prior;bB[i]=(rng()*4||1e-9)*P.prior;
+      if(exact){aA[i]=(rng()*4||1e-9)*P.prior;bA[i]=(rng()*4||1e-9)*P.prior}
+    }
+    consultAll();decideAll();
+    const f=new Float64Array(nSamp);let lastNotAllB=-1,lastNotAllA=-1,collapsed=false,t;
     for(t=0;t<P.steps;t++){
       let nOn=0;for(let i=0;i<n;i++)nOn+=onB[i];
-      if(tr&&t%trackEvery===0)tr.push(nOn/n);
-      if(unan<0&&(nOn===0||nOn===n))unan=t;
-      if(nOn===0){failed=true;break}
-      for(let i=0;i<n;i++)succ[i]=onB[i]?binom(P.trials,pB):0;
-      for(let i=0;i<n;i++){let s=succ[i],m=onB[i]?P.trials:0;
-        for(const j of nb[i]){s+=succ[j];m+=onB[j]?P.trials:0}
-        A[i]+=s;B[i]+=m-s;}
-      consult(); decide();
+      if(t%trackEvery===0)f[t/trackEvery]=nOn/n;
+      if(nOn<n)lastNotAllB=t;
+      if(nOn>0)lastNotAllA=t;
+      if(!exact&&nOn===0){collapsed=true;break}          // known-arm build: nobody will ever learn about B again
+      for(let i=0;i<n;i++){if(onB[i]){sB[i]=binom(P.trials,pB);sA[i]=0}else{sA[i]=exact?binom(P.trials,pA):0;sB[i]=0}}
+      for(let i=0;i<n;i++){
+        let s=sB[i],m=onB[i]?P.trials:0,sa=sA[i],ma=onB[i]?0:P.trials;
+        for(const j of nb[i]){s+=sB[j];sa+=sA[j];if(onB[j])m+=P.trials;else ma+=P.trials}
+        aB[i]+=s;bB[i]+=m-s;
+        if(exact){aA[i]+=sa;bA[i]+=ma-sa}
+      }
+      consultAll();decideAll();
     }
-    let allB=true;for(let i=0;i<n;i++)if(!onB[i]){allB=false;break}
-    const out=failed?'fail':(allB?'success':'unsettled');
-    res[out]++; if(tr)res.traj.push({f:tr,out});
+    let nOn=0;for(let i=0;i<n;i++)nOn+=onB[i];
+    const out=collapsed||nOn===0?'fail':(nOn===n?'success':'unsettled');
+    res[out]++;
+    if(out==='success')res.truthRound.push(lastNotAllB+1);
+    if(out==='fail')res.failRound.push(collapsed?t:lastNotAllA+1);
+    const mm=res.mean[out];for(let k=0;k<nSamp;k++)mm[k]+=f[k];
+    res.outcomes.push(out);
   }
-  res.trackEvery=trackEvery;
+  for(const k of ['success','fail','unsettled'])if(res[k])for(let i=0;i<nSamp;i++)res.mean[k][i]/=res[k];
   return res;
 }
+/*ENGINE-END*/
 
 // ---------- params ----------
 function getP(){return{
@@ -213,6 +281,7 @@ function getP(){return{
   eps:Math.pow(10,-3+ +document.getElementById('eps').value),
   trials:Math.round(Math.pow(10,+document.getElementById('trials').value)),
   prior:Math.pow(10,+document.getElementById('prior').value),
+  exact:document.getElementById('exact').checked,
   llm:document.getElementById('llm').value,
   def:+document.getElementById('def').value===0?0:Math.round(Math.pow(10,+document.getElementById('def').value)),
   runs:+document.getElementById('runs').value,
@@ -221,20 +290,22 @@ function getP(){return{
 function fmt(x,d=3){return x>=100?x.toFixed(0):x>=1?(+x.toFixed(2)).toString():x.toPrecision(d)}
 function refreshLabels(){const P=getP();
   v_agents.textContent=P.agents; v_eps.textContent=fmt(P.eps);
-  v_trials.textContent=P.trials; v_prior.textContent=fmt(P.prior);
+  v_trials.textContent=P.trials; v_prior.textContent=fmt(P.prior)+' (max α/β '+fmt(4*P.prior)+')';
   v_runs.textContent=P.runs; v_steps.textContent=P.steps;
   const pct=P.def?Math.round(1000*P.def/P.trials)/10:0;
-  v_def.textContent=P.def===0?'off':`≈${P.def} obs`;
+  v_def.textContent=P.def===0?'off':`≈${P.def} pseudo-trials`;
   document.getElementById('def_hint').innerHTML = P.def===0
-    ? 'how much each scientist trusts the model’s reply, as pseudo-observations. At 0 the LLM is ignored.'
-    : `the model’s reply counts as <b>${P.def}</b> observations — about <b>${pct}%</b> of a round of your own work (${P.trials}). Above ~100% it outweighs your own data.`;
+    ? 'how much a scientist trusts the reply, as pseudo-trials. At 0 the interlocutor is ignored.'
+    : `the reply counts as <b>${P.def}</b> trials — about <b>${pct}%</b> of a round of your own work (${P.trials}). Above ~100% it outweighs your own data; the learning rate on the theory in hand is scaled by about ${(100*P.trials/(P.trials+P.def)).toFixed(0)}% (more with neighbours' data).`;
 }
 function preset(name){
   const set=(id,v)=>document.getElementById(id).value=v;
-  set('eps',0);set('trials',3);set('prior',0);set('runs',200);set('steps',1500);set('agents',10);
-  if(name==='dense'){set('network','complete');set('llm','sycophant');set('def',2)}
+  set('eps',0);set('trials',3);set('prior',0);set('runs',150);set('steps',5000);set('agents',10);document.getElementById('exact').checked=true;
+  if(name==='dense'){set('network','complete');set('llm','sycophant');set('def',3)}
   if(name==='sparse'){set('network','cycle');set('llm','sycophant');set('def',3)}
-  refreshLabels();runAll();
+  if(name==='sweet'){set('network','cycle');set('llm','advocate');set('def',2.5)}
+  if(name==='over'){set('network','complete');set('llm','sycophant');set('def',3.5)}
+  refreshLabels();drawNet(getP());runAll();
 }
 
 // ---------- plotting helpers ----------
@@ -246,11 +317,8 @@ function yaxis(c,W,H,pad,label){c.strokeStyle='#999';c.lineWidth=1;c.beginPath()
     c.fillStyle='#999';c.font='10px Georgia';c.textAlign='right';c.fillText(g.toFixed(2),pad-3,y+3)}
   if(label){c.save();c.translate(11,(H)/2);c.rotate(-Math.PI/2);c.fillStyle='#777';
     c.font='11px Georgia';c.textAlign='center';c.fillText(label,0,0);c.restore()}}
-
-const COL={success:'#2166ac',fail:'#b2182b',unsettled:'#999',syc:'#762a83',adv:'#1b7837'};
-
-// a boxed legend, sized to its text and clamped inside the canvas so it stays
-// readable over any bars
+const COL={success:'#2166ac',fail:'#b2182b',unsettled:'#999',syc:'#762a83',sycboth:'#b07cc6',adv:'#1b7837'};
+const NAME={none:'no interlocutor',sycophant:'sycophant',sycboth:'sycophant (both beliefs)',advocate:"devil's advocate"};
 function legendBox(c,x,y,items){
   const pad=6,lh=15;c.textAlign='left';c.font='11px Georgia';
   let tw=0;items.forEach(L=>{tw=Math.max(tw,c.measureText(L[0]).width)});
@@ -262,9 +330,6 @@ function legendBox(c,x,y,items){
     c.fillStyle=L[1];c.fillRect(x+pad,yy+1,10,10);
     c.fillStyle='#444';c.fillText(L[0],x+pad+15,yy+10);});
 }
-
-// the network: topology (shifts with the selector) + one private LLM node per
-// scientist, colour-coded for sycophant (purple) or devil's advocate (green)
 function drawNet(P){
   const cv=netcv,c=frame(cv),W=cv.width,H=cv.height,n=P.agents;
   const nb=neighbors(P.network,n),pos=[];
@@ -275,10 +340,10 @@ function drawNet(P){
     const k=P.network==='wheel'?i-1:i, m=P.network==='wheel'?n-1:n;
     const a=-Math.PI/2+2*Math.PI*k/m; pos.push([cx+R*Math.cos(a),cy+R*Math.sin(a)]);
   }
-  c.strokeStyle='#cbcbcb';c.lineWidth=1;                 // topology edges
+  c.strokeStyle='#cbcbcb';c.lineWidth=1;
   for(let i=0;i<n;i++)for(const j of nb[i])if(j>i){c.beginPath();c.moveTo(...pos[i]);c.lineTo(...pos[j]);c.stroke()}
-  const on=P.llm!=='none', lcol=P.llm==='sycophant'?COL.syc:COL.adv;
-  if(on)for(let i=0;i<n;i++){                             // a private LLM per node
+  const on=P.llm!=='none'&&P.def>0, lcol=P.llm==='advocate'?COL.adv:P.llm==='sycboth'?COL.sycboth:COL.syc;
+  if(on)for(let i=0;i<n;i++){
     let dx,dy;
     if(P.network==='line'){dx=0;dy=22}
     else if(P.network==='wheel'&&i===0){dx=0;dy=-26}
@@ -293,11 +358,8 @@ function drawNet(P){
   for(let i=0;i<n;i++){c.beginPath();c.arc(pos[i][0],pos[i][1],7,0,7);
     c.fillStyle='#2166ac';c.fill();c.strokeStyle='#fff';c.lineWidth=1.5;c.stroke()}
   c.fillStyle='#555';c.font='12px Georgia';c.textAlign='center';
-  c.fillText(on?`${n} scientists — each with a private ${P.llm==='sycophant'?'sycophant':"devil's advocate"} (${P.llm==='sycophant'?'purple':'green'} ◆)`
-              :`${n} scientists, no LLM`, W/2, H-8);
+  c.fillText(on?`${n} scientists — each with a private ${NAME[P.llm]} (◆)`:`${n} scientists, no interlocutor`, W/2, H-8);
 }
-
-// stacked outcome bars for no LLM / sycophant / devil's advocate at current settings
 function drawCompare(bars,P){
   const cv=cmpcv,c=frame(cv),W=cv.width,H=cv.height,pad=34,base=H-pad,top=12,scale=base-top;
   yaxis(c,W,H,pad,'fraction of communities');
@@ -309,138 +371,174 @@ function drawCompare(bars,P){
     c.fillText(b.label,x+bw/2,H-8);
     c.fillStyle='#fff';c.font='bold 12px Georgia';
     c.fillText((100*b.success).toFixed(0)+'%',x+bw/2,base-b.success*scale+14);});
-  legendBox(c,W-130,10,[['settles on truth',COL.success],['never settles',COL.unsettled],['abandons it',COL.fail]]);
+  legendBox(c,W-150,10,[['settles on the truth',COL.success],['still divided',COL.unsettled],[P.exact?'ends on the old theory':'gives the new theory up',COL.fail]]);
 }
-
-// across networks: P(truth) for syc vs adv (bars) + never-settle overlay (ticks)
 function drawNetCmp(data,P){
   const cv=netcmpcv,c=frame(cv),W=cv.width,H=cv.height,pad=34,base=H-pad,top=12,scale=base-top;
-  yaxis(c,W,H,pad,'P(settle on truth)');
-  const nets=data.nets, gw=(W-pad-14)/nets.length;
+  yaxis(c,W,H,pad,'P(settle on the truth)');
+  const nets=data.nets, gw=(W-pad-14)/4;
   nets.forEach((row,i)=>{
     const cx=pad+gw*(i+0.5), bw=gw*0.3;
-    // baseline tick
     c.strokeStyle='#bbb';c.setLineDash([3,3]);c.beginPath();
     c.moveTo(cx-gw*0.42,base-row.base*scale);c.lineTo(cx+gw*0.42,base-row.base*scale);c.stroke();c.setLineDash([]);
     [['syc',row.syc,-1],['adv',row.adv,1]].forEach(([k,d,off])=>{
       const x=cx+off*bw*0.6-bw/2;
       c.fillStyle=COL[k];c.fillRect(x,base-d.truth*scale,bw,d.truth*scale);
-      // never-settle as a grey cap on top of the bar
-      if(d.uns>0.01){c.fillStyle='rgba(120,120,120,.85)';
-        c.fillRect(x,base-(d.truth+d.uns)*scale,bw,d.uns*scale);}
+      if(d.uns>0.01){c.fillStyle='rgba(120,120,120,.85)';c.fillRect(x,base-(d.truth+d.uns)*scale,bw,d.uns*scale);}
     });
     c.fillStyle='#1a1a2e';c.font='11px Georgia';c.textAlign='center';c.fillText(row.name,cx,H-8);
   });
-  legendBox(c,pad+4,10,[['sycophant',COL.syc],["devil's advocate",COL.adv],
-    ['baseline','#bbb'],['never-settles','rgba(120,120,120,.85)']]);
+  legendBox(c,pad+4,10,[['sycophant',COL.syc],["devil's advocate",COL.adv],['no interlocutor','#bbb'],['still divided','rgba(120,120,120,.85)']]);
 }
-
-// dose-response on the current network: P(truth) for syc & adv vs deference, + never-settle dashed
 function drawSweep(sw,P){
   const cv=sweepcv,c=frame(cv),W=cv.width,H=cv.height,pad=34,base=H-pad,top=12,scale=base-top;
   yaxis(c,W,H,pad,'probability');
   const xs=sw.defs, X=v=>pad+(W-pad-10)*(Math.log10(v+1)/Math.log10(xs[xs.length-1]+1));
-  // x ticks
   c.font='10px Georgia';c.textAlign='center';c.fillStyle='#999';
   xs.forEach(v=>{c.fillText(v===0?'0':v,X(v),H-pad+13)});
-  c.fillText('deference (pseudo-obs, log)',W/2,H-4);
+  c.fillText('deference (pseudo-trials, log)',W/2,H-4);
   const line=(key,sub,col,dash)=>{c.strokeStyle=col;c.lineWidth=dash?1:2;c.setLineDash(dash||[]);
-    c.beginPath();sw.rows.forEach((r,i)=>{const x=X(xs[i]),y=base-r[key][sub]*scale;i?c.lineTo(x,y):c.moveTo(x,y)});
+    c.beginPath();let started=false;sw.rows.forEach((r,i)=>{if(!r)return;const x=X(xs[i]),y=base-r[key][sub]*scale;started?c.lineTo(x,y):c.moveTo(x,y);started=true});
     c.stroke();c.setLineDash([]);
-    if(!dash)sw.rows.forEach((r,i)=>{c.fillStyle=col;c.beginPath();c.arc(X(xs[i]),base-r[key][sub]*scale,2.5,0,7);c.fill()})};
+    if(!dash)sw.rows.forEach((r,i)=>{if(!r)return;c.fillStyle=col;c.beginPath();c.arc(X(xs[i]),base-r[key][sub]*scale,2.5,0,7);c.fill()})};
   line('syc','uns',COL.syc,[4,3]); line('adv','uns',COL.adv,[4,3]);
   line('syc','truth',COL.syc); line('adv','truth',COL.adv);
-  // current operating point
-  if(P.def>0){const x=X(P.def);c.strokeStyle='#333';c.setLineDash([2,3]);c.beginPath();
+  if(P.def>0){const x=X(Math.min(P.def,xs[xs.length-1]));c.strokeStyle='#333';c.setLineDash([2,3]);c.beginPath();
     c.moveTo(x,12);c.lineTo(x,base);c.stroke();c.setLineDash([]);
     c.fillStyle='#333';c.font='10px Georgia';c.textAlign='center';c.fillText('now',x,10)}
-  legendBox(c,pad+6,10,[['sycophant',COL.syc],["devil's advocate",COL.adv],
-    ['never-settles (dashed)','#777']]);
+  legendBox(c,pad+6,10,[['sycophant',COL.syc],["devil's advocate",COL.adv],['still divided (dashed)','#777']]);
+}
+function drawTraj(res,P,runs){
+  const cv=trajcv,c=frame(cv),W=cv.width,H=cv.height,pad=42;
+  c.strokeStyle='#999';c.lineWidth=1;c.beginPath();c.moveTo(pad,10);c.lineTo(pad,H-pad);c.lineTo(W-10,H-pad);c.stroke();
+  c.font='11px Georgia';c.fillStyle='#555';
+  c.save();c.translate(13,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('share of scientists on the new theory',0,0);c.restore();
+  c.textAlign='right';c.fillText('1',pad-4,16);c.fillText('½',pad-4,10+(H-pad-10)/2+4);c.fillText('0',pad-4,H-pad+4);
+  const series=[['success',COL.success,'end on the truth'],['fail',COL.fail,P.exact?'end on the old theory':'give the new theory up'],['unsettled','#888','still divided at the horizon']];
+  const nS=res.nSamp;let last=0;
+  for(const [k] of series){if(!res[k])continue;const a=res.mean[k],fin=a[nS-1];
+    for(let i=nS-1;i>=0;i--)if(Math.abs(a[i]-fin)>0.01){last=Math.max(last,i);break}}
+  const xN=Math.min(nS,Math.max(12,Math.ceil(last*1.3)+2));
+  const xs=i=>pad+(W-pad-12)*i/(xN-1),ys=v=>10+(H-pad-10)*(1-v);
+  c.strokeStyle='#eee';c.beginPath();c.moveTo(pad,ys(.5));c.lineTo(W-12,ys(.5));c.stroke();
+  series.forEach(([k,col,lab],si)=>{if(!res[k])return;const a=res.mean[k];
+    c.strokeStyle=col;c.lineWidth=2;c.beginPath();
+    for(let i=0;i<xN;i++){i?c.lineTo(xs(i),ys(a[i])):c.moveTo(xs(i),ys(a[i]))}c.stroke();
+    c.fillStyle=col;c.textAlign='left';c.fillText(`${lab} (${res[k]} of ${runs})`,pad+8,H-pad-52+si*15);});
+  c.lineWidth=1;c.fillStyle='#555';c.textAlign='center';
+  c.fillText(`${NAME[P.llm]} — showing 0 … ${Math.min(P.steps,xN*res.trackEvery)} of ${P.steps} rounds`,pad+(W-pad-12)/2,H-6);
+}
+function drawSettle(res,P,runs){
+  const cv=setcv,c=frame(cv),W=cv.width,H=cv.height,pad=42;
+  c.strokeStyle='#999';c.lineWidth=1;c.beginPath();c.moveTo(pad,10);c.lineTo(pad,H-pad);c.lineTo(W-10,H-pad);c.stroke();
+  const L=Math.log10(P.steps+1),lx=t=>pad+(W-pad-12)*Math.log10(t+1)/L,ly=y=>10+(H-pad-10)*(1-y);
+  c.font='11px Georgia';c.fillStyle='#555';
+  c.save();c.translate(13,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('share of communities',0,0);c.restore();
+  c.textAlign='right';c.fillText('all',pad-4,ly(1)+4);c.fillText('half',pad-4,ly(.5)+4);c.fillText('0',pad-4,ly(0)+4);
+  c.textAlign='center';
+  for(let e=0;Math.pow(10,e)<=P.steps;e++){const t=Math.pow(10,e);c.fillText(t===1?'round 1':t,lx(t),H-pad+14);
+    c.strokeStyle='#eee';c.beginPath();c.moveTo(lx(t),10);c.lineTo(lx(t),H-pad);c.stroke()}
+  c.fillText('round (log scale)',pad+(W-pad-12)/2,H-6);
+  const med=a=>a.length?a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)]:null;
+  const series=[[res.truthRound,COL.success,'settled on the truth for good'],[res.failRound,COL.fail,P.exact?'settled on the old theory':'gave the new theory up']];
+  series.forEach(([data,col,lab],si)=>{
+    const s=data.slice().sort((a,b)=>a-b);
+    c.strokeStyle=col;c.lineWidth=2;c.beginPath();c.moveTo(lx(0),ly(0));
+    s.forEach((t,i)=>{c.lineTo(lx(t),ly(i/runs));c.lineTo(lx(t),ly((i+1)/runs))});
+    c.lineTo(lx(P.steps),ly(s.length/runs));c.stroke();
+    c.fillStyle=col;c.textAlign='left';
+    c.fillText(`${lab}: ${(100*s.length/runs).toFixed(0)}%${s.length?`, half of them by round ${med(s)}`:''}`,pad+8,22+si*15);});
+  if(res.unsettled){c.fillStyle='#888';c.fillText(`still divided at round ${P.steps}: ${(100*res.unsettled/runs).toFixed(0)}%`,pad+8,52)}
+  c.lineWidth=1;
 }
 
-function drawTraj(res,P){
-  const cv=trajcv,c=frame(cv),W=cv.width,H=cv.height,pad=30,base=H-pad,top=12,scale=base-top;
-  yaxis(c,W,H,pad,'fraction on new theory');
-  if(!res.traj.length){c.fillStyle='#999';c.font='12px Georgia';c.textAlign='center';
-    c.fillText('(select a network with some diversity)',W/2,H/2);return}
-  const maxL=Math.max(...res.traj.map(t=>t.f.length));
-  res.traj.forEach(t=>{c.strokeStyle=t.out==='success'?'rgba(33,102,172,.4)':t.out==='fail'?'rgba(178,24,43,.35)':'rgba(120,120,120,.5)';
-    c.lineWidth=1;c.beginPath();
-    t.f.forEach((f,i)=>{const x=pad+(W-pad-8)*(i/(maxL-1||1)),y=base-f*scale;i?c.lineTo(x,y):c.moveTo(x,y)});
-    c.stroke()});
-  c.fillStyle='#555';c.font='10px Georgia';c.textAlign='right';c.fillText('round →',W-8,base+12);
-}
-
-// ---------- run (live: the diagram redraws instantly, the statistical panels
-//            recompute on a short debounce so dragging stays responsive) ----------
+// ---------- run: staged, so the page stays responsive and fills in top to bottom ----------
 const NETS=['complete','wheel','cycle','line'];
 const statusEl=document.getElementById('status');
-let timer=null;
-
-function heavy(){
-  const P=getP();
-  const nrun=Math.min(P.runs,110);      // sweeps: capped for responsiveness
-  // 1. current-community comparison: none / sycophant / devil's advocate
-  const mk=(llm,label)=>{const r=simulate({...P,llm},false);
-    return{label,success:r.success/P.runs,fail:r.fail/P.runs,unsettled:r.unsettled/P.runs}};
-  const bars=[mk('none','no LLM'),mk('sycophant','sycophant'),mk('advocate',"devil's advocate")];
+let timer=null,runId=0;
+const tick=()=>new Promise(r=>setTimeout(r,12));
+async function heavy(){
+  const id=++runId,P=getP();
+  const cur=k=>id!==runId;             // abandoned if the user changed something meanwhile
+  const nrun=Math.min(P.runs,100);
+  // 1. this community: none / sycophant / devil's advocate at current deference (full runs)
+  const bars=[];
+  for(const [llm,label] of [['none','none'],['sycophant','sycophant'],['advocate',"devil's advocate"]]){
+    statusEl.textContent=`this community: ${label}…`;await tick();if(cur())return;
+    const r=simulate({...P,llm});
+    bars.push({label,llm,success:r.success/P.runs,fail:r.fail/P.runs,unsettled:r.unsettled/P.runs,res:r});
+  }
+  drawCompare(bars,P);
+  // the selected interlocutor's own trajectories + settling (reuse if it was one of the three)
+  let sel=bars.find(b=>b.llm===P.llm)?.res;
+  if(!sel){statusEl.textContent='trajectories…';await tick();if(cur())return;sel=simulate({...P})}
+  drawTraj(sel,P,P.runs);drawSettle(sel,P,P.runs);
+  analyse(P,bars,null);
   // 2. across networks at current deference
-  const netrows=NETS.map(net=>{
-    const b=simulate({...P,network:net,llm:'none',runs:nrun},false);
-    const s=simulate({...P,network:net,llm:'sycophant',runs:nrun},false);
-    const a=simulate({...P,network:net,llm:'advocate',runs:nrun},false);
-    return{name:net,base:b.success/nrun,
-      syc:{truth:s.success/nrun,uns:s.unsettled/nrun},
-      adv:{truth:a.success/nrun,uns:a.unsettled/nrun}}});
-  // 3. dose-response on current network
-  const defs=[0,10,30,100,300,1000];
-  const rows=defs.map(d=>{
-    const s=simulate({...P,def:d,llm:d?'sycophant':'none',runs:nrun},false);
-    const a=simulate({...P,def:d,llm:d?'advocate':'none',runs:nrun},false);
-    return{syc:{truth:s.success/nrun,uns:s.unsettled/nrun},
-           adv:{truth:a.success/nrun,uns:a.unsettled/nrun}}});
-  // 4. trajectories for the selected LLM
-  const trajRes=simulate({...P,runs:Math.min(P.runs,60)},true);
-
-  drawCompare(bars,P); drawNetCmp({nets:netrows},P);
-  drawSweep({defs,rows},P); drawTraj(trajRes,P);
+  const netrows=[];
+  for(const net of NETS){
+    statusEl.textContent=`networks: ${net}…`;await tick();if(cur())return;
+    const b=simulate({...P,network:net,llm:'none',runs:nrun});
+    const s=simulate({...P,network:net,llm:'sycophant',runs:nrun});
+    const a=simulate({...P,network:net,llm:'advocate',runs:nrun});
+    netrows.push({name:net,base:b.success/nrun,syc:{truth:s.success/nrun,uns:s.unsettled/nrun},adv:{truth:a.success/nrun,uns:a.unsettled/nrun}});
+    drawNetCmp({nets:netrows},P);
+  }
   analyse(P,bars,netrows);
-  statusEl.textContent='';
+  // 3. dose-response on the current network
+  const defs=[0,10,30,100,300,1000,3000],rows=[];
+  for(let i=0;i<defs.length;i++){const d=defs[i];
+    statusEl.textContent=`dose–response: deference ${d}…`;await tick();if(cur())return;
+    const s=simulate({...P,def:d,llm:d?'sycophant':'none',runs:nrun});
+    const a=simulate({...P,def:d,llm:d?'advocate':'none',runs:nrun});
+    rows[i]={syc:{truth:s.success/nrun,uns:s.unsettled/nrun},adv:{truth:a.success/nrun,uns:a.unsettled/nrun}};
+    drawSweep({defs,rows},P);
+  }
+  statusEl.textContent='done';
 }
-
-function schedule(){ clearTimeout(timer); statusEl.textContent='computing…'; timer=setTimeout(heavy,260); }
-function onInput(){ refreshLabels(); drawNet(getP()); schedule(); }   // diagram is instant
-function runAll(){ clearTimeout(timer); statusEl.textContent='computing…'; timer=setTimeout(heavy,15); }
+function schedule(){clearTimeout(timer);statusEl.textContent='computing…';timer=setTimeout(heavy,300)}
+function onInput(){refreshLabels();drawNet(getP());schedule()}
+function runAll(){clearTimeout(timer);statusEl.textContent='computing…';timer=setTimeout(heavy,15)}
 document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',onInput));
 
 function analyse(P,bars,netrows){
   const pct=x=>`<b class="num">${(100*x).toFixed(0)}%</b>`;
   const base=bars[0],syc=bars[1],adv=bars[2];
-  const cur=P.llm==='sycophant'?syc:P.llm==='advocate'?adv:base;
-  const sparse=P.network==='cycle'||P.network==='line';
+  const med=a=>a.length?a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)]:null;
+  const mBase=med(base.res.truthRound);
   let lead;
   if(P.llm==='none'||P.def===0){
-    lead=`No LLM: this <b>${P.network}</b> community settles on the truth ${pct(base.success)} of the time`
-      +(base.unsettled>0.02?`, never settles ${pct(base.unsettled)}`:'')+`. Pick a sycophant or a devil's advocate to intervene.`;
+    lead=`No interlocutor: this <b>${P.network}</b> community settles on the truth ${pct(base.success)} of the time by round ${P.steps}`
+      +(base.unsettled>0.02?`, and is still divided ${pct(base.unsettled)}`:'')+`. Pick a sycophant or a devil's advocate to intervene.`;
   } else {
-    const kind=P.llm==='sycophant'?'sycophant':'devil’s advocate';
-    const dir=cur.success>base.success+0.02?'raises':cur.success<base.success-0.02?'lowers':'barely moves';
-    lead=`A <b>${kind}</b> at deference ≈${P.def} ${dir} P(truth) from ${pct(base.success)} to ${pct(cur.success)}`;
-    if(P.llm==='sycophant'&&cur.unsettled>0.05)
-      lead+=` — but look at the grey bar: <b>${pct(cur.unsettled)} never settle</b>. On a sparse network the sycophant's added stubbornness overshoots into permanent diversity.`;
-    else if(P.llm==='sycophant')
-      lead+=`. Here it acts as endogenous stubbornness — the very thing a dense network lacks, so it helps.`;
-    else
-      lead+=`. The devil's advocate forces re-exploration; note it does <b>not</b> pile up never-settles (${pct(cur.unsettled)}).`;
+    const cur=P.llm==='advocate'?adv:P.llm==='sycophant'?syc:{success:0,unsettled:0,res:null};
+    const c=P.llm==='sycboth'?null:cur;
+    if(!c){lead=`The both-beliefs sycophant variant is shown in the trajectory and settling panels; the bars compare the standard sycophant and the devil's advocate against no interlocutor.`}
+    else{
+      const kind=NAME[P.llm],mCur=med(c.res.truthRound);
+      const dir=c.success>base.success+0.02?'raises':c.success<base.success-0.02?'lowers':'barely moves';
+      lead=`A <b>${kind}</b> at deference ≈${P.def} ${dir} P(settle on the truth by round ${P.steps}) from ${pct(base.success)} to ${pct(c.success)}`;
+      if(mBase!==null&&mCur!==null)lead+=`; of the communities that get there, half had settled by round <b class="num">${mBase}</b> without it and by round <b class="num">${mCur}</b> with it`;
+      lead+='.';
+      if(P.llm==='sycophant'&&c.unsettled>0.05)
+        lead+=` The grey bar is the cost: <b>${pct(c.unsettled)} still divided</b> when the verdict is read. On a sparse network the manufactured stubbornness slows the community's learning about the theory each scientist is on — a delay, not a lock: push the horizon out and watch it shrink.`;
+      else if(P.llm==='sycophant')
+        lead+=` Here it acts as endogenous stubbornness — Zollman's extreme prior, manufactured on the fly — which is exactly what an over-connected community lacks.`;
+      else if(c.unsettled>0.05)
+        lead+=` The grey bar is the cost here too: <b>${pct(c.unsettled)} still divided</b>. The devil's advocate pegs its push to the estimate of the theory a scientist is <i>not</i> working on, which in Zollman's model has no real evidence behind it; pull hard enough and the two estimates are dragged together until noise decides who works on what. A delay, not a lock — push the horizon out.`;
+      else
+        lead+=` The devil's advocate keeps every scientist slightly unsure they are on the right theory, so the belief Zollman's myopia would leave frozen keeps being retried; at this dose it does not pile up divided communities (${pct(c.unsettled)}).`;
+    }
   }
-  // robustness line from the across-network panel
-  const worstSyc=netrows.reduce((m,r)=>Math.min(m,r.syc.truth),1);
-  const worstAdv=netrows.reduce((m,r)=>Math.min(m,r.adv.truth),1);
-  const maxSycUns=netrows.reduce((m,r)=>Math.max(m,r.syc.uns),0);
-  const rob=`Across all four networks at this deference, the devil's advocate's worst P(truth) is ${pct(worstAdv)} and the sycophant's is ${pct(worstSyc)}`
-    +(maxSycUns>0.1?` (with up to ${pct(maxSycUns)} never-settling under the sycophant)`:'')
-    +`. If you don't know which network you're in, the devil's advocate is the safer bet.`;
-  document.getElementById('analysis').innerHTML=`${lead}<br><br>${rob}`;
+  let rob='';
+  if(netrows&&netrows.length===4){
+    const worstSyc=netrows.reduce((m,r)=>Math.min(m,r.syc.truth),1),worstAdv=netrows.reduce((m,r)=>Math.min(m,r.adv.truth),1);
+    const maxSycUns=netrows.reduce((m,r)=>Math.max(m,r.syc.uns),0);
+    rob=`Across all four networks at this deference and horizon, the devil's advocate's worst P(truth) is ${pct(worstAdv)} and the sycophant's is ${pct(worstSyc)}`
+      +(maxSycUns>0.1?` (with up to ${pct(maxSycUns)} still divided under the sycophant)`:'')
+      +`. ${maxSycUns>0.1||worstAdv<0.7?"At this dose neither temperament is network-robust: both help the dense graph and stall the sparse ones. What decides help or harm is how much the reply is worth against your own data, not whether it agrees with you — try deference 300.":worstAdv>=worstSyc?"At this dose both help every network, the devil's advocate by a little more.":"At this dose both help every network; the sycophant's worst case is no worse than the devil's advocate's."}`;
+  }
+  document.getElementById('analysis').innerHTML=rob?`${lead}<br><br>${rob}`:lead;
 }
 
 refreshLabels(); drawNet(getP()); runAll();
