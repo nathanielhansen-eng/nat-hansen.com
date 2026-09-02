@@ -47,27 +47,24 @@
 </head>
 <body>
 <header>
-  <h1>How Zollman's model works, one assumption at a time</h1>
-  <p>An interactive tutorial on the bandit-network model of scientific communities in
-  "The Epistemic Benefit of Transient Diversity" (Zollman 2010). Six assumptions, each with
-  its own laboratory — adjust the dials at every stage and watch what each contributes, alone
-  and in interaction. The engine on this page follows Zollman's own code, and each of the
-  community-level widgets reproduces one of his figures. Everything runs in this page;
-  nothing leaves your browser.
+  <h1>A step by step walkthrough of how Zollman's model works</h1>
+  <p>This is an interactive tutorial on the bandit-network model of scientific communities in
+  "The Epistemic Benefit of Transient Diversity" (Zollman 2010). This goes through six assumptions, each with
+  its own tweakable parameters so you can see what each assumption contributes. This is built based on <a href="https://www.kevinzollman.com/papers.html">Zollman's own code</a>, and each of the
+  widgets reproduces one of his figures. 
   &nbsp;·&nbsp; <a href="dashboard_original.html">the full dashboard &rarr;</a></p>
 </header>
 <main>
 
 <div class="keybox">
-  <b>The question the model answers.</b> In 1954 the gastroenterologist Eddy Palmer
+  <b>Zollman's question</b> In 1954 the gastroenterologist Eddy Palmer
   examined over 1,000 stomach biopsies with a Gram stain, saw no bacteria, and
-  concluded that bacteria cannot colonize the human stomach. He had used the wrong
-  stain. The scientific community — behaving reasonably — converged on his result,
-  and the bacterial theory of ulcers was frozen out for decades, until Warren and
-  Marshall's Nobel-winning rediscovery of <i>H.&nbsp;pylori</i>. Nobody was irrational.
-  The community failed anyway. Zollman's model asks: <i>what features of a community
-  of individually rational inquirers determine whether it finds the truth, kills it
-  prematurely, or never settles at all?</i>
+  concluded that bacteria cannot colonize the human stomach. But he used the wrong
+  stain. The scientific community, behaving reasonably, converged on his result,
+  and the bacterial theory of ulcers was ruled out for decades, until Warren and
+  Marshall's Nobel-winning rediscovery of <i>H.&nbsp;pylori</i>. Even though no one was behaving irrationally, the community failed anyway. Zollman's model investigates <i>what features of a community
+  of individually rational inquirers determine whether it finds the truth, blocks it
+  prematurely, or never settles on it at all?</i>
   <ol class="toc">
     <li><a href="#s1">Inquiry is a bandit problem</a></li>
     <li><a href="#s2">Scientists are Bayesian learners</a></li>
@@ -83,20 +80,18 @@
 
 <!-- ============================================================ STEP 1 -->
 <section id="s1">
-  <h2><span class="astag">Assumption 1</span>Inquiry is a two-armed bandit problem</h2>
+  <h2><span class="astag">Assumption 1</span>Inquiry is a bandit problem</h2>
   <div class="prose">
-    <p>The model reduces theory choice to a gambler facing two slot machines. Call them
+    <p>The model treats theory choice as like a gambler facing two slot machines. Call the slot machines
     the established methodology <b>A</b> and the challenger <b>B</b>. Each pays off at
-    some fixed rate, and — this is the point — <b>nobody knows either rate</b>. In fact B
+    some fixed rate, and <b>nobody knows what either rate is</b>. In fact B
     is slightly better: it pays at <b>0.5</b>, A at <b>0.5&thinsp;&minus;&thinsp;&epsilon;</b>
-    (Zollman's 0.5 against 0.499). The only way to learn about a theory is to <i>work on
-    it</i>: run trials, count successes. Working on A teaches you about A and nothing about
+    (Zollman's 0.5 against 0.499). The only way to learn about a theory is to work on
+    it by running trials and counting successes. Working on A teaches you about A and nothing about
     B, and vice versa.</p>
-    <p>This is the assumption that makes the whole problem hard. If &epsilon; is large, a
-    single study of each settles the matter. If &epsilon; is small — a genuinely hard
-    scientific question — then two honest, well-run studies, one of each theory, will
-    regularly rank them the <i>wrong</i> way round. Palmer's study was one of these unlucky
-    draws. Try generating some yourself: each click runs one study of A and one of B.</p>
+    <p>If &epsilon; is large, it's easy to settle which theory is better. If &epsilon; is small, then it's hard to tell which theory is better. Two well-run studies, one evaluating each theory, will
+    regularly rank them the <i>wrong</i> way round. Palmer's study can be thought of as one unlucky pull of a bandit's arm. 
+    Try generating some studies yourself: each click runs one study of A and one of B.</p>
   </div>
   <div class="widget">
     <div class="controls">
@@ -111,9 +106,9 @@
     <div class="readout" id="w1_read"></div>
     <div class="try"><b>Try</b> — &epsilon; = 0.001 with 1000-trial studies: nearly half of
     all honest pairs of studies rank the theories the wrong way. Now raise &epsilon; to 0.1: the
-    wrong-way rate collapses to zero and there is no interesting problem left. Zollman's
-    results live in the small-&epsilon; regime, where evidence is real but noisy. Then shrink
-    the study size at fixed &epsilon; — smaller studies mean more Palmers.</div>
+    wrong-way rate goes to zero and there is no interesting problem left. Zollman's
+    results live in the small-&epsilon; regime, where evidence is noisy. Then shrink
+    the study size at fixed &epsilon; — smaller studies mean more Palmer-like studies.</div>
     <div class="paper"><b>In the paper</b> §2.1 and footnote 12: each "pull" is 1,000 trials at 0.5 and 0.499.</div>
   </div>
 </section>
@@ -125,20 +120,19 @@
     <p>Each scientist's opinion about a theory is a <b>beta distribution</b> — a curve over
     the possible payoff rates, summarized by two numbers &lang;&alpha;, &beta;&rang;. Its mean,
     &alpha;/(&alpha;+&beta;), is the scientist's current best estimate of that theory's rate; the
-    total mass &alpha;+&beta; is how much "weight of experience" the opinion carries. Every
-    scientist holds <i>two</i> such curves, one for A and one for B. Updating is exact Bayesian
-    conditioning and couldn't be simpler: observe <i>s</i> successes in <i>n</i> trials of a
+    total &alpha;+&beta; is how much "weight of experience" the opinion carries. Every
+    scientist holds <i>two</i> such curves, one for A and one for B. Updating is Bayesian
+    conditioning: observe <i>s</i> successes in <i>n</i> trials of a
     theory, and that theory's &alpha; grows by <i>s</i>, its &beta; by <i>n&thinsp;&minus;&thinsp;s</i>.</p>
     <p>Two things follow. First, these agents are <i>ideally honest with evidence</i> —
-    no bias, no wishful thinking, no fraud. Whatever goes wrong later cannot be blamed
+    they aren't biased, they aren't susceptible to wishful thinking, they don't commit fraud. Whatever goes wrong later cannot be blamed
     on bad individual reasoning. Second, the prior's <b>mass</b> acts as inertia:
     an opinion carrying 4 pseudo-observations is swamped by one 1000-trial study
-    (250-to-1); an opinion carrying 4,000 shrugs it off. Zollman's baseline agents
+    (250-to-1); an opinion carrying 4,000 is barely affected. Zollman's baseline agents
     start with every &alpha; and &beta; drawn uniformly from (0,&thinsp;4] — nearly weightless
-    opinions, at the mercy of the first study they see. Keep that in mind; it becomes a
-    dial in step 5.</p>
-    <p>The widget shows one of the two curves — a scientist's belief about B — and where
-    it stands relative to what that scientist currently thinks A pays. That comparison,
+    opinions, swayed by the first study they see. That starting point will be something you can adjust in Step 5.</p>
+    <p>The widget shows one of the two curves (a scientist's belief about B) and where
+    it stands relative to what that scientist currently thinks the payoff of theory A is. That comparison,
     not a fixed line at 0.5, is what decides which theory gets worked on next.</p>
   </div>
   <div class="widget">
