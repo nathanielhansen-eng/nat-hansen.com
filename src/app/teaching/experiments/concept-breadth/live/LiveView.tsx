@@ -120,6 +120,16 @@ export default function LiveView({ session }: { session: string }) {
   const shiftedUp = group?.ladderShift?.up ?? 0;
   const traumaDelta = n ? (group?.traumaDeltaSum ?? 0) / n : null;
 
+  // One word vs a lifetime of age. The room's mean ladder shift (bare −
+  // severe) in published-SD units, set beside what age contributes across
+  // the whole adult range in Tse & Haslam (2024): r × (range / age SD).
+  const ladderShift = bareDepth !== null && severeDepth !== null ? bareDepth - severeDepth : null;
+  const shiftSd = ladderShift !== null ? ladderShift / PUBLISHED.mddDepthSd : null;
+  const ageRangeSd =
+    (PUBLISHED.ageBreadthR * (PUBLISHED.ageMax - PUBLISHED.ageMin)) / PUBLISHED.ageSd;
+  const ageYears =
+    shiftSd !== null && shiftSd > 0 ? (shiftSd * PUBLISHED.ageSd) / PUBLISHED.ageBreadthR : null;
+
   // Trauma rows ordered by this group's own bare-pass means (instrument
   // order until data arrives) so the gradient the group draws is the one
   // on screen.
@@ -239,6 +249,26 @@ export default function LiveView({ session }: { session: string }) {
             </>
           )}
           .
+          {shiftSd !== null && (
+            <div style={{ fontSize: "17px", lineHeight: 1.5, marginTop: "10px", color: C.body }}>
+              Mental disorder: this room&rsquo;s one-word shift is{" "}
+              <strong style={{ color: C.vert }}>{shiftSd.toFixed(2)}</strong> published SDs
+              {ageYears !== null && (
+                <>
+                  , the difference Tse &amp; Haslam (2024) associate with about{" "}
+                  <strong style={{ color: C.vert }}>{Math.round(ageYears)} years</strong> of age
+                </>
+              )}
+              . Age across the whole adult range there, 18&ndash;84, accounts for about{" "}
+              {ageRangeSd.toFixed(2)} SD (<em>r</em> = .11). Trauma: the shift under
+              &ldquo;severely&rdquo; sits on a scale where the same research programme reports no
+              reliable age effect (McGrath et al. 2019).
+              <div style={{ ...mono, fontSize: "11px", color: C.muted, marginTop: "8px", lineHeight: 1.5 }}>
+                Age comparison applies the CB-V age correlation to its single depression item, assumes a
+                linear age trend, and is cross-sectional: cohort and ageing are not separable.
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -167,6 +167,14 @@ export const PUBLISHED = {
   mddRung4Yes: 0.53,
   traumaItemMean: 4.16,
   traumaItemSd: 0.73,
+  /** Age vs vertical breadth (CB-V), Tse & Haslam (2024) SSM – Mental
+   * Health 6:100326, N = 474 US adults aged 18–84 (age M = 45.00,
+   * SD = 15.85): younger = broader, r = .11, p = .02. Used only for the
+   * live view's one-word-vs-age comparison line. */
+  ageBreadthR: 0.11,
+  ageSd: 15.85,
+  ageMin: 18,
+  ageMax: 84,
 } as const;
 
 /* ---------------- shared submission shape ---------------- */
