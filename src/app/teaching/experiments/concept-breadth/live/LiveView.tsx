@@ -260,7 +260,7 @@ export default function LiveView({ session }: { session: string }) {
                 </>
               )}
               . Age across the whole adult range there, 18&ndash;84, accounts for about{" "}
-              {ageRangeSd.toFixed(2)} SD (<em>r</em> = .11). Trauma: the shift under
+              {ageRangeSd.toFixed(2)} SD (<em>r</em>{" "}= .11). Trauma: the shift under
               &ldquo;severely&rdquo; sits on a scale where the same research programme reports no
               reliable age effect (McGrath et al. 2019).
               <div style={{ ...mono, fontSize: "11px", color: C.muted, marginTop: "8px", lineHeight: 1.5 }}>
