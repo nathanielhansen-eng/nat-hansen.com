@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Figure2 from "./Figure2";
 
-const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`;
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap');`;
+
+const SERIF = "'Times New Roman', Times, Tinos, 'Liberation Serif', serif";
 
 const C = {
-  bg: "#F5F5F4",
-  surface: "#FFFFFF",
-  border: "#D6D3D1",
-  text: "#1C1917",
-  muted: "#78716C",
-  body: "#44403C",
-  accent: "#1C1917",
+  bg: "#D6D6D6",
+  surface: "#FCFCFC",
+  border: "#C4C4C4",
+  text: "#000000",
+  muted: "#3A3A3A",
+  body: "#111111",
+  accent: "#000000",
   green: "#1A7840",
   red: "#CC1A14",
 };
@@ -182,12 +185,12 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: C.bg, padding: "40px 20px", fontFamily: "'Crimson Pro', Georgia, serif" }}>
+    <div style={{ minHeight: "100vh", background: C.bg, padding: "40px 20px", fontFamily: SERIF }}>
       <style>{FONTS}</style>
       <div style={{ maxWidth: "920px", margin: "0 auto" }}>
         <div
           style={{
-            fontFamily: "'Space Mono', monospace",
+            fontFamily: SERIF,
             fontSize: "11px",
             letterSpacing: "0.18em",
             textTransform: "uppercase",
@@ -204,7 +207,7 @@ export default function AdminDashboard() {
         <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "24px", flexWrap: "wrap" }}>
           <label
             style={{
-              fontFamily: "'Space Mono', monospace",
+              fontFamily: SERIF,
               fontSize: "11px",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
@@ -222,7 +225,7 @@ export default function AdminDashboard() {
             style={{
               border: `1px solid ${C.border}`,
               padding: "8px 12px",
-              fontFamily: "'Crimson Pro', serif",
+              fontFamily: SERIF,
               fontSize: "16px",
               background: C.surface,
             }}
@@ -240,7 +243,7 @@ export default function AdminDashboard() {
               background: C.surface,
               border: `1px solid ${C.border}`,
               padding: "8px 16px",
-              fontFamily: "'Space Mono', monospace",
+              fontFamily: SERIF,
               fontSize: "11px",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
@@ -256,7 +259,7 @@ export default function AdminDashboard() {
                 background: C.surface,
                 border: `1px solid ${C.border}`,
                 padding: "8px 16px",
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: SERIF,
                 fontSize: "11px",
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
@@ -266,7 +269,7 @@ export default function AdminDashboard() {
               Download JSON
             </button>
           )}
-          <span style={{ color: C.muted, fontFamily: "'Space Mono', monospace", fontSize: "12px" }}>
+          <span style={{ color: C.muted, fontFamily: SERIF, fontSize: "12px" }}>
             n = {submissions.length}
           </span>
         </div>
@@ -286,12 +289,35 @@ export default function AdminDashboard() {
                 border: `1px solid ${C.border}`,
                 padding: "32px",
                 marginBottom: "32px",
-                boxShadow: "0 4px 40px rgba(0,0,0,0.05)",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
               }}
             >
               <div
                 style={{
-                  fontFamily: "'Space Mono', monospace",
+                  fontFamily: SERIF,
+                  fontSize: "12px",
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  color: C.muted,
+                  marginBottom: "16px",
+                }}
+              >
+                Figure 2, published beside this session
+              </div>
+              <Figure2 submissions={submissions} sessionLabel={session ? `Session ${session}` : "All sessions"} />
+            </div>
+            <div
+              style={{
+                background: C.surface,
+                border: `1px solid ${C.border}`,
+                padding: "32px",
+                marginBottom: "32px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: SERIF,
                   fontSize: "11px",
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
@@ -306,7 +332,7 @@ export default function AdminDashboard() {
                   style={{
                     width: "100%",
                     borderCollapse: "collapse",
-                    fontFamily: "'Space Mono', monospace",
+                    fontFamily: SERIF,
                     fontSize: "13px",
                   }}
                 >
@@ -336,7 +362,7 @@ export default function AdminDashboard() {
                             background: diagnostic ? "#FFF5F0" : "transparent",
                           }}
                         >
-                          <td style={{ padding: "10px 8px", color: C.text, fontFamily: "'Crimson Pro', serif", fontSize: "15px" }}>
+                          <td style={{ padding: "10px 8px", color: C.text, fontFamily: SERIF, fontSize: "15px" }}>
                             {r.label}
                           </td>
                           <td style={{ textAlign: "right", padding: "10px 8px", color: C.muted }}>{n}</td>
@@ -373,12 +399,12 @@ export default function AdminDashboard() {
                   border: `1px solid ${C.border}`,
                   padding: "32px",
                   marginBottom: "32px",
-                  boxShadow: "0 4px 40px rgba(0,0,0,0.05)",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
                 }}
               >
                 <div
                   style={{
-                    fontFamily: "'Space Mono', monospace",
+                    fontFamily: SERIF,
                     fontSize: "11px",
                     letterSpacing: "0.18em",
                     textTransform: "uppercase",
@@ -394,7 +420,7 @@ export default function AdminDashboard() {
                     padding: "6px 14px",
                     background: comparison.verdictColor,
                     color: "#fff",
-                    fontFamily: "'Space Mono', monospace",
+                    fontFamily: SERIF,
                     fontSize: "12px",
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
@@ -413,7 +439,7 @@ export default function AdminDashboard() {
                     style={{
                       width: "100%",
                       borderCollapse: "collapse",
-                      fontFamily: "'Space Mono', monospace",
+                      fontFamily: SERIF,
                       fontSize: "14px",
                     }}
                   >
@@ -456,7 +482,7 @@ export default function AdminDashboard() {
                             <td
                               style={{
                                 padding: "10px 8px",
-                                fontFamily: "'Crimson Pro', serif",
+                                fontFamily: SERIF,
                                 fontSize: row.sub ? "14px" : "16px",
                                 color: row.sub ? C.muted : C.text,
                                 fontStyle: row.sub ? "italic" : "normal",
@@ -495,7 +521,7 @@ export default function AdminDashboard() {
                           colSpan={4}
                           style={{
                             padding: "10px 8px 4px",
-                            fontFamily: "'Space Mono', monospace",
+                            fontFamily: SERIF,
                             fontSize: "11px",
                             letterSpacing: "0.08em",
                             textTransform: "uppercase",
@@ -531,7 +557,7 @@ export default function AdminDashboard() {
                             <td
                               style={{
                                 padding: "10px 8px",
-                                fontFamily: "'Crimson Pro', serif",
+                                fontFamily: SERIF,
                                 fontSize: "16px",
                                 color: C.text,
                               }}
@@ -576,10 +602,10 @@ export default function AdminDashboard() {
             )}
 
             <details style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "20px 24px" }}>
-              <summary style={{ cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted }}>
+              <summary style={{ cursor: "pointer", fontFamily: SERIF, fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted }}>
                 Per-submission breakdown ({submissions.length})
               </summary>
-              <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "16px", fontFamily: "'Space Mono', monospace", fontSize: "12px" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "16px", fontFamily: SERIF, fontSize: "12px" }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${C.border}`, color: C.muted }}>
                     <th style={{ textAlign: "left", padding: "8px" }}>Submitted</th>
