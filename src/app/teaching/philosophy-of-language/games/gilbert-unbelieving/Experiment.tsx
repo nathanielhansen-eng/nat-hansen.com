@@ -2,16 +2,23 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
-const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`;
+// Journal of Personality and Social Psychology house style, c. 1990: Times Roman
+// throughout, black ink on white paper. Tinos (metric-compatible with Times New
+// Roman) is loaded as a fallback for devices without Times.
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap');`;
+
+const SERIF = "'Times New Roman', Times, Tinos, 'Liberation Serif', serif";
 
 const C = {
-  bg: "#F5F5F4",
-  surface: "#FFFFFF",
-  border: "#D6D3D1",
-  text: "#1C1917",
-  muted: "#78716C",
-  body: "#44403C",
-  accent: "#1C1917",
+  bg: "#E4E2DD", // desk behind the page
+  surface: "#FFFFFF", // the page
+  border: "#C8C5BF",
+  rule: "#000000",
+  banner: "#B9B9B9", // the grey section banner
+  text: "#000000",
+  muted: "#444444",
+  body: "#111111",
+  accent: "#000000",
   green: "#1A7840",
   red: "#CC1A14",
 };
@@ -20,7 +27,7 @@ const base: Record<string, React.CSSProperties> = {
   wrap: {
     minHeight: "100vh",
     background: C.bg,
-    fontFamily: "'Crimson Pro', Georgia, serif",
+    fontFamily: SERIF,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -32,35 +39,36 @@ const base: Record<string, React.CSSProperties> = {
     maxWidth: "680px",
     width: "100%",
     padding: "clamp(24px, 5vw, 52px) clamp(20px, 5vw, 56px)",
-    boxShadow: "0 4px 40px rgba(0,0,0,0.07)",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+    color: C.text,
   },
+  // Small caps, letterspaced — the journal's running-head register.
   eyebrow: {
-    fontFamily: "'Space Mono', monospace",
-    fontSize: "11px",
-    letterSpacing: "0.18em",
+    fontFamily: SERIF,
+    fontSize: "12px",
+    letterSpacing: "0.14em",
     textTransform: "uppercase",
     color: C.muted,
     marginBottom: "12px",
   },
-  h1: { fontSize: "34px", fontWeight: 400, lineHeight: "1.15", marginBottom: "28px", color: C.text },
-  h2: { fontSize: "24px", fontWeight: 400, lineHeight: "1.2", marginBottom: "20px", color: C.text },
-  body: { fontSize: "19px", lineHeight: "1.72", color: C.body, marginBottom: "18px" },
-  small: { fontSize: "15px", lineHeight: "1.6", color: C.muted, marginBottom: "16px" },
+  h1: { fontSize: "30px", fontWeight: 400, lineHeight: "1.15", marginBottom: "24px", color: C.text },
+  h2: { fontSize: "22px", fontWeight: 400, lineHeight: "1.2", marginBottom: "18px", color: C.text },
+  body: { fontSize: "18px", lineHeight: "1.5", color: C.body, marginBottom: "14px", textAlign: "justify" },
+  small: { fontSize: "15px", lineHeight: "1.45", color: C.muted, marginBottom: "14px" },
   btn: {
-    background: C.accent,
-    color: C.bg,
-    border: "none",
-    padding: "13px 36px",
-    fontFamily: "'Space Mono', monospace",
-    fontSize: "12px",
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
+    background: C.surface,
+    color: C.text,
+    border: `1px solid ${C.text}`,
+    padding: "10px 28px",
+    fontFamily: SERIF,
+    fontSize: "15px",
+    letterSpacing: "0.06em",
     cursor: "pointer",
     marginTop: "20px",
     display: "inline-block",
   },
-  mono: { fontFamily: "'Space Mono', monospace" },
-  divider: { borderTop: `1px solid ${C.border}`, margin: "28px 0" },
+  mono: { fontFamily: SERIF, fontVariantNumeric: "lining-nums" },
+  divider: { borderTop: `1px solid ${C.rule}`, margin: "24px 0" },
 };
 
 // Pool of Hopi-style nonsense propositions from Gilbert et al. 1990 Table 1
@@ -420,42 +428,104 @@ export default function Experiment({ session }: { session: string }) {
     return (
       <div style={base.wrap}>
         <style>{FONTS}</style>
-        <div style={base.card}>
-          <div style={base.eyebrow}>Gilbert, Krull &amp; Malone · J. Pers. Soc. Psychol. · 1990</div>
-          <h1 style={base.h1}>
-            Unbelieving the
-            <br />
-            Unbelievable
-          </h1>
-          <p style={base.body}>
-            Spinoza claimed that to <em>understand</em> a proposition is already to <em>accept</em>{" "}
-            it as true; rejecting a falsehood requires a second, separate effort that can be
-            disrupted. Descartes denied this — for him, comprehension and assent are independent.
-          </p>
-          <p style={base.body}>
-            Gilbert et al.&apos;s Study 1 set out to decide between them. You will play the role of
-            their subject: learn a small fragment of an invented &ldquo;Hopi&rdquo; vocabulary,
-            occasionally have your processing interrupted by a tone, and then sit a memory test.
-          </p>
-          <p style={{ ...base.small, fontStyle: "italic" }}>
-            Your anonymous responses will be added to the class aggregate for in-class discussion.
-          </p>
-          <div style={base.divider} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-            {[
-              ["Part I", "Vocabulary", "20 trials. Each pairs an invented word with an English noun and labels it TRUE or FALSE."],
-              ["Part II", "Identification", "Was each item true, false, never seen — or did you see it but get no signal?"],
-            ].map(([label, title, desc]) => (
-              <div key={label} style={{ borderTop: `2px solid ${C.border}`, paddingTop: "16px" }}>
-                <div style={{ ...base.eyebrow, marginBottom: "4px" }}>{label}</div>
-                <div style={{ fontSize: "17px", fontWeight: 600, marginBottom: "6px", color: C.text }}>{title}</div>
-                <div style={{ fontSize: "15px", color: C.muted, lineHeight: "1.5" }}>{desc}</div>
-              </div>
-            ))}
+        <div style={{ ...base.card, maxWidth: "720px" }}>
+          {/* Section banner, as on the journal's first page */}
+          <div
+            style={{
+              background: C.banner,
+              borderTop: `3px solid ${C.rule}`,
+              borderBottom: `3px solid ${C.rule}`,
+              textAlign: "center",
+              padding: "8px 12px",
+              fontSize: "18px",
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+              color: C.text,
+              marginBottom: "36px",
+            }}
+          >
+            Attitudes and Social Cognition
           </div>
-          <button style={base.btn} onClick={() => setPhase("instructions")}>
-            Continue →
-          </button>
+
+          <h1
+            style={{
+              fontSize: "26px",
+              fontWeight: 400,
+              lineHeight: "1.2",
+              textAlign: "center",
+              margin: "0 auto 14px",
+              maxWidth: "560px",
+              color: C.text,
+            }}
+          >
+            Unbelieving the Unbelievable: Some Problems in the Rejection of False Information
+          </h1>
+          <div style={{ textAlign: "center", fontSize: "18px", marginBottom: "30px", color: C.text }}>
+            Daniel T. Gilbert, Douglas S. Krull, and Patrick S. Malone
+          </div>
+
+          {/* Abstract block: narrower measure, smaller type, justified */}
+          <div
+            style={{
+              margin: "0 auto 30px",
+              maxWidth: "580px",
+              fontSize: "15px",
+              lineHeight: "1.45",
+              textAlign: "justify",
+              color: C.text,
+            }}
+          >
+            <p style={{ margin: "0 0 10px" }}>
+              Spinoza claimed that to <em>understand</em> a proposition is already to <em>accept</em>{" "}
+              it as true; rejecting a falsehood requires a second, separate effort that can be
+              disrupted. Descartes denied this: for him, comprehension and assent are independent.
+              Study 1 set out to decide between them.
+            </p>
+            <p style={{ margin: 0 }}>
+              In this classroom replication you play the role of the subject. You will learn a small
+              fragment of an invented &ldquo;Hopi&rdquo; vocabulary, occasionally have your processing
+              interrupted by a tone, and then sit an identification test. Your anonymous responses
+              are added to the class aggregate for discussion.
+            </p>
+          </div>
+
+          {/* Two run-in method headings, in the journal's third-level heading style */}
+          <div style={{ fontSize: "17px", lineHeight: "1.45", color: C.text }}>
+            <div style={{ textAlign: "center", fontStyle: "italic", fontSize: "18px", marginBottom: "10px" }}>
+              Method
+            </div>
+            <p style={{ margin: "0 0 8px", textAlign: "justify", textIndent: "1.5em" }}>
+              <em>Part I: Vocabulary.</em> Twenty trials. Each pairs an invented word with an English
+              noun and labels the pairing TRUE or FALSE. On some trials a tone will sound and you must
+              respond to it at once.
+            </p>
+            <p style={{ margin: 0, textAlign: "justify", textIndent: "1.5em" }}>
+              <em>Part II: Identification.</em> For each pairing, was it true, false, never seen, or
+              seen but with no signal?
+            </p>
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: "8px" }}>
+            <button style={base.btn} onClick={() => setPhase("instructions")}>
+              Continue
+            </button>
+          </div>
+
+          {/* Journal footer line */}
+          <div
+            style={{
+              marginTop: "36px",
+              textAlign: "center",
+              fontSize: "11px",
+              lineHeight: "1.4",
+              color: C.text,
+            }}
+          >
+            Journal of Personality and Social Psychology, 1990, Vol. 59, No. 4, 601&ndash;613
+            <br />
+            Copyright 1990 by the American Psychological Association, Inc. 0022-3514/90/$00.75
+          </div>
+          <div style={{ textAlign: "center", fontSize: "13px", marginTop: "14px", color: C.text }}>601</div>
         </div>
       </div>
     );
@@ -500,7 +570,7 @@ export default function Experiment({ session }: { session: string }) {
               setPhase("learning");
             }}
           >
-            Start Part I →
+            Start Part I
           </button>
         </div>
       </div>
@@ -547,9 +617,9 @@ export default function Experiment({ session }: { session: string }) {
             {sub === "signal" && (
               <div
                 style={{
-                  fontFamily: "'Space Mono', monospace",
+                  fontFamily: SERIF,
                   fontSize: "44px",
-                  letterSpacing: "0.18em",
+                  letterSpacing: "0.06em",
                   fontWeight: 700,
                   color:
                     trial.signal === "true"
@@ -572,7 +642,7 @@ export default function Experiment({ session }: { session: string }) {
                   padding: "14px 28px",
                   border: `2px solid ${C.red}`,
                   borderRadius: "6px",
-                  fontFamily: "'Space Mono', monospace",
+                  fontFamily: SERIF,
                   fontSize: "16px",
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
@@ -588,7 +658,7 @@ export default function Experiment({ session }: { session: string }) {
             {tonePlaying && toneResponded && (
               <div
                 style={{
-                  fontFamily: "'Space Mono', monospace",
+                  fontFamily: SERIF,
                   fontSize: "20px",
                   color: C.green,
                   fontWeight: 700,
@@ -622,7 +692,7 @@ export default function Experiment({ session }: { session: string }) {
             </p>
           )}
           <button style={base.btn} onClick={() => setPhase("test")}>
-            Start Part II →
+            Start Part II
           </button>
         </div>
       </div>
@@ -659,12 +729,12 @@ export default function Experiment({ session }: { session: string }) {
                   color: C.text,
                   border: `1px solid ${C.border}`,
                   padding: "16px",
-                  fontFamily: "'Crimson Pro', Georgia, serif",
+                  fontFamily: SERIF,
                   fontSize: "18px",
                   cursor: "pointer",
                   transition: "background 0.15s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#FAFAF9")}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#F2F1EE")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = C.surface)}
               >
                 {b.label}
@@ -713,7 +783,7 @@ export default function Experiment({ session }: { session: string }) {
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: SERIF,
                 fontSize: "16px",
               }}
             >
@@ -752,7 +822,7 @@ export default function Experiment({ session }: { session: string }) {
                         style={{
                           padding: "14px 10px",
                           color: C.text,
-                          fontFamily: "'Crimson Pro', serif",
+                          fontFamily: SERIF,
                           fontSize: "18px",
                         }}
                       >
@@ -854,7 +924,7 @@ export default function Experiment({ session }: { session: string }) {
                     style={{
                       width: "100%",
                       borderCollapse: "collapse",
-                      fontFamily: "'Crimson Pro', Georgia, serif",
+                      fontFamily: SERIF,
                       fontSize: "17px",
                     }}
                   >
@@ -863,7 +933,7 @@ export default function Experiment({ session }: { session: string }) {
                         style={{
                           borderBottom: `1px solid ${C.border}`,
                           color: C.muted,
-                          fontFamily: "'Space Mono', monospace",
+                          fontFamily: SERIF,
                           fontSize: "12px",
                           letterSpacing: "0.08em",
                           textTransform: "uppercase",
@@ -884,7 +954,7 @@ export default function Experiment({ session }: { session: string }) {
                               colSpan={3}
                               style={{
                                 padding: "16px 8px 6px",
-                                fontFamily: "'Space Mono', monospace",
+                                fontFamily: SERIF,
                                 fontSize: "12px",
                                 letterSpacing: "0.1em",
                                 textTransform: "uppercase",
@@ -935,7 +1005,7 @@ export default function Experiment({ session }: { session: string }) {
                                 <td
                                   style={{
                                     padding: "12px 8px",
-                                    fontFamily: "'Space Mono', monospace",
+                                    fontFamily: SERIF,
                                     fontSize: "14px",
                                     color: spinozanError ? C.red : C.text,
                                     fontWeight: spinozanError ? 700 : 400,
@@ -948,7 +1018,7 @@ export default function Experiment({ session }: { session: string }) {
                                     padding: "12px 8px",
                                     textAlign: "center",
                                     color: correct ? C.green : C.red,
-                                    fontFamily: "'Space Mono', monospace",
+                                    fontFamily: SERIF,
                                     fontSize: "20px",
                                     fontWeight: 700,
                                   }}
@@ -1019,7 +1089,7 @@ export default function Experiment({ session }: { session: string }) {
                       >
                         <div
                           style={{
-                            fontFamily: "'Space Mono', monospace",
+                            fontFamily: SERIF,
                             fontSize: "12px",
                             letterSpacing: "0.1em",
                             textTransform: "uppercase",
@@ -1051,7 +1121,7 @@ export default function Experiment({ session }: { session: string }) {
                             style={{
                               fontSize: "18px",
                               color: cell.diagnostic ? C.red : C.muted,
-                              fontFamily: "'Space Mono', monospace",
+                              fontFamily: SERIF,
                               marginLeft: "12px",
                               fontWeight: cell.diagnostic ? 700 : 400,
                             }}
@@ -1105,7 +1175,7 @@ export default function Experiment({ session }: { session: string }) {
               setPhase("intro");
             }}
           >
-            Run Again ↺
+            Run Again
           </button>
         </div>
       </div>
