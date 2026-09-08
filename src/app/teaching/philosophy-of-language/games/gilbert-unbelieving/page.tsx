@@ -4,7 +4,7 @@ import Experiment from "./Experiment";
 export const metadata: Metadata = {
   title: "Unbelieving the Unbelievable — Nat Hansen",
   description:
-    "A classroom replication of Gilbert, Krull & Malone's Study 1 (1990) on whether comprehension already carries belief.",
+    "A classroom replication of Gilbert, Krull & Malone's Study 1 (1990) on whether comprehension involves belief.",
 };
 
 export default async function Page({
