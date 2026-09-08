@@ -10,13 +10,13 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Tinos:ital,
 const SERIF = "'Times New Roman', Times, Tinos, 'Liberation Serif', serif";
 
 const C = {
-  bg: "#E4E2DD", // desk behind the page
-  surface: "#FFFFFF", // the page
-  border: "#C8C5BF",
+  bg: "#D6D6D6", // desk behind the page (neutral grey, like the scan)
+  surface: "#FCFCFC", // the page: the scan's near-white
+  border: "#C4C4C4",
   rule: "#000000",
-  banner: "#B9B9B9", // the grey section banner
+  banner: "#D4D4D4", // the grey section banner, sampled from the scan
   text: "#000000",
-  muted: "#444444",
+  muted: "#3A3A3A",
   body: "#111111",
   accent: "#000000",
   green: "#1A7840",
@@ -433,8 +433,8 @@ export default function Experiment({ session }: { session: string }) {
           <div
             style={{
               background: C.banner,
-              borderTop: `3px solid ${C.rule}`,
-              borderBottom: `3px solid ${C.rule}`,
+              borderTop: `1.5px solid ${C.rule}`,
+              borderBottom: `1.5px solid ${C.rule}`,
               textAlign: "center",
               padding: "8px 12px",
               fontSize: "18px",
@@ -460,8 +460,22 @@ export default function Experiment({ session }: { session: string }) {
           >
             Unbelieving the Unbelievable: Some Problems in the Rejection of False Information
           </h1>
-          <div style={{ textAlign: "center", fontSize: "18px", marginBottom: "30px", color: C.text }}>
-            Daniel T. Gilbert, Douglas S. Krull, and Patrick S. Malone
+          <div style={{ marginBottom: "30px", color: C.text, lineHeight: 1.2 }}>
+            <div style={{ display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: "12px 24px" }}>
+              {[
+                ["Daniel T. Gilbert", "University of Texas at Austin"],
+                ["Douglas S. Krull", "University of Missouri at Columbia"],
+              ].map(([name, aff]) => (
+                <div key={name} style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: "18px" }}>{name}</div>
+                  <div style={{ fontSize: "13px" }}>{aff}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign: "center", marginTop: "12px" }}>
+              <div style={{ fontSize: "18px" }}>Patrick S. Malone</div>
+              <div style={{ fontSize: "13px" }}>University of Texas at Austin</div>
+            </div>
           </div>
 
           {/* Abstract block: narrower measure, smaller type, justified */}
@@ -595,7 +609,7 @@ export default function Experiment({ session }: { session: string }) {
             minHeight: "360px",
             cursor: tonePlaying && !toneResponded ? "pointer" : "default",
             background:
-              tonePlaying && !toneResponded ? "#FFF5F0" : C.surface,
+              tonePlaying && !toneResponded ? "#EFEFEF" : C.surface,
             transition: "background 0.1s",
             userSelect: "none",
             WebkitTapHighlightColor: "transparent",
@@ -734,7 +748,7 @@ export default function Experiment({ session }: { session: string }) {
                   cursor: "pointer",
                   transition: "background 0.15s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#F2F1EE")}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#EFEFEF")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = C.surface)}
               >
                 {b.label}
@@ -815,7 +829,7 @@ export default function Experiment({ session }: { session: string }) {
                       key={r.label}
                       style={{
                         borderBottom: `1px solid ${C.border}`,
-                        background: diagnostic ? "#FFF5F0" : "transparent",
+                        background: diagnostic ? "#F1F1F1" : "transparent",
                       }}
                     >
                       <td
@@ -996,7 +1010,7 @@ export default function Experiment({ session }: { session: string }) {
                                 key={`${g.label}-${i}`}
                                 style={{
                                   borderBottom: `1px solid ${C.border}`,
-                                  background: spinozanError ? "#FFF5F0" : "transparent",
+                                  background: spinozanError ? "#F1F1F1" : "transparent",
                                 }}
                               >
                                 <td style={{ padding: "12px 8px", color: C.text }}>
@@ -1083,7 +1097,7 @@ export default function Experiment({ session }: { session: string }) {
                         key={cell.label}
                         style={{
                           borderTop: `2px solid ${cell.diagnostic ? C.red : C.border}`,
-                          background: cell.diagnostic ? "#FFF5F0" : "transparent",
+                          background: cell.diagnostic ? "#F1F1F1" : "transparent",
                           padding: "16px 14px",
                         }}
                       >
