@@ -536,8 +536,6 @@ export default function Experiment({ session }: { session: string }) {
             }}
           >
             Journal of Personality and Social Psychology, 1990, Vol. 59, No. 4, 601&ndash;613
-            <br />
-            Copyright 1990 by the American Psychological Association, Inc. 0022-3514/90/$00.75
           </div>
           <div style={{ textAlign: "center", fontSize: "13px", marginTop: "14px", color: C.text }}>601</div>
         </div>
