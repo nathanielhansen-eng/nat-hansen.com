@@ -193,6 +193,27 @@ binary/Likert DV ≈ a day; fMRI, corpus, and real-behaviour studies don't port.
 sequencing, question order), say so on the debrief and admin pages — it's a teaching point, not a
 footnote. Debrief glosses of the literature are queued for Nat's hand-audit before class use.
 
+**Look of the original article (rule from Nat, 2026-09-08).** A replication wears the paper's own
+clothes, not the site's chrome. Render page 1 of the PDF (PyMuPDF) and look at it before styling.
+The landing page is the article's first page: the journal's typeface (JPSP c. 1990 = Times; stack
+`"Times New Roman", Times, Tinos, "Liberation Serif", serif`, Tinos from Google Fonts for Android),
+its section banner, centred title and author/affiliation block, justified abstract-width intro,
+run-in Method subheads, and the journal citation line in the footer (no copyright line). Sample
+colours from the scan itself; a 1990s scan is neutral greyscale, so no warm tints. Carry the same
+type stack through every phase so trial, test, and results screens don't fall back to the site
+fonts.
+
+**Results in the paper's own figure.** Find the figure the authors used and redraw it in that idiom
+(Gilbert et al. 1990 Fig. 2: grouped bars, hatched = uninterrupted, solid = interrupted), then put
+the class data beside it on identical axes as a second panel. Monochrome with hatching is the
+deliberate choice for 20th-century journal figures; hatch + legend + direct labels are the
+secondary encoding. Ship with the paper's own exclusion rule as a toggle, hover values, a full
+response table, and a plain-words verdict that says whether the class reproduced the effect.
+Read the published numbers from the paper's text, never from a value hardcoded in an earlier
+dashboard. The instructor view gets the same figure as its first block after the session picker.
+Template: `gilbert-unbelieving` (`Experiment.tsx` + `admin/Figure2.tsx`). Colour stimuli
+(chips, swatches, mounts) remain off-limits to any restyle.
+
 **No demand characteristics.** The participant screen carries no condition colour and no hint of
 the manipulation; colours and comparisons appear only after the response is locked in.
 
@@ -213,6 +234,7 @@ local build can't prove).
 | Date | Event |
 |---|---|
 | 2026-06-28 | Chain engine + Esper task shipped (`02e795a`) |
+| 2026-09-08 | Gilbert 1990 restyled to JPSP first page + Figure 2 redrawn in admin (`1539238`..`03c5338`); "match the original article" rule added to §6 |
 | 2026-07-25 | Knobe (2003) built on loaner machine; syllabus survey + DOI lists compiled |
 | 2026-07-31 | Knobe committed to main (`1796da9`) |
 | 2026-08-06 | class-summary endpoint + launch tags (`e9fbe0c`); Reuter & Brun (2022) shipped (`d2ad3ef`, `7196709`); this roadmap |
