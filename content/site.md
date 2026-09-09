@@ -17,19 +17,18 @@ links:
     href: https://www.dropbox.com/scl/fi/fq3jaysj166t9ott6y17m/CV-Hansen-2017.pdf?rlkey=d6x7m8rsxncvkd624qyj41ly1&dl=0
 
 events:
-  - title: Philosophy of Language Workshop
-    venue: University of Warsaw
-    date: September 4, 2026
-  - title: Experimental Philosophy in China
-    venue: Xiamen University
-    date: November 2026
   - title: MENTaL (Mind, Epistemology, Neuroscience, Thought, and Language)
     venue: UC Davis
     date: November 6, 2026
+  - title: Experimental Philosophy in China
+    venue: Xiamen University
+    date: November 12, 2026
   - title: Colloquium
     venue: University of Bristol
     date: 2027 TBD
-  
+  - title: Social Philosophy of Language Workshop
+    venue: University of Düsseldorf
+    date: March 10-11, 2027
 
  
 # -------------------------------------------------------
@@ -55,12 +54,12 @@ book:
 #   Plain text = plain text
 # -------------------------------------------------------
 publications:
-  - year: forthcoming
+  - year: "2026"
     display: >-
       Grindrod, J., Porter, J.D., and Hansen, N.
       \"Distributional Semantics, Holism, and the Instability of Meaning\",
       in H. Cappelen and R. Sterken (eds.), *Communicating with A.I.*, Oxford University Press.
-  - year: forthcoming
+  - year: "2026"
     display: >-
       Hansen, N., Vilar-Lluch, S., Lepoutre, M., and Borg, E.
       \"Legal Interpretation, Corpus Linguistics, and Waismann's Challenge to Ordinary Language Philosophy\",
