@@ -57,7 +57,7 @@ publications:
   - year: "2026"
     display: >-
       Grindrod, J., Porter, J.D., and Hansen, N.
-      \"Distributional Semantics, Holism, and the Instability of Meaning\",
+      [\"Distributional Semantics, Holism, and the Instability of Meaning\"](https://academic.oup.com/book/63302/chapter/573018361),
       in H. Cappelen and R. Sterken (eds.), *Communicating with A.I.*, Oxford University Press.
   - year: "2026"
     display: >-
