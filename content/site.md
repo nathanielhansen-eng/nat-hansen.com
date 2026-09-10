@@ -87,12 +87,12 @@ publications:
   - year: "2024"
     display: >-
       Hansen, N., Francis, K., and Greening, H.
-      \"Socratic Questionnaires\",
+      [\"Socratic Questionnaires\"](https://academic.oup.com/book/57562/chapter/469101981),
       *Oxford Studies in Experimental Philosophy*, 5, 331–374.
   - year: "2024"
     display: >-
       Lepoutre, M., Vilar-Lluch, S., Borg, E., and Hansen, N.
-      \"What Is Hate Speech? The Case for a Corpus Approach\",
+      [\"What Is Hate Speech? The Case for a Corpus Approach\"](https://link.springer.com/article/10.1007/s11572-023-09675-7),
       *Criminal Law and Philosophy*, 18, 397–430.
   - year: "2023"
     display: >-
@@ -102,12 +102,12 @@ publications:
   - year: "2023"
     display: >-
       Liao, S., and Hansen, N.
-      \"'Extremely Racist' and 'Incredibly Sexist': An Empirical Response to the Charge of Conceptual Inflation\",
+      [\"'Extremely Racist' and 'Incredibly Sexist': An Empirical Response to the Charge of Conceptual Inflation\"](https://www.cambridge.org/core/journals/journal-of-the-american-philosophical-association/article/extremely-racist-and-incredibly-sexist-an-empirical-response-to-the-charge-of-conceptual-inflation/7518E22FC567DA9FDFD6CFBFC89F117C),
       *Journal of the American Philosophical Association*, 9(1), 72–94.
   - year: "2023"
     display: >-
       Zahorec, M., Bishop, R., Hansen, N., Schwenkler, J., and Sytsma, J.
-      \"Linguistic Corpora and Ordinary Language\",
+      [\"Linguistic Corpora and Ordinary Language\"](https://link.springer.com/chapter/10.1007/978-3-031-28908-8_7),
       in D. Bordonaba-Plou (ed.), *Experimental Philosophy of Language*, Springer.
 
 ---
