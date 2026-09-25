@@ -33,6 +33,7 @@ type VoteRecord = {
 
 interface Submission {
   session: string;
+  tag?: string;
   submittedAt: string;
   rank1: PrincipleId[] | null;
   rank2: PrincipleId[] | null;
@@ -52,6 +53,13 @@ interface Submission {
   chatTurns: number;
   chat: ChatMsg[];
   finalVotes: VoteRecord[] | null;
+}
+
+// Optional launcher-supplied opaque tag (course-dashboard integration):
+// sanitized like the session, dropped when empty, never required.
+function sanitizeTag(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  return v.replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 64) || null;
 }
 
 function sanitizeSession(s: string): string {
@@ -175,6 +183,7 @@ function validate(body: unknown): Submission | null {
 
   return {
     session: sanitizeSession(b.session),
+    ...(sanitizeTag(b.tag) ? { tag: sanitizeTag(b.tag)! } : {}),
     submittedAt: b.submittedAt,
     rank1: (b.rank1 as PrincipleId[] | null) ?? null,
     rank2: (b.rank2 as PrincipleId[] | null) ?? null,

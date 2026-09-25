@@ -150,7 +150,15 @@ function randomClass(): ClassLabel {
   return CLASS_LABELS[Math.floor(Math.random() * CLASS_LABELS.length)];
 }
 
-export default function Experiment({ session }: { session: string }) {
+export default function Experiment({
+  session,
+  tag = null,
+}: {
+  session: string;
+  /** Opaque launcher tag (ux-phi course dashboard): lets a student's own
+   *  result be shown back to them there. Never identifies anyone here. */
+  tag?: string | null;
+}) {
   const [stage, setStage] = useState<Stage>("intro");
   const [rank1, setRank1] = useState<PrincipleId[] | null>(null);
   const [rank2, setRank2] = useState<PrincipleId[] | null>(null);
@@ -246,6 +254,7 @@ export default function Experiment({ session }: { session: string }) {
     if (submitted) return;
     const payload = {
       session,
+      ...(tag ? { tag } : {}),
       submittedAt: new Date().toISOString(),
       rank1,
       rank2,
@@ -285,6 +294,7 @@ export default function Experiment({ session }: { session: string }) {
     stage,
     submitted,
     session,
+    tag,
     rank1,
     rank2,
     rankFinal,

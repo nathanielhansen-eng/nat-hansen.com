@@ -35,6 +35,7 @@ const BLOB_EXPERIMENTS = new Set([
   "allen-colour-blind",
   "berlin-kay",
   "roberson-triads",
+  "frohlich-justice",
 ]);
 
 // Generic between-subjects summarizer for the side-effect-effect experiments.
@@ -752,6 +753,78 @@ function summarizeRoberson(submissions: Record<string, unknown>[], tag: string |
   };
 }
 
+// Frohlich, Oppenheimer & Eavey (1987): which principle each participant
+// chose alone and which their (simulated) group adopted, plus the top-ranked
+// principle before anything happened and at the end. Counts only — the chat,
+// vote reasons and incomes never leave this site. `floors` are the income
+// floors groups set when they adopted the floor-constrained average.
+const FROHLICH_PRINCIPLES = [
+  "max-floor",
+  "max-average",
+  "max-average-floor",
+  "max-average-range",
+] as const;
+
+function summarizeFrohlich(submissions: Record<string, unknown>[], tag: string | null) {
+  const zero = () =>
+    Object.fromEntries(FROHLICH_PRINCIPLES.map((p) => [p, 0])) as Record<string, number>;
+  const individual = zero();
+  const group = zero();
+  const firstTop = zero();
+  const finalTop = zero();
+  const floors: number[] = [];
+  const principleOf = (v: unknown): string | null => {
+    const p = (v as { principle?: unknown } | null)?.principle;
+    return typeof p === "string" && p in individual ? p : null;
+  };
+  const topOf = (v: unknown): string | null =>
+    Array.isArray(v) && typeof v[0] === "string" && v[0] in individual ? v[0] : null;
+  let n = 0;
+  let yours: {
+    individual: string | null;
+    group: string | null;
+    firstTop: string | null;
+    finalTop: string | null;
+  } | null = null;
+  for (const s of submissions) {
+    const ind = principleOf((s.individual as { choice?: unknown } | null)?.choice);
+    const grpProposal = (s.group as { proposal?: unknown } | null)?.proposal;
+    const grp = principleOf(grpProposal);
+    const t1 = topOf(s.rank1);
+    const tF = topOf(s.rankFinal);
+    if (!ind && !grp) continue;
+    n++;
+    if (ind) individual[ind]++;
+    if (grp) group[grp]++;
+    if (t1) firstTop[t1]++;
+    if (tF) finalTop[tF]++;
+    const c = (grpProposal as { constraint?: unknown } | null)?.constraint;
+    if (grp === "max-average-floor" && typeof c === "number" && Number.isFinite(c)) {
+      floors.push(c);
+    }
+    if (tag !== null && tagOf(s) === tag) {
+      yours = { individual: ind, group: grp, firstTop: t1, finalTop: tF };
+    }
+  }
+  const sorted = [...floors].sort((a, b) => a - b);
+  const median = sorted.length
+    ? sorted.length % 2
+      ? sorted[(sorted.length - 1) / 2]
+      : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+    : null;
+  return {
+    aggregate: {
+      n,
+      individual,
+      group,
+      firstTop,
+      finalTop,
+      floor: { n: floors.length, median },
+    },
+    yours,
+  };
+}
+
 function summarizeReuterTruth(submissions: Record<string, unknown>[]) {
   const SCEN = new Set(["party", "rolex"]);
   const ANS = new Set(["true", "false", "notsure"]);
@@ -997,6 +1070,14 @@ export async function GET(request: Request) {
       experiment,
       session,
       ...summarizeBerlinKay(submissions, tag),
+    });
+  }
+  if (experiment === "frohlich-justice") {
+    return Response.json({
+      ok: true,
+      experiment,
+      session,
+      ...summarizeFrohlich(submissions, tag),
     });
   }
   if (experiment === "reuter-truth") {
