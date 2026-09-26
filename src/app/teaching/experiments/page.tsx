@@ -106,6 +106,16 @@ const experiments: ExperimentCard[] = [
       "A solo playtest of the classic veil-of-ignorance experiment. Pick a principle, see what you'd earn, then deliberate with four simulated co-participants and try to reach unanimous agreement. The original study found 35 of 44 groups chose a principle Rawls explicitly rejected.",
   },
   {
+    title: "Lewis (1969)",
+    subtitle: "Convention: The Signaling Game",
+    slug: "lewis-signaling-game",
+    href: "/teaching/games/lewis-signaling-game.html",
+    isStatic: true,
+    cta: "Open the game →",
+    blurb:
+      "Lewis's coordination problem, played by two people on two devices. One player sees a world state and sends one of four signals; the other sees only the signal and must guess the state. The signals start out meaningless and nothing is agreed in advance — so any shared meaning has to be built out of repeated play, from a run of lucky guesses into a regularity both players expect the other to stick to. Create a room, send the code to a partner, and watch a convention come into existence (or fail to).",
+  },
+  {
     title: "Esper (1966)",
     subtitle: "Social Transmission of an Artificial Language",
     slug: "chain",
