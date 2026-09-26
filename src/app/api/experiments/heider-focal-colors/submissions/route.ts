@@ -1,4 +1,5 @@
 import { list, get } from "@vercel/blob";
+import { isInstructorPassword } from "@/lib/instructor-auth";
 import { cookies } from "next/headers";
 
 function sanitizeSession(s: string): string {
@@ -8,7 +9,7 @@ function sanitizeSession(s: string): string {
 export async function GET(request: Request) {
   const jar = await cookies();
   const authed = jar.get("instructor_auth")?.value;
-  if (!authed || authed !== process.env.INSTRUCTOR_PASSWORD) {
+  if (!isInstructorPassword(authed)) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 

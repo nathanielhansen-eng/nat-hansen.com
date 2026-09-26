@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isInstructorPassword } from "@/lib/instructor-auth";
 import { cookies } from "next/headers";
 import Dashboard from "./Dashboard";
 
@@ -17,7 +18,7 @@ export default async function HostPage({
   const sp = await searchParams;
   const jar = await cookies();
   const authed = jar.get("instructor_auth")?.value;
-  const ok = !!authed && authed === process.env.INSTRUCTOR_PASSWORD;
+  const ok = isInstructorPassword(authed);
 
   if (!ok) {
     return (
