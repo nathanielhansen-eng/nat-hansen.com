@@ -1,5 +1,6 @@
 import { list, get } from "@vercel/blob";
 import { isInstructorPassword } from "@/lib/instructor-auth";
+import { classLinkSession } from "@/lib/class-link";
 import { cookies } from "next/headers";
 
 function sanitizeSession(s: string): string {
@@ -9,12 +10,15 @@ function sanitizeSession(s: string): string {
 export async function GET(request: Request) {
   const jar = await cookies();
   const authed = jar.get("instructor_auth")?.value;
-  if (!isInstructorPassword(authed)) {
+  const fullAccess = isInstructorPassword(authed);
+  // A signed class link from ux-phi sees its own class session and nothing else.
+  const classSession = fullAccess ? null : classLinkSession(jar, "conceptual-inflation");
+  if (!fullAccess && !classSession) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
   const url = new URL(request.url);
-  const sessionParam = url.searchParams.get("session");
+  const sessionParam = fullAccess ? url.searchParams.get("session") : classSession;
   const prefix = sessionParam
     ? `conceptual-inflation/${sanitizeSession(sessionParam)}/`
     : "conceptual-inflation/";

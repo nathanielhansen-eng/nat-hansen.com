@@ -1026,6 +1026,8 @@ export async function GET(request: Request) {
   }
 
   const submissions = await loadSubmissions(experiment, session);
+  // `responses` (the session's raw submission count) rides on every summary
+  // so ux-phi can tell whether a class has started, whatever the shape.
   const tagParam = url.searchParams.get("tag");
   const tag =
     typeof tagParam === "string"
@@ -1037,6 +1039,7 @@ export async function GET(request: Request) {
       ok: true,
       experiment,
       session,
+      responses: submissions.length,
       ...summarizeKnobe(submissions),
     });
   }
@@ -1045,6 +1048,7 @@ export async function GET(request: Request) {
       ok: true,
       experiment,
       session,
+      responses: submissions.length,
       ...summarizeAsymmetry(submissions, ASYMMETRY_SPECS[experiment], tag),
     });
   }
@@ -1053,6 +1057,7 @@ export async function GET(request: Request) {
       ok: true,
       experiment,
       session,
+      responses: submissions.length,
       ...summarizeWinawer(submissions, tag),
     });
   }
@@ -1061,6 +1066,7 @@ export async function GET(request: Request) {
       ok: true,
       experiment,
       session,
+      responses: submissions.length,
       ...summarizeRoberson(submissions, tag),
     });
   }
@@ -1069,6 +1075,7 @@ export async function GET(request: Request) {
       ok: true,
       experiment,
       session,
+      responses: submissions.length,
       ...summarizeBerlinKay(submissions, tag),
     });
   }
@@ -1077,6 +1084,7 @@ export async function GET(request: Request) {
       ok: true,
       experiment,
       session,
+      responses: submissions.length,
       ...summarizeFrohlich(submissions, tag),
     });
   }
@@ -1085,6 +1093,7 @@ export async function GET(request: Request) {
       ok: true,
       experiment,
       session,
+      responses: submissions.length,
       ...summarizeReuterTruth(submissions),
     });
   }
@@ -1093,6 +1102,7 @@ export async function GET(request: Request) {
       ok: true,
       experiment,
       session,
+      responses: submissions.length,
       ...summarizeConceptBreadth(submissions, tag),
     });
   }
@@ -1105,6 +1115,7 @@ export async function GET(request: Request) {
     ok: true,
     experiment,
     session,
+    responses: submissions.length,
     ...summary,
     swatches: summarizeSwatches(submissions, correctKey),
     yours: yoursFor(submissions, tag, correctKey),

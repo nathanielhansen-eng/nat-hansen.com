@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { isInstructorPassword } from "@/lib/instructor-auth";
+import { classLinkSession } from "@/lib/class-link";
+import ClassLinkBanner from "@/components/ClassLinkBanner";
 import { cookies } from "next/headers";
 import AdminDashboard from "./AdminDashboard";
 
@@ -19,8 +21,10 @@ export default async function AdminPage({
   const jar = await cookies();
   const authed = jar.get("instructor_auth")?.value;
   const ok = isInstructorPassword(authed);
+  // Signed class link from ux-phi: this class's session only (src/lib/class-link.ts).
+  const classSession = ok ? null : classLinkSession(jar, "concept-breadth");
 
-  if (!ok) {
+  if (!ok && !classSession) {
     return (
       <div
         style={{
@@ -119,6 +123,15 @@ export default async function AdminPage({
           </button>
         </form>
       </div>
+    );
+  }
+
+  if (classSession) {
+    return (
+      <>
+        <ClassLinkBanner session={classSession} />
+        <AdminDashboard />
+      </>
     );
   }
 
