@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { isInstructorPassword } from "@/lib/instructor-auth";
-import { classLinkSession } from "@/lib/class-link";
+import { classLinkSession, classLinkTokenSession } from "@/lib/class-link";
+import EmbedFrame from "@/components/EmbedFrame";
 import ClassLinkBanner from "@/components/ClassLinkBanner";
 import { cookies } from "next/headers";
 import AdminDashboard from "./AdminDashboard";
@@ -15,14 +16,19 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ err?: string }>;
+  searchParams: Promise<{ err?: string; t?: string; embed?: string }>;
 }) {
   const sp = await searchParams;
   const jar = await cookies();
   const authed = jar.get("instructor_auth")?.value;
   const ok = isInstructorPassword(authed);
   // Signed class link from ux-phi: this class's session only (src/lib/class-link.ts).
-  const classSession = ok ? null : classLinkSession(jar, "heider-focal-colors");
+  // Framed in ux-phi's class page: the token rides in the address.
+  const embedded = sp.embed === "1" && !!classLinkTokenSession(sp.t, "heider-focal-colors");
+  const classSession = ok
+    ? null
+    : (embedded ? classLinkTokenSession(sp.t, "heider-focal-colors") : null) ??
+      classLinkSession(jar, "heider-focal-colors");
 
   if (!ok && !classSession) {
     return (
@@ -123,6 +129,14 @@ export default async function AdminPage({
           </button>
         </form>
       </div>
+    );
+  }
+
+  if (embedded && classSession) {
+    return (
+      <EmbedFrame token={sp.t!} slug="heider-focal-colors">
+        <AdminDashboard />
+      </EmbedFrame>
     );
   }
 

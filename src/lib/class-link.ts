@@ -72,6 +72,29 @@ type CookieJar = { get(name: string): { value: string } | undefined };
 
 // The class session this browser may see for one experiment, or null.
 export function classLinkSession(jar: CookieJar, slug: string): string | null {
-  const link = verifyClassLink(jar.get(classLinkCookieName(slug))?.value);
+  return classLinkTokenSession(jar.get(classLinkCookieName(slug))?.value, slug);
+}
+
+/** The session a raw token grants for one experiment, or null. The embedded
+ * dashboard (ux-phi's Experiments tab frames it) carries the token in its
+ * address, because a cookie set inside another site's frame is a blocked
+ * third-party cookie in most browsers. */
+export function classLinkTokenSession(
+  token: string | undefined | null,
+  slug: string,
+): string | null {
+  const link = verifyClassLink(token);
   return link && link.slug === slug ? link.session : null;
+}
+
+/** For API routes: the class cookie, or a `t=` token on the request. */
+export function classLinkSessionFor(
+  request: Request,
+  jar: CookieJar,
+  slug: string,
+): string | null {
+  return (
+    classLinkSession(jar, slug) ??
+    classLinkTokenSession(new URL(request.url).searchParams.get("t"), slug)
+  );
 }

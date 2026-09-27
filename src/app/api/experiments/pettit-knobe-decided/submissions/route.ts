@@ -1,6 +1,6 @@
 import { list, get } from "@vercel/blob";
 import { isInstructorPassword } from "@/lib/instructor-auth";
-import { classLinkSession } from "@/lib/class-link";
+import { classLinkSessionFor } from "@/lib/class-link";
 import { cookies } from "next/headers";
 
 function sanitizeSession(s: string): string {
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const authed = jar.get("instructor_auth")?.value;
   const fullAccess = isInstructorPassword(authed);
   // A signed class link from ux-phi sees its own class session and nothing else.
-  const classSession = fullAccess ? null : classLinkSession(jar, "pettit-knobe-decided");
+  const classSession = fullAccess ? null : classLinkSessionFor(request, jar, "pettit-knobe-decided");
   if (!fullAccess && !classSession) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }

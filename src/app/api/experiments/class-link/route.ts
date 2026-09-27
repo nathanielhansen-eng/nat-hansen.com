@@ -16,6 +16,12 @@ export async function GET(request: Request) {
       { status: 403, headers: { "content-type": "text/plain; charset=utf-8" } },
     );
   }
+  // Embedded in ux-phi's class page: no cookie (it would be a blocked
+  // third-party cookie inside the frame); the token rides in the address.
+  if (url.searchParams.get("embed") === "1") {
+    const t = encodeURIComponent(url.searchParams.get("t")!);
+    return Response.redirect(`${url.origin}${ADMIN_PATHS[link.slug]}?embed=1&t=${t}`, 303);
+  }
   const jar = await cookies();
   jar.set(classLinkCookieName(link.slug), url.searchParams.get("t")!, {
     httpOnly: true,
