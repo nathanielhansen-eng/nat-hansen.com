@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import ChipGrid from "./ChipGrid";
 import { byCnum, type Chip } from "./chips";
+import { saveYourChart } from "./yourChart";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');`;
 
@@ -262,6 +263,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
         chips: Array.from(t.chips).sort((a, b) => a - b),
       })),
     };
+    saveYourChart({ language: payload.language, terms: payload.terms, savedAt: payload.submittedAt });
     try {
       const r = await fetch("/api/experiments/berlin-kay", {
         method: "POST",
@@ -732,6 +734,9 @@ export default function Experiment({ session, tag }: { session: string; tag: str
         </div>
         <p style={base.small}>Your chart, one more time:</p>
         <ChipGrid decorate={focalDecorate} />
+        <a href="/teaching/experiments/berlin-kay/atlas" target="_blank" rel="noopener" style={{ ...base.btn, textDecoration: "none" }}>
+          Compare your chart with 130 languages →
+        </a>
         <p style={{ ...base.small, marginTop: "16px" }}>
           Sources: Berlin, B. &amp; Kay, P. (1969), <em>Basic Color Terms</em>; Rosch Heider, E.
           (1972), J. Exp. Psychol. 93; Roberson, D., Davies, I. &amp; Davidoff, J. (2000), J. Exp.
