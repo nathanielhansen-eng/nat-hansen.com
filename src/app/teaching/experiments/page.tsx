@@ -183,6 +183,15 @@ const experiments: ExperimentCard[] = [
     blurb:
       "A classroom replication of Study 1 on the meaning of 'racist'. Rate the extension and intensity of 'racist', its degree-modified forms, related vocabulary, and a set of thin moral terms — then compare your live audience's pattern with the published representative-sample results.",
   },
+  {
+    title: "Turing (1950)",
+    subtitle: "Computing Machinery and Intelligence",
+    slug: "turing",
+    href: "/turing/host",
+    cta: "Host a session →",
+    blurb:
+      "The imitation game, played live in class. Students chat in pairs while judges watch the transcripts and decide which witnesses are bots. Judges who vote 'bot' mark the words that gave it away; between rounds those marks are used to revise the bot, while an unrevised copy plays alongside as a control, so the class can see whether the bot gets harder to catch. The host console is password-protected because the bots run on paid model calls; students join at nat-hansen.com/turing with the session code.",
+  },
 ];
 
 export default function ExperimentsPage() {
