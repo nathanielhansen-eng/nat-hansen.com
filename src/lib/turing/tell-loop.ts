@@ -106,7 +106,7 @@ themes: group the marked words into 2 to 5 kinds of giveaway. Name each in a few
 
 exemplars: choose 4 to 8 lines that real human witnesses actually typed, from the list provided. Copy each one exactly, character for character. Pick lines that show the opposite of the bot's giveaways. Do not write new lines and do not tidy the ones you choose.
 
-reminder: 2 to 5 short sentences addressed to the bot ("you"), describing how a real person in this chat writes, aimed at the themes. Say what to do, not what to avoid: no lists of banned words or phrases, because the bot paraphrases around them and the class notices. Keep anything from the current reminder that still applies, and rewrite the rest.
+reminder: 2 to 5 short sentences addressed to the bot ("you"), describing how a real person in this chat writes, aimed at the themes. Say what to do, not what to avoid: no lists of banned words or phrases, because the bot paraphrases around them. Keep anything from the current reminder that still applies, and rewrite the rest.
 
 Students also sometimes mark words written by real humans. Those marks are listed separately. They show what this class wrongly takes for a bot; do not steer the bot away from those habits.`;
 

@@ -98,3 +98,51 @@ export function detectionCurve(s: Session): DetectionRow[] {
   }
   return rows;
 }
+
+export type HumanFlag = {
+  round: number;
+  witnessId: string;
+  label: string; // the witness's letter in that round
+  message: string;
+  marked: string[]; // spans judges marked in this message
+  judges: number; // how many judges marked something in it
+};
+
+// Lines real people wrote that judges voted bot on and marked as giveaways:
+// the class's false positives, kept for the record and the paper.
+export function humanFlags(s: Session): HumanFlag[] {
+  const humanIds = new Set(s.participants.map((p) => p.id));
+  const out: HumanFlag[] = [];
+  for (const r of revealedRounds(s)) {
+    const byMsg = new Map<string, HumanFlag>();
+    for (const votes of Object.values(r.votes ?? {})) {
+      for (const [wid, v] of Object.entries(votes)) {
+        if (!humanIds.has(wid) || v.guess !== "ai" || !v.tells?.length) continue;
+        const seen = new Set<string>();
+        for (const t of v.tells) {
+          const m = findMessage(r, t.messageId);
+          if (!m) continue;
+          let f = byMsg.get(m.id);
+          if (!f) {
+            f = {
+              round: r.number,
+              witnessId: wid,
+              label: r.labels?.[wid] ?? "?",
+              message: m.text,
+              marked: [],
+              judges: 0,
+            };
+            byMsg.set(m.id, f);
+          }
+          f.marked.push(t.text);
+          if (!seen.has(m.id)) {
+            f.judges++;
+            seen.add(m.id);
+          }
+        }
+      }
+    }
+    out.push(...byMsg.values());
+  }
+  return out;
+}

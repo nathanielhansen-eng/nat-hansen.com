@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Patch, Session } from "@/lib/turing/types";
-import { detectionCurve } from "@/lib/turing/loop";
+import { detectionCurve, humanFlags } from "@/lib/turing/loop";
 
 function pct(a: number, n: number) {
   return n === 0 ? "—" : `${Math.round((a / n) * 100)}%`;
@@ -32,7 +32,17 @@ export default function TellLoopPanel({
 
   function exportJson() {
     const blob = new Blob(
-      [JSON.stringify({ exportedAt: new Date().toISOString(), session }, null, 2)],
+      [
+        JSON.stringify(
+          {
+            exportedAt: new Date().toISOString(),
+            humanFlags: humanFlags(session),
+            session,
+          },
+          null,
+          2
+        ),
+      ],
       { type: "application/json" }
     );
     const a = document.createElement("a");
@@ -93,6 +103,7 @@ export default function TellLoopPanel({
     (p) => p.aId === L.liveAgentId || p.bId === L.liveAgentId
   );
   const curve = detectionCurve(session);
+  const flags = humanFlags(session);
   const draft = L.draft;
   const shown = edit ?? draft;
 
@@ -275,6 +286,33 @@ export default function TellLoopPanel({
               </button>
             </div>
           </div>
+        )}
+      </div>
+
+      <div>
+        <h3 className="font-semibold text-sm mb-1">
+          Human writing marked as bot ({flags.length})
+        </h3>
+        {flags.length === 0 ? (
+          <p className="text-sm text-neutral-500">
+            None yet. Lines students wrote that judges voted bot on and marked
+            will collect here.
+          </p>
+        ) : (
+          <ul className="text-sm space-y-1">
+            {flags.map((f, i) => (
+              <li key={i}>
+                <span className="text-neutral-500">
+                  R{f.round} · {f.label} · {f.judges} judge
+                  {f.judges === 1 ? "" : "s"}:
+                </span>{" "}
+                &ldquo;{f.message}&rdquo;{" "}
+                <span className="text-amber-800">
+                  marked {f.marked.map((m) => `“${m}”`).join(", ")}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
