@@ -121,6 +121,13 @@ export default function PlayClient({ code }: { code: string }) {
         {status === "lobby" && (
           <p className="text-neutral-500">Waiting for the host to start…</p>
         )}
+        {status === "lobby" && view.loopNote && (
+          <p className="text-amber-800">
+            The judges&rsquo; marks were used to update the bot (generation{" "}
+            {view.loopNote.generation}). Your new witness letter is{" "}
+            {view.selfLabel}.
+          </p>
+        )}
         {messages.map((m) => (
           <div
             key={m.id}

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Session, Agent, Pair } from "@/lib/turing/types";
 import { tallyRound, leaderboard, type WitnessVerdict } from "@/lib/turing/verdict";
+import TellLoopPanel from "./TellLoopPanel";
 
 function VerdictBanner({ v }: { v: WitnessVerdict }) {
   if (v.totalVotes === 0) return null;
@@ -66,6 +67,12 @@ export default function HostConsole() {
     return () => clearInterval(i);
   }, []);
 
+  // Keep the session code in the URL so a refresh mid-class reopens it.
+  useEffect(() => {
+    const c = new URLSearchParams(window.location.search).get("code");
+    if (c) queueMicrotask(() => setCode(c.toUpperCase()));
+  }, []);
+
   useEffect(() => {
     if (!code) return;
     let stop = false;
@@ -89,7 +96,12 @@ export default function HostConsole() {
 
   const session = state?.session ?? null;
 
-  // Initialize drafts when session first loads
+  // Reset drafts when the session loads, and whenever the server changes the
+  // agents itself (tell loop adds a control, new rounds reshuffle labels,
+  // patches bump generations), so Save config never writes stale agents back.
+  const agentSig = session?.agents
+    .map((a) => `${a.id}:${a.label}:${a.loopRole ?? ""}:${a.generation ?? ""}`)
+    .join("|");
   useEffect(() => {
     if (!session) return;
     queueMicrotask(() => {
@@ -97,7 +109,7 @@ export default function HostConsole() {
       setDraftPairs(session.pairs);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.code]);
+  }, [session?.code, agentSig]);
 
   async function createSession() {
     setBusy(true);
@@ -109,19 +121,30 @@ export default function HostConsole() {
     setBusy(false);
     if (r.ok) {
       const { code } = (await r.json()) as { code: string };
+      window.history.replaceState(null, "", `?code=${code}`);
       setCode(code);
     }
   }
 
-  async function host(action: string, extra: Record<string, unknown> = {}) {
-    if (!code) return;
+  // Returns an error message, or null on success.
+  async function host(
+    action: string,
+    extra: Record<string, unknown> = {}
+  ): Promise<string | null> {
+    if (!code) return "no session";
     setBusy(true);
-    await fetch("/api/turing/host", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action, code, ...extra }),
-    });
-    setBusy(false);
+    try {
+      const r = await fetch("/api/turing/host", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action, code, ...extra }),
+      });
+      return r.ok ? null : (await r.text()) || `error ${r.status}`;
+    } catch {
+      return "network error";
+    } finally {
+      setBusy(false);
+    }
   }
 
   const witnessOptions = useMemo(() => {
@@ -291,7 +314,15 @@ export default function HostConsole() {
                     }
                     className="border border-neutral-300 rounded px-2 py-1 text-sm w-40"
                   />
+                  {a.loopRole && (
+                    <span className="text-xs rounded bg-amber-100 px-2 py-0.5 text-amber-800">
+                      {a.loopRole === "control"
+                        ? "Gen 0 control"
+                        : `tell loop · Gen ${a.generation ?? 0}`}
+                    </span>
+                  )}
                   <select
+                    disabled={!!a.loopRole}
                     value={a.model}
                     onChange={(e) =>
                       setDraftAgents((arr) =>
@@ -308,16 +339,19 @@ export default function HostConsole() {
                       </option>
                     ))}
                   </select>
-                  <button
-                    className="ml-auto text-xs text-red-600"
-                    onClick={() =>
-                      setDraftAgents((arr) => arr.filter((_, j) => j !== i))
-                    }
-                  >
-                    delete
-                  </button>
+                  {!a.loopRole && (
+                    <button
+                      className="ml-auto text-xs text-red-600"
+                      onClick={() =>
+                        setDraftAgents((arr) => arr.filter((_, j) => j !== i))
+                      }
+                    >
+                      delete
+                    </button>
+                  )}
                 </div>
                 <textarea
+                  readOnly={!!a.loopRole}
                   value={a.brief}
                   onChange={(e) =>
                     setDraftAgents((arr) =>
@@ -453,6 +487,8 @@ export default function HostConsole() {
             </button>
           </div>
         </section>
+
+        <TellLoopPanel session={session} busy={busy} host={host} />
 
         {(session.status === "revealed" || session.history.length > 0) && (
           <section className="lg:col-span-2 space-y-4">

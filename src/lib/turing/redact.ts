@@ -1,4 +1,4 @@
-import type { Message, Session } from "./types";
+import type { Message, Session, Tell } from "./types";
 import type { TypingMap } from "./session";
 import { tallyRound, leaderboard, type WitnessVerdict, type AgentLeaderboard } from "./verdict";
 
@@ -13,6 +13,32 @@ export type PublicTyping = {
   pairId: string;
   who: string;
 };
+
+// Shown in the lobby right after the class's marks produced a new bot
+// generation. Names the themes, never which witness the bot is.
+export type LoopNote = {
+  generation: number;
+  tellCount: number;
+  themes: string[];
+};
+
+function loopNote(s: Session): LoopNote | undefined {
+  const g = s.lineage?.generations.at(-1);
+  if (!g || g.n === 0 || !g.patch) return undefined;
+  if (s.status !== "lobby" || g.fromRound !== s.round.number - 1) return undefined;
+  return {
+    generation: g.n,
+    tellCount: g.tellCount,
+    themes: g.patch.themes.map((t) => t.theme),
+  };
+}
+
+function loopTag(s: Session, agentId: string): string | undefined {
+  const a = s.agents.find((x) => x.id === agentId);
+  if (!a?.loopRole) return undefined;
+  const gen = s.round.agentGenerations?.[a.id] ?? a.generation ?? 0;
+  return a.loopRole === "control" ? "Gen 0 control" : `Gen ${gen}`;
+}
 
 function visibleMessages(msgs: Message[], now: number): PublicMessage[] {
   const out: PublicMessage[] = [];
@@ -61,6 +87,7 @@ export type ParticipantView = {
   endsAt: number | null;
   roundNumber: number;
   now: number;
+  loopNote?: LoopNote;
   reveal?: {
     self: WitnessVerdict;
     partner: WitnessVerdict | null;
@@ -88,8 +115,16 @@ export type JudgeView = {
   }>;
   witnesses: Array<{ id: string; label: string }>;
   myVotes: Record<string, "human" | "ai">;
+  myTells: Record<string, Tell[]>;
   revealed: boolean;
-  truth?: Array<{ id: string; label: string; kind: "human" | "ai"; name?: string }>;
+  loopNote?: LoopNote;
+  truth?: Array<{
+    id: string;
+    label: string;
+    kind: "human" | "ai";
+    name?: string;
+    loopTag?: string;
+  }>;
   verdicts?: WitnessVerdict[];
   leaderboard?: AgentLeaderboard[];
   now: number;
@@ -141,6 +176,7 @@ export function participantView(
     endsAt: s.round.endsAt,
     roundNumber: s.round.number,
     now,
+    loopNote: loopNote(s),
   };
 
   if (s.round.revealed && pair) {
@@ -198,8 +234,12 @@ export function judgeView(
   });
 
   const myVotes: Record<string, "human" | "ai"> = {};
+  const myTells: Record<string, Tell[]> = {};
   const v = s.round.votes[selfId] ?? {};
-  for (const k of Object.keys(v)) myVotes[k] = v[k].guess;
+  for (const k of Object.keys(v)) {
+    myVotes[k] = v[k].guess;
+    if (v[k].tells?.length) myTells[k] = v[k].tells!;
+  }
 
   const view: JudgeView = {
     role: "judge",
@@ -212,14 +252,22 @@ export function judgeView(
     pairs,
     witnesses,
     myVotes,
+    myTells,
     revealed: s.round.revealed,
+    loopNote: loopNote(s),
     now,
   };
 
   if (s.round.revealed) {
     view.truth = witnesses.map((w) => {
       const a = s.agents.find((x) => x.id === w.id);
-      if (a) return { id: a.id, label: a.label, kind: "ai" as const };
+      if (a)
+        return {
+          id: a.id,
+          label: a.label,
+          kind: "ai" as const,
+          loopTag: loopTag(s, a.id),
+        };
       const p = s.participants.find((x) => x.id === w.id)!;
       return {
         id: p.id,

@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { Agent, Message, Session } from "./types";
+import type { Agent, Message, Patch, Session } from "./types";
 
 const SYSTEM_SUFFIX = `
 
@@ -19,6 +19,22 @@ Hard rules:
 
 export function buildSystemPrompt(agent: Agent): string {
   return agent.brief.trim() + SYSTEM_SUFFIX;
+}
+
+// The patch goes at the very end of the system prompt: exemplars first, then
+// the reminder as the last thing the model reads.
+export function renderPatch(patch: Patch | null | undefined): string {
+  if (!patch) return "";
+  const ex = patch.exemplars.filter((e) => e.trim());
+  let out = "\n\n---\n\n";
+  if (ex.length > 0) {
+    out +=
+      "Replies from real people in earlier rounds of this game, for the register to aim at:\n" +
+      ex.map((e) => `- ${e.trim()}`).join("\n") +
+      "\n\n";
+  }
+  out += patch.reminder.trim();
+  return out;
 }
 
 export function buildMessages(
@@ -51,7 +67,8 @@ export async function generateAIReply(
       buildSystemPrompt(agent) +
       `\n\nFor THIS reply specifically: aim for around ${Math.round(
         targetChars
-      )} characters. Going over is a tell.`,
+      )} characters. Going over is a tell.` +
+      renderPatch(agent.patch),
     messages: msgs,
   });
   const block = result.content.find((c) => c.type === "text");
