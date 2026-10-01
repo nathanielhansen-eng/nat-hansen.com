@@ -60,9 +60,14 @@ export async function generateAIReply(
   const lastUser = [...msgs].reverse().find((m) => m.role === "user");
   const targetChars = Math.max(20, Math.min(280, (lastUser?.content.length ?? 80) * 1.2));
   const maxTokens = Math.max(40, Math.min(180, Math.round(targetChars / 3)));
+  // Opus 5.5 and Sonnet 5.5 think by default and thinking counts against
+  // max_tokens, so a tight cap can leave no room for the reply. Give them
+  // headroom at low effort and let the length instruction do the shaping.
+  const thinks = !agent.model.startsWith("claude-haiku");
   const result = await client.messages.create({
     model: agent.model,
-    max_tokens: maxTokens,
+    max_tokens: thinks ? 2000 : maxTokens,
+    ...(thinks ? { output_config: { effort: "low" as const } } : {}),
     system:
       buildSystemPrompt(agent) +
       `\n\nFor THIS reply specifically: aim for around ${Math.round(

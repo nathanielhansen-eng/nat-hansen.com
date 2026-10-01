@@ -40,9 +40,9 @@ function VerdictBanner({ v }: { v: WitnessVerdict }) {
 type State = { role: "host"; session: Session; now: number };
 
 const MODELS = [
-  { id: "claude-sonnet-4-6", label: "Sonnet 4.6 (default)" },
-  { id: "claude-opus-4-7", label: "Opus 4.7 (slower, harder)" },
-  { id: "claude-haiku-4-5-20251001", label: "Haiku 4.5 (fastest)" },
+  { id: "claude-sonnet-5-5", label: "Sonnet 5.5 (default)" },
+  { id: "claude-opus-5-5", label: "Opus 5.5 (slower, harder)" },
+  { id: "claude-haiku-4-5", label: "Haiku 4.5 (fastest)" },
 ];
 
 function fmtClock(ms: number) {
