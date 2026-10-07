@@ -53,3 +53,12 @@ export function getClientIp(request: Request): string {
   if (real) return real.trim();
   return "anon";
 }
+
+export const turnPerMinute = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(20, "1 m"),
+      analytics: true,
+      prefix: "ratelimit:turn:min",
+    })
+  : null;

@@ -281,17 +281,28 @@
 
     // ── CREATE GAME (Sender) ──────────────────────────────────────
 
-    const ICE_CONFIG = {
+    const STUN_CONFIG = {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun3.l.google.com:19302' },
-            { urls: 'stun:stun4.l.google.com:19302' },
         ]
     };
 
-    function createGame() {
+    // Campus networks often block direct device-to-device links, so fetch
+    // TURN relay credentials from the site; fall back to STUN-only if that fails.
+    let iceConfigPromise = null;
+    function getIceConfig() {
+        if (!iceConfigPromise) {
+            iceConfigPromise = fetch('/api/turn-credentials', { signal: AbortSignal.timeout(5000) })
+                .then(r => r.ok ? r.json() : Promise.reject())
+                .then(d => (d.iceServers && d.iceServers.length) ? { iceServers: d.iceServers } : STUN_CONFIG)
+                .catch(() => { iceConfigPromise = null; return STUN_CONFIG; });
+        }
+        return iceConfigPromise;
+    }
+    getIceConfig(); // warm it up while the player reads the lobby
+
+    async function createGame() {
         destroyPeer();
         myRole = 'sender';
         const code = genCode();
@@ -299,7 +310,9 @@
         document.getElementById('roomCode').textContent = '……';
         document.getElementById('create-status').textContent = 'Connecting to server…';
 
-        peer = new Peer('lsg-' + code, { debug: 0, config: ICE_CONFIG });
+        const config = await getIceConfig();
+        if (myRole !== 'sender' || peer) return; // cancelled while fetching
+        peer = new Peer('lsg-' + code, { debug: 0, config });
 
         peer.on('open', () => {
             document.getElementById('roomCode').textContent = code;
@@ -333,7 +346,7 @@
 
     // ── JOIN GAME (Receiver) ──────────────────────────────────────
 
-    function joinGame() {
+    async function joinGame() {
         const raw = document.getElementById('codeIn').value.trim().toUpperCase();
         if (raw.length < 4) {
             document.getElementById('joinErr').textContent = 'Please enter the full room code.';
@@ -343,7 +356,9 @@
         destroyPeer();
         myRole = 'receiver';
 
-        peer = new Peer({ debug: 0, config: ICE_CONFIG });
+        const config = await getIceConfig();
+        if (myRole !== 'receiver' || peer) return;
+        peer = new Peer({ debug: 0, config });
 
         peer.on('error', err => {
             const msg = err.type === 'peer-unavailable'
@@ -357,7 +372,7 @@
             conn = peer.connect('lsg-' + raw, { reliable: true });
 
             joinTimeout = setTimeout(() => {
-                document.getElementById('joinErr').textContent = 'Timed out. Is the code correct and is the other player already on this page with a visible room code?';
+                document.getElementById('joinErr').textContent = 'Timed out. The room was found but the network blocked the connection. Try again, or have one player switch to a phone hotspot.';
                 destroyPeer();
             }, 20000);
 
