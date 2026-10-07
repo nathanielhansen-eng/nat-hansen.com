@@ -18,9 +18,14 @@ export async function GET(req: Request) {
   const token = process.env.CLOUDFLARE_TURN_KEY_API_TOKEN;
   if (!keyId || !token) return Response.json({ iceServers: STUN_ONLY });
 
+  // Fail open: a broken limiter must not stop a class from connecting.
   if (turnPerMinute) {
-    const { success } = await turnPerMinute.limit(getClientIp(req));
-    if (!success) return Response.json({ iceServers: STUN_ONLY });
+    try {
+      const { success } = await turnPerMinute.limit(getClientIp(req));
+      if (!success) return Response.json({ iceServers: STUN_ONLY });
+    } catch (err) {
+      console.error("turn-credentials ratelimit:", err);
+    }
   }
 
   try {
