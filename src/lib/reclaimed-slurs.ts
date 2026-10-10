@@ -58,6 +58,8 @@ export type Ratings = Record<Term, Record<Measure, number>>;
 
 export interface Submission {
   session: string;
+  /** Random per-participant id linking this record to their pilot record. */
+  rid?: string;
   tag?: string;
   submittedAt: string;
   durationMs: number;
@@ -80,4 +82,66 @@ export function shuffle<T>(xs: readonly T[]): T[] {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+/* ------------------------------------------------------------------ *
+ * Pilot block (new, not part of Hansen & Liao's studies). Four probes
+ * of where to take the research, offered after the replication's debrief
+ * (students continue at the instructor's go-ahead):
+ *   1. self vs other reference — "call yourself '___'" beside the
+ *      replication's 1st-person "call a person '___'";
+ *   2. context minimal pairs — the same utterance "You're so ___." said
+ *      warmly between friends vs sneered by a stranger;
+ *   3. in-group membership — optional LGBTQ+ and autistic/neurodivergent
+ *      self-identification (the board suppresses any cell under
+ *      MIN_CELL so a small class can't out anyone);
+ *   4. real time — no new question: sessions named per cohort are
+ *      compared across years on the board.
+ * A random per-participant id (rid) links a pilot record to the same
+ * person's replication record, so self-vs-other is a paired comparison.
+ * ------------------------------------------------------------------ */
+
+export const PILOT_SLUG = "reclaimed-slurs-pilot";
+export const MIN_CELL = 5;
+
+export const SELF_QUESTION = (t: string) => `How bad or good is it to call yourself ‘${t}’?`;
+
+export const CONTEXTS = ["friendly", "hostile"] as const;
+export type Context = (typeof CONTEXTS)[number];
+
+export const CONTEXT_SPECS: Record<Context, { label: string; scene: (t: string) => string }> = {
+  friendly: {
+    label: "between friends",
+    scene: (t) => `Two close friends are laughing together. One says warmly to the other, “You’re so ${t}.”`,
+  },
+  hostile: {
+    label: "from a stranger",
+    scene: (t) => `A stranger on the street glares at someone and sneers, “You’re so ${t}.”`,
+  },
+};
+export const CONTEXT_QUESTION = "How bad or good was it for the speaker to say that?";
+
+export const INGROUP_QUESTIONS = {
+  lgbtq: { term: "queer" as Term, question: "Do you identify as LGBTQ+?", label: "LGBTQ+" },
+  autistic: {
+    term: "autistic" as Term,
+    question: "Do you identify as autistic or neurodivergent?",
+    label: "autistic / ND",
+  },
+} as const;
+export type IngroupKey = keyof typeof INGROUP_QUESTIONS;
+export type IngroupAnswer = "yes" | "no" | "na";
+
+export interface PilotSubmission {
+  session: string;
+  rid: string;
+  submittedAt: string;
+  durationMs: number;
+  self: Record<Term, number>;
+  context: Record<Term, Record<Context, number>>;
+  ingroup: Record<IngroupKey, IngroupAnswer>;
+}
+
+export function coin<T>(a: T, b: T): T {
+  return Math.random() < 0.5 ? a : b;
 }

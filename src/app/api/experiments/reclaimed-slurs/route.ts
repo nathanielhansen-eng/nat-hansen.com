@@ -60,8 +60,10 @@ function validate(body: unknown): Submission | null {
   }
 
   const tag = sanitizeTag(b.tag);
+  const rid = typeof b.rid === "string" && /^[a-z0-9]{8,32}$/.test(b.rid) ? b.rid : null;
   return {
     session: sanitizeSession(b.session),
+    ...(rid ? { rid } : {}),
     ...(tag ? { tag } : {}),
     submittedAt: b.submittedAt,
     durationMs: b.durationMs,

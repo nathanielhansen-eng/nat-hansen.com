@@ -1,24 +1,17 @@
 import { list, get } from "@vercel/blob";
 import { isInstructorPassword } from "@/lib/instructor-auth";
+import { PILOT_SLUG, SLUG } from "@/lib/reclaimed-slurs";
 import { cookies } from "next/headers";
+
+export const dynamic = "force-dynamic";
 
 function sanitizeSession(s: string): string {
   return s.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 64);
 }
 
-export async function GET(request: Request) {
-  const jar = await cookies();
-  const authed = jar.get("instructor_auth")?.value;
-  if (!isInstructorPassword(authed)) {
-    return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
-  }
-
-  const url = new URL(request.url);
-  const sessionParam = url.searchParams.get("session");
-  const prefix = sessionParam
-    ? `reclaimed-slurs/${sanitizeSession(sessionParam)}/`
-    : "reclaimed-slurs/";
-
+// Every record under `${root}/` (or one session of it), plus the session names seen.
+async function loadAll(root: string, session: string | null) {
+  const prefix = session ? `${root}/${sanitizeSession(session)}/` : `${root}/`;
   const sessions = new Set<string>();
   const pathnames: string[] = [];
   let cursor: string | undefined;
@@ -37,14 +30,26 @@ export async function GET(request: Request) {
       try {
         const r = await get(p, { access: "private" });
         if (!r || r.statusCode !== 200) return null;
-        const text = await new Response(r.stream).text();
-        return JSON.parse(text);
+        return JSON.parse(await new Response(r.stream).text());
       } catch {
         return null;
       }
-    })
+    }),
   );
-  const submissions = fetched.filter((x): x is Record<string, unknown> => x !== null);
+  return { records: fetched.filter((x): x is Record<string, unknown> => x !== null), sessions };
+}
 
-  return Response.json({ ok: true, submissions, sessions: Array.from(sessions).sort() });
+export async function GET(request: Request) {
+  const jar = await cookies();
+  if (!isInstructorPassword(jar.get("instructor_auth")?.value)) {
+    return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  }
+  const session = new URL(request.url).searchParams.get("session");
+  const [main, pilot] = await Promise.all([loadAll(SLUG, session), loadAll(PILOT_SLUG, session)]);
+  return Response.json({
+    ok: true,
+    submissions: main.records,
+    pilot: pilot.records,
+    sessions: Array.from(new Set([...main.sessions, ...pilot.sessions])).sort(),
+  });
 }

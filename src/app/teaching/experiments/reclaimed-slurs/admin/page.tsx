@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { isInstructorPassword } from "@/lib/instructor-auth";
 import { cookies } from "next/headers";
 import Board from "./Board";
+import { FONT_IMPORT, HS, INK, PAPER, SANS, SERIF, TIGHT, TIGHTER } from "../design";
 
 export const metadata: Metadata = {
   title: "Four words, four questions — control board",
@@ -21,98 +22,39 @@ export default async function AdminPage({
   const ok = isInstructorPassword(authed);
   if (!ok) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#F5F5F4",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: "'Crimson Pro', Georgia, serif",
-          padding: "20px",
-        }}
-      >
+      <div style={{ minHeight: "100vh", background: PAPER, color: INK, fontFamily: SERIF }}>
+        <style>{FONT_IMPORT}</style>
+        <div style={{ background: INK, color: PAPER }}>
+          <div style={{ maxWidth: "720px", margin: "0 auto", padding: "22px 16px 26px" }}>
+            <p style={{ fontFamily: SANS, fontWeight: 700, fontSize: "14px", letterSpacing: TIGHT, color: HS.grey[1], margin: "0 0 8px" }}>
+              Control board · instructor access
+            </p>
+            <h1 style={{ fontFamily: SANS, fontWeight: 700, fontSize: "clamp(34px, 6vw, 52px)", letterSpacing: TIGHTER, lineHeight: 0.95, margin: 0 }}>
+              Four words,
+              <br />
+              four questions
+            </h1>
+          </div>
+        </div>
         <form
           method="POST"
           action="/api/experiments/reclaimed-slurs/admin-login"
-          style={{
-            background: "#FFFFFF",
-            border: "1px solid #D6D3D1",
-            padding: "48px 52px",
-            maxWidth: "420px",
-            width: "100%",
-            boxShadow: "0 4px 40px rgba(0,0,0,0.07)",
-          }}
+          style={{ maxWidth: "720px", margin: "0 auto", padding: "36px 16px" }}
         >
-          <div
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "11px",
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              color: "#78716C",
-              marginBottom: "12px",
-            }}
-          >
-            Instructor access
-          </div>
-          <h1 style={{ fontSize: "28px", fontWeight: 400, marginBottom: "24px", color: "#1C1917" }}>
-            Four words, four questions — control board
-          </h1>
-          <label
-            style={{
-              display: "block",
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "11px",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "#78716C",
-              marginBottom: "8px",
-            }}
-          >
+          <label htmlFor="pw" style={{ display: "block", fontFamily: SANS, fontWeight: 700, fontSize: "16px", letterSpacing: TIGHT, marginBottom: "8px" }}>
             Password
           </label>
           <input
+            id="pw"
             type="password"
             name="password"
             autoFocus
-            style={{
-              border: "1px solid #D6D3D1",
-              padding: "12px 16px",
-              fontSize: "19px",
-              fontFamily: "'Crimson Pro', Georgia, serif",
-              width: "100%",
-              outline: "none",
-              background: "#FAFAF9",
-              boxSizing: "border-box",
-            }}
+            style={{ border: 0, borderBottom: `2px solid ${INK}`, padding: "8px 2px", fontSize: "22px", fontFamily: SANS, width: "100%", maxWidth: "340px", outline: "none", background: "transparent", display: "block" }}
           />
-          {sp.err && (
-            <div
-              style={{
-                color: "#CC1A14",
-                fontFamily: "'Space Mono', monospace",
-                fontSize: "12px",
-                marginTop: "10px",
-              }}
-            >
-              Wrong password.
-            </div>
-          )}
+          {sp.err && <p style={{ fontFamily: SANS, fontSize: "15px", color: HS.orange[3], margin: "10px 0 0" }}>Wrong password.</p>}
           <button
             type="submit"
-            style={{
-              background: "#1C1917",
-              color: "#F5F5F4",
-              border: "none",
-              padding: "13px 36px",
-              fontFamily: "'Space Mono', monospace",
-              fontSize: "12px",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              marginTop: "20px",
-            }}
+            style={{ background: INK, color: PAPER, border: "none", padding: "14px 26px", fontFamily: SANS, fontWeight: 700, fontSize: "17px", letterSpacing: TIGHT, cursor: "pointer", marginTop: "22px" }}
           >
             Enter →
           </button>
