@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import {
-  CONTEXT_SPECS,
   INGROUP_QUESTIONS,
   MEASURES,
   MEASURE_SPECS,
@@ -236,19 +235,6 @@ export default function Board() {
     };
   });
 
-  const ctxRows: DumbbellRow[] = TERMS.map((t) => {
-    if (!pilotRecs.length) return { term: t, a: null, b: null };
-    const h = pilotRecs.map((p) => p.context[t].hostile);
-    const f = pilotRecs.map((p) => p.context[t].friendly);
-    const test = pairedT(pilotRecs.map((p) => p.context[t].friendly - p.context[t].hostile));
-    return {
-      term: t,
-      a: mean(h),
-      b: mean(f),
-      note: `gap ${fmt(mean(f) - mean(h))}${test ? ` · ${fmtP(test.p)}` : ""}`,
-    };
-  });
-
   // In-group breakdown. Both the yes and no groups must reach MIN_CELL, or
   // neither is shown: a lone small group could be recovered from the class
   // mean and the other group's mean.
@@ -262,8 +248,6 @@ export default function Board() {
         n: rows.length,
         comp: comp.length ? mean(comp) : NaN,
         self: rows.length ? mean(rows.map((l) => l.p.self[t])) : NaN,
-        friendly: rows.length ? mean(rows.map((l) => l.p.context[t].friendly)) : NaN,
-        hostile: rows.length ? mean(rows.map((l) => l.p.context[t].hostile)) : NaN,
       };
     });
     const declined = linked.filter((l) => l.p.ingroup[k] === "na").length;
@@ -296,7 +280,7 @@ export default function Board() {
       "age",
       "blockOrder",
       ...TERMS.flatMap((t) => [...MEASURES.map((mm) => `${mm}_${t}`), `composite_${t}`]),
-      ...TERMS.flatMap((t) => [`self_${t}`, `friendly_${t}`, `hostile_${t}`]),
+      ...TERMS.map((t) => `self_${t}`),
       "ingroup_lgbtq",
       "ingroup_autistic",
     ];
@@ -312,9 +296,7 @@ export default function Board() {
           s.age ?? "",
           s.blockOrder.join(" "),
           ...TERMS.flatMap((t) => [...MEASURES.map((mm) => s.ratings[t][mm]), composite(s.ratings[t]).toFixed(2)]),
-          ...TERMS.flatMap((t): (string | number)[] =>
-            p ? [p.self[t], p.context[t].friendly, p.context[t].hostile] : ["", "", ""],
-          ),
+          ...TERMS.map((t) => (p ? p.self[t] : "")),
           p?.ingroup.lgbtq ?? "",
           p?.ingroup.autistic ?? "",
         ]
@@ -612,23 +594,7 @@ export default function Board() {
             </div>
 
             <div style={section}>
-              <h2 style={figTitle}>B · Same words, different scenes</h2>
-              <p style={prose}>
-                “You&apos;re so ____”, said {CONTEXT_SPECS.hostile.label} vs {CONTEXT_SPECS.friendly.label}. Each student
-                rated both versions, on separate pages. A wide gap means the word&apos;s effect depends on context rather
-                than being fixed; ‘basic’ gives a baseline for how far context moves an ordinary put-down.
-              </p>
-              <DumbbellFigure
-                rows={ctxRows}
-                aLabel={CONTEXT_SPECS.hostile.label}
-                bLabel={CONTEXT_SPECS.friendly.label}
-                aColor={HS.orange[2]}
-                bColor={HS.green[1]}
-              />
-            </div>
-
-            <div style={section}>
-              <h2 style={figTitle}>C · Inside and outside the group</h2>
+              <h2 style={figTitle}>B · Inside and outside the group</h2>
               <p style={prose}>
                 Optional self-identification, shown only when both the “yes” and the “no” group have at least {MIN_CELL}{" "}
                 people, so no one can be identified, not even by subtraction.
@@ -642,15 +608,13 @@ export default function Board() {
                         {INGROUP_QUESTIONS[k].question} · ratings of ‘{tb.t}’
                       </p>
                       {tb.ok ? (
-                        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: "420px" }}>
+                        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: "340px" }}>
                           <thead>
                             <tr>
                               <th style={{ ...th, textAlign: "left" }}>Group</th>
                               <th style={th}>n</th>
                               <th style={th}>Composite</th>
                               <th style={th}>Call yourself</th>
-                              <th style={th}>Friendly</th>
-                              <th style={th}>Hostile</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -662,8 +626,6 @@ export default function Board() {
                                 <td style={td}>{g.n}</td>
                                 <td style={td}>{fmt(g.comp)}</td>
                                 <td style={td}>{fmt(g.self)}</td>
-                                <td style={td}>{fmt(g.friendly)}</td>
-                                <td style={td}>{fmt(g.hostile)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -681,7 +643,7 @@ export default function Board() {
             </div>
 
             <div style={section}>
-              <h2 style={figTitle}>D · Real time, one cohort at a time</h2>
+              <h2 style={figTitle}>C · Real time, one cohort at a time</h2>
               <p style={prose}>
                 The study infers change from age differences at a single moment (apparent time). Run this each year with
                 the same kind of class and the sessions below become repeated samples of the same age group: the real-time

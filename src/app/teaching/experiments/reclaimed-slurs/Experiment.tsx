@@ -2,9 +2,6 @@
 
 import { useMemo, useRef, useState } from "react";
 import {
-  CONTEXTS,
-  CONTEXT_QUESTION,
-  CONTEXT_SPECS,
   INGROUP_QUESTIONS,
   MEASURES,
   MEASURE_SPECS,
@@ -13,10 +10,8 @@ import {
   SELF_QUESTION,
   SLUG,
   TERMS,
-  coin,
   composite,
   shuffle,
-  type Context,
   type IngroupAnswer,
   type IngroupKey,
   type Measure,
@@ -46,8 +41,8 @@ ${FONT_IMPORT}
 .rs-range::-moz-range-track { height: 2px; background: ${INK}; }
 .rs-range::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; border-radius: 50%; background: var(--thumb); margin-top: -12px; border: 2px solid ${INK}; }
 .rs-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--thumb); border: 2px solid ${INK}; }
-.rs-range.untouched::-webkit-slider-thumb { opacity: 0; }
-.rs-range.untouched::-moz-range-thumb { opacity: 0; }
+.rs-range.untouched::-webkit-slider-thumb { background: ${PAPER}; }
+.rs-range.untouched::-moz-range-thumb { background: ${PAPER}; }
 .rs-btn { background: ${INK}; color: ${PAPER}; border: none; padding: 14px 26px; font-family: ${SANS}; font-weight: 700; font-size: 17px; letter-spacing: ${TIGHT}; cursor: pointer; }
 .rs-btn:disabled { opacity: 0.25; cursor: not-allowed; }
 .rs-btn:not(:disabled):hover { background: var(--accent); color: ${INK}; }
@@ -86,7 +81,6 @@ const S: Record<string, React.CSSProperties> = {
     letterSpacing: "-0.01em",
     color: MUTED,
   },
-  rule: { border: 0, borderTop: `2px solid ${INK}`, margin: "28px 0" },
   runIn: { fontFamily: SANS, fontWeight: 700, letterSpacing: TIGHT },
 };
 
@@ -231,13 +225,11 @@ type Stage =
   | "done"
   | "error"
   | "pSelf"
-  | "pContext"
   | "pIngroup"
   | "pSending"
   | "pDone"
   | "pError";
 type Draft = { [T in Term]?: { [M in Measure]?: number } };
-type ContextDraft = { [T in Term]?: { [C in Context]?: number } };
 
 const randomId = () =>
   (Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10)).slice(0, 16);
@@ -248,8 +240,6 @@ export default function Experiment({ session, tag }: { session: string; tag: str
   const [ratings, setRatings] = useState<Draft>({});
   const [ageText, setAgeText] = useState("");
   const [self, setSelf] = useState<{ [T in Term]?: number }>({});
-  const [ctx, setCtx] = useState<ContextDraft>({});
-  const [ctxPage, setCtxPage] = useState(0);
   const [ingroup, setIngroup] = useState<{ [K in IngroupKey]?: IngroupAnswer }>({});
   const startedAt = useRef<number>(0);
   const pilotStartedAt = useRef<number>(0);
@@ -261,18 +251,8 @@ export default function Experiment({ session, tag }: { session: string; tag: str
     () => Object.fromEntries(MEASURES.map((m) => [m, shuffle(TERMS)])) as Record<Measure, Term[]>,
     [],
   );
-  // Pilot: self-reference terms shuffled; each context page shows every term
-  // once, with friendly/hostile assigned at random per term and swapped on
-  // the second page, so the two versions of a word never sit side by side.
+  // Pilot: self-reference terms in a fresh random order.
   const selfOrder = useMemo(() => shuffle(TERMS), []);
-  const ctxPages = useMemo(() => {
-    const first = Object.fromEntries(TERMS.map((t) => [t, coin(CONTEXTS[0], CONTEXTS[1])])) as Record<
-      Term,
-      Context
-    >;
-    const flip = (c: Context): Context => (c === "friendly" ? "hostile" : "friendly");
-    return [shuffle(TERMS).map((t) => ({ t, c: first[t] })), shuffle(TERMS).map((t) => ({ t, c: flip(first[t]) }))];
-  }, []);
 
   const measure = blockOrder[blockIdx];
   const spec = MEASURE_SPECS[measure];
@@ -322,7 +302,6 @@ export default function Experiment({ session, tag }: { session: string; tag: str
         submittedAt: new Date().toISOString(),
         durationMs: Date.now() - pilotStartedAt.current,
         self,
-        context: ctx,
         ingroup,
       });
       setStage(ok ? "pDone" : "pError");
@@ -371,8 +350,8 @@ export default function Experiment({ session, tag }: { session: string; tag: str
           <Band color={color} label={`Part ${blockIdx + 1} of ${blockOrder.length}`} number={String(blockIdx + 1)} />
           <div style={S.column}>
             <h2 style={S.h2}>{spec.question("____")}</h2>
-            <p style={S.note}>Move each slider. The marker appears once you touch the line.</p>
-            <hr style={S.rule} />
+            <p style={S.note}>Drag or tap each slider to answer. The dot fills in once you have.</p>
+            <div style={{ height: "18px" }} />
             {termOrders[measure].map((t) => (
               <div key={t} style={{ marginBottom: "30px" }}>
                 <p style={S.q}>{spec.question(t)}</p>
@@ -459,18 +438,18 @@ export default function Experiment({ session, tag }: { session: string; tag: str
         <>
           <Band color={HS.grey[0]} label="Recorded · thank you" />
           <div style={S.column}>
-            <h2 style={S.h2}>Where your answers sit</h2>
+            <h2 style={S.h2}>How your answers compare</h2>
             <p style={S.body}>
               Averaging your four answers for a word gives one score from −50 to +50. Lower means the word struck you as
               more pejorative. The large circles are averages from a 2025 online survey of US adults that asked the same
               questions: the <span style={{ color: PLASMA_UNDER30 }}>●</span> under-30s and the{" "}
               <span style={{ color: "#D9A800" }}>●</span> over-60s. The small black dot is you.
             </p>
-            <hr style={S.rule} />
+            <div style={{ height: "18px" }} />
             {TERMS.map((t) => (
               <ScoreStrip key={t} term={t} score={composite(ratings[t] as Record<Measure, number>)} />
             ))}
-            <hr style={S.rule} />
+            <div style={{ height: "18px" }} />
             <h2 style={S.h2}>Part two: a pilot</h2>
             <p style={S.body}>
               A few new questions that are not in the published study, testing ideas for where the research could go
@@ -493,11 +472,11 @@ export default function Experiment({ session, tag }: { session: string; tag: str
 
       {stage === "pSelf" && (
         <>
-          <Band color={PART_COLOR.pilot} label="Part two · Pilot · 1 of 3" number="A" />
+          <Band color={PART_COLOR.pilot} label="Part two · Pilot · 1 of 2" number="A" />
           <div style={S.column}>
             <h2 style={S.h2}>How bad or good is it to call yourself ‘____’?</h2>
             <p style={S.note}>Imagine using the word about yourself, not about someone else.</p>
-            <hr style={S.rule} />
+            <div style={{ height: "18px" }} />
             {selfOrder.map((t) => (
               <div key={t} style={{ marginBottom: "30px" }}>
                 <p style={S.q}>{SELF_QUESTION(t)}</p>
@@ -517,44 +496,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
               disabled={!TERMS.every((t) => self[t] !== undefined)}
               onClick={() => {
                 top();
-                setStage("pContext");
-              }}
-            >
-              Next →
-            </button>
-          </div>
-        </>
-      )}
-
-      {stage === "pContext" && (
-        <>
-          <Band color={PART_COLOR.pilotAlt} label="Part two · Pilot · 2 of 3" number={ctxPage === 0 ? "B" : "B′"} />
-          <div style={S.column}>
-            <h2 style={S.h2}>The same words, said in different situations</h2>
-            <p style={S.note}>Read each short scene, then rate what the speaker said.</p>
-            <hr style={S.rule} />
-            {ctxPages[ctxPage].map(({ t, c }) => (
-              <div key={t} style={{ marginBottom: "34px" }}>
-                <p style={{ ...S.q, fontStyle: "italic", marginBottom: "6px" }}>{CONTEXT_SPECS[c].scene(t)}</p>
-                <p style={{ ...S.q, fontSize: "18px" }}>{CONTEXT_QUESTION}</p>
-                <RatingSlider
-                  value={ctx[t]?.[c]}
-                  onChange={(v) => setCtx((p) => ({ ...p, [t]: { ...p[t], [c]: v } }))}
-                  low="Bad"
-                  high="Good"
-                  label={`${CONTEXT_SPECS[c].scene(t)} ${CONTEXT_QUESTION}`}
-                  color={HS.green[1]}
-                />
-              </div>
-            ))}
-            <button
-              className="rs-btn"
-              style={accent(HS.green[1])}
-              disabled={!ctxPages[ctxPage].every(({ t, c }) => ctx[t]?.[c] !== undefined)}
-              onClick={() => {
-                top();
-                if (ctxPage === 0) setCtxPage(1);
-                else setStage("pIngroup");
+                setStage("pIngroup");
               }}
             >
               Next →
@@ -565,14 +507,14 @@ export default function Experiment({ session, tag }: { session: string; tag: str
 
       {stage === "pIngroup" && (
         <>
-          <Band color={HS.pink[0]} label="Part two · Pilot · 3 of 3" number="C" />
+          <Band color={HS.pink[0]} label="Part two · Pilot · 2 of 2" number="B" />
           <div style={S.column}>
             <h2 style={S.h2}>Two questions about you</h2>
             <p style={S.note}>
               Optional: “Prefer not to say” is always fine. The class only sees results for a group once it has at least
               five people in it, so no one can be picked out.
             </p>
-            <hr style={S.rule} />
+            <div style={{ height: "18px" }} />
             {ingroupKeys.map((k) => (
               <div key={k} style={{ marginBottom: "30px" }}>
                 <p style={{ ...S.q, marginBottom: "12px" }}>{INGROUP_QUESTIONS[k].question}</p>
@@ -618,12 +560,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
               be fine even when using it about others is not.
             </p>
             <p style={S.body}>
-              <span style={S.runIn}>B. Same words, different scenes.</span> If the gap between the friendly and the
-              hostile version is large, perhaps what has changed is less the word&apos;s meaning than how much its effect
-              depends on who says it and how.
-            </p>
-            <p style={S.body}>
-              <span style={S.runIn}>C. Who is answering.</span> Reclamation is often said to start inside the group a word
+              <span style={S.runIn}>B. Who is answering.</span> Reclamation is often said to start inside the group a word
               targets. Comparing answers by group checks that, so long as each group is large enough to report.
             </p>
             <p style={S.note}>Your instructor will show the class results.</p>

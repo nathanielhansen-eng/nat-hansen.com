@@ -1,12 +1,10 @@
 import { put } from "@vercel/blob";
 import {
-  CONTEXTS,
   INGROUP_QUESTIONS,
   PILOT_SLUG,
   SCALE_MAX,
   SCALE_MIN,
   TERMS,
-  type Context,
   type IngroupAnswer,
   type IngroupKey,
   type PilotSubmission,
@@ -33,25 +31,15 @@ function validate(body: unknown): PilotSubmission | null {
   if (typeof b.durationMs !== "number" || !Number.isFinite(b.durationMs) || b.durationMs < 0) return null;
 
   const selfRaw = b.self as Record<string, unknown> | undefined;
-  const ctxRaw = b.context as Record<string, Record<string, unknown>> | undefined;
   const inRaw = b.ingroup as Record<string, unknown> | undefined;
-  if (!selfRaw || !ctxRaw || !inRaw || typeof selfRaw !== "object" || typeof ctxRaw !== "object" || typeof inRaw !== "object")
-    return null;
+  if (!selfRaw || !inRaw || typeof selfRaw !== "object" || typeof inRaw !== "object") return null;
 
   const self = {} as Record<Term, number>;
-  const context = {} as Record<Term, Record<Context, number>>;
   for (const t of TERMS) {
     if (!isRating(selfRaw[t])) return null;
     self[t] = selfRaw[t] as number;
-    const row = ctxRaw[t];
-    if (!row || typeof row !== "object") return null;
-    const clean = {} as Record<Context, number>;
-    for (const c of CONTEXTS) {
-      if (!isRating(row[c])) return null;
-      clean[c] = row[c] as number;
-    }
-    context[t] = clean;
   }
+
 
   const ingroup = {} as Record<IngroupKey, IngroupAnswer>;
   for (const k of Object.keys(INGROUP_QUESTIONS) as IngroupKey[]) {
@@ -66,7 +54,6 @@ function validate(body: unknown): PilotSubmission | null {
     submittedAt: b.submittedAt,
     durationMs: b.durationMs,
     self,
-    context,
     ingroup,
   };
 }
