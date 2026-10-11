@@ -4,7 +4,6 @@ import Experiment from "./Experiment";
 export const metadata: Metadata = {
   title: "Four words, four questions — a classroom survey",
   description: "A short anonymous classroom survey on how four words strike you.",
-  robots: { index: false, follow: false },
 };
 
 export default async function Page({

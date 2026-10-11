@@ -36,6 +36,13 @@ const experiments: ExperimentCard[] = [
       "Is 'true' ambiguous? A three-part replication: read a story where a speaker's answer fits everything they believe but not the facts, then one where it fits the facts but not their beliefs, and say whether each answer was true. A third part runs the paper's checks on whether 'true' really just meant truthful. Reuter & Brun found responses split close to 50/50 — evidence that everyday 'true' has both a correspondence and a coherence sense.",
   },
   {
+    title: "Liao and Hansen",
+    subtitle: "Reclaimed Slurs Pilot",
+    slug: "reclaimed-slurs",
+    blurb:
+      "Has 'queer' lost its sting? Rate four words ('queer', 'autistic', 'slutty', 'basic') on four questions each: how bad it is to be called the word, how bad it is to call someone it, and how offensive and how negative the word is. Your answers land beside a 2025 US survey's under-30s and over-60s, the apparent-time comparison that turns age differences into evidence of a word changing. A short second part pilots new questions: calling yourself the word versus calling someone else, and optional group membership. Class results are compiled live on the instructor board.",
+  },
+  {
     title: "Based on McGrath & Haslam (2020) · Tse & Haslam (2023)",
     subtitle: "The Harm Concept Breadth Scale & the Concept Breadth Scales",
     slug: "concept-breadth",
@@ -256,6 +263,14 @@ export default function ExperimentsPage() {
                   className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
                 >
                   Instructor host console &rarr;
+                </Link>
+              )}
+              {e.slug === "reclaimed-slurs" && (
+                <Link
+                  href="/teaching/experiments/reclaimed-slurs/admin"
+                  className="text-stone-400 text-xs hover:text-stone-700 transition-colors mt-3 inline-block"
+                >
+                  Instructor control board &rarr;
                 </Link>
               )}
               {e.slug === "reuter-truth" && (
