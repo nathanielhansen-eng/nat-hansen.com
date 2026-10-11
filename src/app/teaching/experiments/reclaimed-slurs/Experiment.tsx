@@ -10,7 +10,6 @@ import {
   SELF_QUESTION,
   SLUG,
   TERMS,
-  composite,
   shuffle,
   type IngroupAnswer,
   type IngroupKey,
@@ -18,7 +17,6 @@ import {
   type Ratings,
   type Term,
 } from "@/lib/reclaimed-slurs";
-import pilot from "./pilot-reference.json";
 import {
   FONT_IMPORT,
   HS,
@@ -26,12 +24,10 @@ import {
   MUTED,
   PAPER,
   PART_COLOR,
-  PLASMA_UNDER30,
   SANS,
   SERIF,
   TIGHT,
   TIGHTER,
-  PLASMA_OVER60,
 } from "./design";
 
 const CSS = `
@@ -76,12 +72,22 @@ const S: Record<string, React.CSSProperties> = {
   scale: {
     display: "flex",
     justifyContent: "space-between",
+    alignItems: "baseline",
     fontFamily: SANS,
     fontSize: "13px",
     letterSpacing: "-0.01em",
     color: MUTED,
   },
+  anchor: { color: INK, fontWeight: 700, fontSize: "17px", letterSpacing: TIGHT },
   runIn: { fontFamily: SANS, fontWeight: 700, letterSpacing: TIGHT },
+};
+
+/** What each replication block is called on the slides. */
+const HEADINGS: Record<Measure, string> = {
+  bad2: "Badness (2nd person)",
+  bad1: "Badness (1st person)",
+  offense: "Offensiveness",
+  valence: "Valence",
 };
 
 /** Full-bleed colour band: the part's colour, with its number set huge. */
@@ -102,7 +108,18 @@ function Band({ color, label, number }: { color: string; label: string; number?:
       >
         <p style={{ ...S.kicker, alignSelf: "flex-start" }}>{label}</p>
         {number && (
-          <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: "88px", lineHeight: 0.75, letterSpacing: TIGHTER }}>
+          <span
+            style={{
+              fontFamily: SANS,
+              fontWeight: 700,
+              // A single letter or digit is set huge; a measure name, merely large.
+              fontSize: number.length > 2 ? "clamp(28px, 6.5vw, 48px)" : "88px",
+              lineHeight: number.length > 2 ? 0.9 : 0.75,
+              letterSpacing: TIGHTER,
+              textAlign: "right",
+              marginLeft: "16px",
+            }}
+          >
             {number}
           </span>
         )}
@@ -162,56 +179,11 @@ function RatingSlider({
         }}
       />
       <div style={S.scale}>
-        <span>−50 {low}</span>
-        <span style={{ color: INK, fontWeight: 700, fontSize: "16px" }}>
+        <span style={S.anchor}>{low}</span>
+        <span>
           {touched ? (value > 0 ? `+${value}` : value) : "·"}
         </span>
-        <span>{high} +50</span>
-      </div>
-    </div>
-  );
-}
-
-// Where one score sits against the pilot's two age groups, on the -50..50 line.
-function ScoreStrip({ term, score }: { term: Term; score: number }) {
-  const ref = pilot.terms[term];
-  const x = (v: number) => `${((v - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100}%`;
-  const dot = (v: number, size: number, fill: string, title: string) => (
-    <div
-      title={title}
-      style={{
-        position: "absolute",
-        left: x(v),
-        top: "50%",
-        width: `${size}px`,
-        height: `${size}px`,
-        transform: "translate(-50%, -50%)",
-        borderRadius: "50%",
-        background: fill,
-        mixBlendMode: "multiply",
-      }}
-    />
-  );
-  return (
-    <div style={{ marginBottom: "26px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span style={{ fontSize: "24px" }}>‘{term}’</span>
-        <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: "17px", letterSpacing: TIGHT }}>
-          {score > 0 ? "+" : ""}
-          {score.toFixed(1)}
-        </span>
-      </div>
-      <div style={{ position: "relative", height: "34px" }}>
-        <div style={{ position: "absolute", left: 0, right: 0, top: "50%", height: "2px", background: INK }} />
-        <div style={{ position: "absolute", left: "50%", top: "22%", bottom: "22%", width: "2px", background: INK }} />
-        {dot(ref.under30.mean, 26, PLASMA_UNDER30, `Under-30s: ${ref.under30.mean}`)}
-        {dot(ref.over60.mean, 26, PLASMA_OVER60, `Over-60s: ${ref.over60.mean}`)}
-        {dot(score, 14, INK, `You: ${score.toFixed(1)}`)}
-      </div>
-      <div style={S.scale}>
-        <span>−50</span>
-        <span>0</span>
-        <span>+50</span>
+        <span style={S.anchor}>{high}</span>
       </div>
     </div>
   );
@@ -321,15 +293,19 @@ export default function Experiment({ session, tag }: { session: string; tag: str
           <Band color={HS.grey[0]} label="Classroom survey · about 3 minutes" />
           <div style={S.column}>
             <Circles />
-            <h1 style={S.display}>Four words, four questions</h1>
+            <h1 style={S.display}>
+              Four words,
+              <br />
+              four questions
+            </h1>
             <p style={S.body}>
               You will see four words that are sometimes used to describe people. For each one we ask four short
-              questions, each on a slider from −50 to +50. There are no right answers: we want to know how the words
+              questions, each on a slider from −50 to +50. There are no right answers; we want to know how the words
               strike <em>you</em>.
             </p>
             <p style={S.note}>
               Some of these words can be used as insults. Your answers are anonymous: nothing identifies you, and the
-              class will only see pooled results. You can stop at any time.
+              class and the instructor will only see pooled results. You can stop at any time.
             </p>
             <button
               className="rs-btn"
@@ -347,7 +323,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
 
       {stage === "block" && (
         <>
-          <Band color={color} label={`Part ${blockIdx + 1} of ${blockOrder.length}`} number={String(blockIdx + 1)} />
+          <Band color={color} label={`Part ${blockIdx + 1} of ${blockOrder.length}`} number={HEADINGS[measure]} />
           <div style={S.column}>
             <h2 style={S.h2}>{spec.question("____")}</h2>
             <p style={S.note}>Drag or tap each slider to answer. The dot fills in once you have.</p>
@@ -438,18 +414,6 @@ export default function Experiment({ session, tag }: { session: string; tag: str
         <>
           <Band color={HS.grey[0]} label="Recorded · thank you" />
           <div style={S.column}>
-            <h2 style={S.h2}>How your answers compare</h2>
-            <p style={S.body}>
-              Averaging your four answers for a word gives one score from −50 to +50. Lower means the word struck you as
-              more pejorative. The large circles are averages from a 2025 online survey of US adults that asked the same
-              questions: the <span style={{ color: PLASMA_UNDER30 }}>●</span> under-30s and the{" "}
-              <span style={{ color: "#D9A800" }}>●</span> over-60s. The small black dot is you.
-            </p>
-            <div style={{ height: "18px" }} />
-            {TERMS.map((t) => (
-              <ScoreStrip key={t} term={t} score={composite(ratings[t] as Record<Measure, number>)} />
-            ))}
-            <div style={{ height: "18px" }} />
             <h2 style={S.h2}>Part two: a pilot</h2>
             <p style={S.body}>
               A few new questions that are not in the published study, testing ideas for where the research could go
