@@ -578,7 +578,7 @@ export default function Board() {
             </div>
 
             <div style={section}>
-              <h2 style={figTitle}>A · Calling yourself vs calling someone else</h2>
+              <h2 style={figTitle}>Self-ascription · Calling yourself vs calling someone else</h2>
               <p style={prose}>
                 Each student&apos;s “{SELF_QUESTION("____")}” beside their own answer to the replication&apos;s “How bad or
                 good is it to call a person ‘____’?”, matched person by person. A rightward shift means self-application is
@@ -594,7 +594,7 @@ export default function Board() {
             </div>
 
             <div style={section}>
-              <h2 style={figTitle}>B · Inside and outside the group</h2>
+              <h2 style={figTitle}>Self-identification · Inside and outside the group</h2>
               <p style={prose}>
                 Optional self-identification, shown only when both the “yes” and the “no” group have at least {MIN_CELL}{" "}
                 people, so no one can be identified, not even by subtraction.

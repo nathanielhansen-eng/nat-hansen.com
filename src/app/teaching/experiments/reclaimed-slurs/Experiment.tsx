@@ -84,10 +84,10 @@ const S: Record<string, React.CSSProperties> = {
 
 /** What each replication block is called on the slides. */
 const HEADINGS: Record<Measure, string> = {
-  bad2: "Badness (2nd person)",
-  bad1: "Badness (1st person)",
-  offense: "Offensiveness",
-  valence: "Valence",
+  bad2: "badness 2nd-p",
+  bad1: "badness 1st-p",
+  offense: "offensiveness",
+  valence: "negativity",
 };
 
 /** Full-bleed colour band: the part's colour, with its number set huge. */
@@ -436,7 +436,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
 
       {stage === "pSelf" && (
         <>
-          <Band color={PART_COLOR.pilot} label="Part two · Pilot · 1 of 2" number="A" />
+          <Band color={PART_COLOR.pilot} label="Part two · Pilot · 1 of 2" number="self-ascription" />
           <div style={S.column}>
             <h2 style={S.h2}>How bad or good is it to call yourself ‘____’?</h2>
             <p style={S.note}>Imagine using the word about yourself, not about someone else.</p>
@@ -471,7 +471,7 @@ export default function Experiment({ session, tag }: { session: string; tag: str
 
       {stage === "pIngroup" && (
         <>
-          <Band color={HS.pink[0]} label="Part two · Pilot · 2 of 2" number="B" />
+          <Band color={HS.pink[0]} label="Part two · Pilot · 2 of 2" number="self-identification" />
           <div style={S.column}>
             <h2 style={S.h2}>Two questions about you</h2>
             <p style={S.note}>

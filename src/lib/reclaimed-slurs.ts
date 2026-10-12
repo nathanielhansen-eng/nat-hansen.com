@@ -26,13 +26,13 @@ export interface MeasureSpec {
 
 export const MEASURE_SPECS: Record<Measure, MeasureSpec> = {
   bad2: {
-    label: "badness (2nd-p)",
+    label: "badness 2nd-p",
     question: (t) => `How bad or good is it for a person to be called ‘${t}’?`,
     low: "Bad",
     high: "Good",
   },
   bad1: {
-    label: "badness (1st-p)",
+    label: "badness 1st-p",
     question: (t) => `How bad or good is it to call a person ‘${t}’?`,
     low: "Bad",
     high: "Good",
