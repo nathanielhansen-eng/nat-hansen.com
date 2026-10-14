@@ -2,10 +2,11 @@ import { loadSession, loadTyping, saveSession } from "@/lib/turing/session";
 import { getId, detectIdentity } from "@/lib/turing/identity";
 import { isHostAuthed } from "@/lib/turing/host-auth";
 import { hostView, participantView, judgeView } from "@/lib/turing/redact";
+import { withRedis } from "@/lib/redis-unavailable";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
   const url = new URL(req.url);
   const code = String(url.searchParams.get("code") ?? "").toUpperCase();
   const wantedRole = url.searchParams.get("role"); // "host" | "participant" | "judge"
@@ -45,3 +46,5 @@ export async function GET(req: Request) {
     return Response.json(participantView(s, ident.id, typing));
   return Response.json(judgeView(s, ident.id, typing));
 }
+
+export const GET = withRedis(handleGET);

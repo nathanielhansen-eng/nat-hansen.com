@@ -6,6 +6,7 @@ import {
   estimateOpponentCps,
   readPauseMs,
 } from "@/lib/turing/ai";
+import { withRedis } from "@/lib/redis-unavailable";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -13,7 +14,7 @@ export const maxDuration = 60;
 const MAX_LEN = 1500;
 const MAX_MSGS_PER_PAIR = 60;
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const body = (await req.json()) as { code: string; text: string };
   const code = String(body.code ?? "").toUpperCase();
   const text = String(body.text ?? "").trim();
@@ -106,3 +107,5 @@ export async function POST(req: Request) {
 
   return Response.json({ ok: true });
 }
+
+export const POST = withRedis(handlePOST);

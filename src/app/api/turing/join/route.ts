@@ -1,5 +1,6 @@
 import { loadSession, saveSession, newId } from "@/lib/turing/session";
 import { setId } from "@/lib/turing/identity";
+import { withRedis } from "@/lib/redis-unavailable";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ function nextLabel(used: Set<string>): string {
   return `Witness ${used.size + 1}`;
 }
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const body = (await req.json()) as {
     code: string;
     role: "participant" | "judge";
@@ -49,3 +50,5 @@ export async function POST(req: Request) {
   await setId(code, role, id);
   return Response.json({ ok: true, id });
 }
+
+export const POST = withRedis(handlePOST);

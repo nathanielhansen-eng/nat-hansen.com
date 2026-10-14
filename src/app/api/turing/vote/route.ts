@@ -2,10 +2,11 @@ import { loadSession, saveSession } from "@/lib/turing/session";
 import { getId } from "@/lib/turing/identity";
 import { cleanTells } from "@/lib/turing/loop";
 import type { Vote } from "@/lib/turing/types";
+import { withRedis } from "@/lib/redis-unavailable";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const body = (await req.json()) as {
     code: string;
     votes: Record<string, "human" | "ai">;
@@ -34,3 +35,5 @@ export async function POST(req: Request) {
   await saveSession(s);
   return Response.json({ ok: true });
 }
+
+export const POST = withRedis(handlePOST);
