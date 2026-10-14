@@ -11,6 +11,7 @@ import { generateAIReply, typingDurationMs, estimateOpponentCps } from "@/lib/tu
 import { draftPatch } from "@/lib/turing/tell-loop";
 import { liveAgent } from "@/lib/turing/loop";
 import type { Agent, Pair, Patch, Session } from "@/lib/turing/types";
+import { withRedis } from "@/lib/redis-unavailable";
 
 // Labels carry over between rounds, so after a reveal everyone knows which
 // letters were bots. Reshuffle them across all witnesses for each new round.
@@ -52,7 +53,7 @@ function cleanPatch(raw: unknown): Patch | null {
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   if (!(await requireHost()))
     return new Response("unauthorized", { status: 401 });
   const body = (await req.json()) as { action: string; [k: string]: unknown };
@@ -316,3 +317,5 @@ export async function POST(req: Request) {
       return new Response("unknown action", { status: 400 });
   }
 }
+
+export const POST = withRedis(handlePOST);

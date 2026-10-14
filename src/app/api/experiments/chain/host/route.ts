@@ -2,12 +2,13 @@ import { isInstructor } from "@/lib/chain/host-auth";
 import { createRoom, endRoom, loadRoom } from "@/lib/chain/store";
 import { getTask, taskList } from "@/lib/chain/tasks/registry";
 import type { RoomConfig } from "@/lib/chain/types";
+import { withRedis } from "@/lib/redis-unavailable";
 
 export const dynamic = "force-dynamic";
 
 // GET: instructor dashboard data. ?code=XXXXX returns that room's full state;
 // no code returns the list of available task modules (for the create form).
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
   if (!(await isInstructor()))
     return new Response("unauthorized", { status: 401 });
   const code = new URL(req.url).searchParams.get("code");
@@ -17,7 +18,7 @@ export async function GET(req: Request) {
   return Response.json({ room });
 }
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   if (!(await isInstructor()))
     return new Response("unauthorized", { status: 401 });
 
@@ -60,3 +61,6 @@ function clampInt(v: unknown, min: number, max: number, dflt: number): number {
   if (!Number.isFinite(n)) return dflt;
   return Math.min(max, Math.max(min, n));
 }
+
+export const GET = withRedis(handleGET);
+export const POST = withRedis(handlePOST);

@@ -1,12 +1,13 @@
 import { submitGeneration } from "@/lib/chain/store";
 import { getClaim, clearClaim } from "@/lib/chain/identity";
+import { withRedis } from "@/lib/redis-unavailable";
 
 export const dynamic = "force-dynamic";
 
 // A student submits their response for the slot they previously claimed. The
 // slot is read from the httpOnly claim cookie set at claim time, so a student
 // can only submit to their own generation.
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   let body: Record<string, unknown>;
   try {
     body = (await req.json()) as Record<string, unknown>;
@@ -34,3 +35,5 @@ export async function POST(req: Request) {
   await clearClaim(code);
   return Response.json({ ok: true, snapshot: result.snapshot });
 }
+
+export const POST = withRedis(handlePOST);

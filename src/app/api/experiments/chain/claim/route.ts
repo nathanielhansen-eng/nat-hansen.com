@@ -1,12 +1,13 @@
 import { claimSlot } from "@/lib/chain/store";
 import { setClaim } from "@/lib/chain/identity";
+import { withRedis } from "@/lib/redis-unavailable";
 
 export const dynamic = "force-dynamic";
 
 // A student claims the next available generation slot in the room. Returns the
 // input signal to work from, or { busy } when all chains are momentarily
 // occupied (the client should poll again shortly), or { ended }.
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   let body: Record<string, unknown>;
   try {
     body = (await req.json()) as Record<string, unknown>;
@@ -36,3 +37,5 @@ export async function POST(req: Request) {
     input: result.input,
   });
 }
+
+export const POST = withRedis(handlePOST);

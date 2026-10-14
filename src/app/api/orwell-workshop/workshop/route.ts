@@ -31,12 +31,18 @@ export async function POST(request: Request) {
   const isWorkshop = referer.includes("/private/orwell-workshop");
   const perMinute = isWorkshop ? workshopPerMinute : minitruePerMinute;
   const perDay = isWorkshop ? workshopPerDay : minitruePerDay;
+  // Fail open: a broken limiter must not take the workshop down.
+  let limits: [{ success: boolean; reset: number }, { success: boolean; reset: number }] | null = null;
   if (!passwordMode && perMinute && perDay) {
     const ip = getClientIp(request);
-    const [m, d] = await Promise.all([
-      perMinute.limit(ip),
-      perDay.limit(ip),
-    ]);
+    try {
+      limits = await Promise.all([perMinute.limit(ip), perDay.limit(ip)]);
+    } catch (err) {
+      console.error("orwell-workshop ratelimit:", err);
+    }
+  }
+  if (limits) {
+    const [m, d] = limits;
     if (!m.success || !d.success) {
       const reset = Math.max(m.reset, d.reset);
       const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));

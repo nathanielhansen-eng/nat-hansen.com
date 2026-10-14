@@ -1,9 +1,10 @@
 import { loadSession, loadTyping, setTyping } from "@/lib/turing/session";
 import { getId } from "@/lib/turing/identity";
+import { withRedis } from "@/lib/redis-unavailable";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const body = (await req.json()) as { code: string; isTyping: boolean };
   const code = String(body.code ?? "").toUpperCase();
   const myId = await getId(code, "participant");
@@ -29,3 +30,5 @@ export async function POST(req: Request) {
   );
   return Response.json({ ok: true });
 }
+
+export const POST = withRedis(handlePOST);
