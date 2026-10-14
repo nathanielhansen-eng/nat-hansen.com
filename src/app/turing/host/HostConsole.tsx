@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Session, Agent, Pair } from "@/lib/turing/types";
 import { tallyRound, leaderboard, type WitnessVerdict } from "@/lib/turing/verdict";
 import TellLoopPanel from "./TellLoopPanel";
+import { DEFAULT_BRIEF, STATUS_LABEL } from "@/lib/turing/status";
 
 function VerdictBanner({ v }: { v: WitnessVerdict }) {
   if (v.totalVotes === 0) return null;
@@ -107,6 +108,7 @@ export default function HostConsole() {
     queueMicrotask(() => {
       setDraftAgents(session.agents);
       setDraftPairs(session.pairs);
+      setDuration(session.config.roundDurationSec);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.code, agentSig]);
@@ -147,6 +149,35 @@ export default function HostConsole() {
     }
   }
 
+  // Auto-play for AI<->AI pairs: on each state poll, once the last message has
+  // finished "typing" and had a moment to be read, ask the other bot to reply.
+  // Runs from this tab, so it stops if the host closes the console.
+  const [autoPairs, setAutoPairs] = useState<Record<string, boolean>>({});
+  const inFlight = useRef(new Set<string>());
+  useEffect(() => {
+    if (!code || !session || session.status !== "round_active") return;
+    for (const p of session.pairs) {
+      if (!autoPairs[p.id] || inFlight.current.has(p.id)) continue;
+      const t = session.round.transcripts[p.id] ?? [];
+      const last = t[t.length - 1];
+      if (last && last.displayAt + 1500 > Date.now()) continue;
+      const witnessId = !last || last.from === p.bId ? p.aId : p.bId;
+      inFlight.current.add(p.id);
+      fetch("/api/turing/host", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "advance_ai", code, pairId: p.id, witnessId }),
+      })
+        .then(async (r) => {
+          const d = r.ok ? ((await r.json()) as { reply?: string }) : null;
+          // A failed or empty turn stops auto-play rather than retrying every second.
+          if (!d?.reply) setAutoPairs((m) => ({ ...m, [p.id]: false }));
+        })
+        .catch(() => setAutoPairs((m) => ({ ...m, [p.id]: false })))
+        .finally(() => inFlight.current.delete(p.id));
+    }
+  }, [code, session, autoPairs]);
+
   const witnessOptions = useMemo(() => {
     if (!session) return [];
     return [
@@ -176,7 +207,7 @@ export default function HostConsole() {
       {
         id: crypto.randomUUID(),
         label,
-        brief: "",
+        brief: DEFAULT_BRIEF,
         model: MODELS[0].id,
         kind: "ai",
       },
@@ -190,21 +221,73 @@ export default function HostConsole() {
     ]);
   }
 
+  // Random pairs: each human gets an AI partner while AIs last, then the
+  // remaining humans pair with each other (a human-human pair is the control).
+  // Leftover AIs pair with each other. Who sits on side A is random too.
+  function autoPair() {
+    if (!session) return;
+    const shuffle = <T,>(xs: T[]) => {
+      const a = [...xs];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+    const humans = shuffle(session.participants.map((p) => p.id));
+    const ais = shuffle(draftAgents.map((a) => a.id));
+    const pairs: Pair[] = [];
+    const add = (x: string, y: string) =>
+      pairs.push(
+        Math.random() < 0.5
+          ? { id: crypto.randomUUID(), aId: x, bId: y }
+          : { id: crypto.randomUUID(), aId: y, bId: x }
+      );
+    while (humans.length && ais.length) add(humans.pop()!, ais.pop()!);
+    while (humans.length >= 2) add(humans.pop()!, humans.pop()!);
+    while (ais.length >= 2) add(ais.pop()!, ais.pop()!);
+    setDraftPairs(pairs);
+  }
+
+  const configBody = {
+    agents: draftAgents,
+    pairs: draftPairs.filter((p) => p.aId && p.bId),
+    roundDurationSec: duration,
+  };
+  // Compare only what the host edits, so server-side fields can't make the
+  // config look permanently unsaved.
+  const keyOf = (agents: Agent[], pairs: Pair[], dur: number) =>
+    JSON.stringify([
+      agents.map((a) => [a.id, a.label, a.brief, a.model]),
+      pairs.map((p) => [p.id, p.aId, p.bId]),
+      dur,
+    ]);
+  const configKey = keyOf(configBody.agents, configBody.pairs, duration);
+  const savedKey = session
+    ? keyOf(session.agents, session.pairs, session.config.roundDurationSec)
+    : configKey;
+  const dirty = configKey !== savedKey;
+
   async function saveConfig() {
     if (!code) return;
-    setBusy(true);
     await fetch("/api/turing/host", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        action: "configure",
-        code,
-        agents: draftAgents,
-        pairs: draftPairs.filter((p) => p.aId && p.bId),
-        roundDurationSec: duration,
-      }),
+      body: JSON.stringify({ action: "configure", code, ...configBody }),
     });
-    setBusy(false);
+  }
+
+  // Save edits a moment after the host stops typing; no Save button.
+  useEffect(() => {
+    if (!dirty) return;
+    const t = setTimeout(saveConfig, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configKey, dirty]);
+
+  async function startRound() {
+    if (dirty) await saveConfig();
+    return host("start_round");
   }
 
   if (!code || !session) {
@@ -212,13 +295,14 @@ export default function HostConsole() {
       <main className="mx-auto max-w-2xl px-6 py-10">
         <h1 className="text-2xl font-semibold mb-4">Host a Turing test</h1>
         <label className="block text-sm mb-3">
-          Round duration (seconds)
+          Round length (minutes)
           <input
             type="number"
-            value={duration}
-            onChange={(e) => setDuration(Number(e.target.value))}
-            min={30}
-            max={1800}
+            value={duration / 60}
+            onChange={(e) => setDuration(Math.max(30, Math.round(Number(e.target.value) * 60) || 30))}
+            min={0.5}
+            max={30}
+            step={0.5}
             className="ml-2 border border-neutral-300 rounded px-2 py-1 w-24"
           />
         </label>
@@ -237,7 +321,7 @@ export default function HostConsole() {
   const status = session.status;
   const canStart =
     (status === "lobby" || status === "revealed") &&
-    session.pairs.length > 0;
+    configBody.pairs.length > 0;
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-6">
@@ -247,7 +331,7 @@ export default function HostConsole() {
           {session.code}
         </span>
         <span className="text-sm text-neutral-600">
-          status: <strong>{status}</strong> · round {session.round.number}
+          <strong>{STATUS_LABEL[status]}</strong> · round {session.round.number}
           {status === "round_active" && (
             <> · <strong>{fmtClock(remaining)}</strong></>
           )}
@@ -304,6 +388,7 @@ export default function HostConsole() {
               <div key={a.id} className="border border-neutral-300 rounded p-3 space-y-2">
                 <div className="flex items-center gap-2">
                   <input
+                    aria-label="Witness name"
                     value={a.label}
                     onChange={(e) =>
                       setDraftAgents((arr) =>
@@ -322,6 +407,7 @@ export default function HostConsole() {
                     </span>
                   )}
                   <select
+                    aria-label="Model"
                     disabled={!!a.loopRole}
                     value={a.model}
                     onChange={(e) =>
@@ -351,6 +437,7 @@ export default function HostConsole() {
                   )}
                 </div>
                 <textarea
+                  aria-label={`Persona brief for ${a.label}`}
                   readOnly={!!a.loopRole}
                   value={a.brief}
                   onChange={(e) =>
@@ -381,6 +468,7 @@ export default function HostConsole() {
             {draftPairs.map((p, i) => (
               <div key={p.id} className="flex items-center gap-2">
                 <select
+                  aria-label={`Pair ${i + 1}, side A`}
                   value={p.aId}
                   onChange={(e) =>
                     setDraftPairs((arr) =>
@@ -400,6 +488,7 @@ export default function HostConsole() {
                 </select>
                 <span>↔</span>
                 <select
+                  aria-label={`Pair ${i + 1}, side B`}
                   value={p.bId}
                   onChange={(e) =>
                     setDraftPairs((arr) =>
@@ -427,30 +516,41 @@ export default function HostConsole() {
                 </button>
               </div>
             ))}
-            <button
-              onClick={addPair}
-              className="text-sm border border-neutral-400 rounded px-3 py-1"
-            >
-              + add pair
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={autoPair}
+                className="text-sm bg-black text-white rounded px-3 py-1"
+              >
+                Auto-pair
+              </button>
+              <button
+                onClick={addPair}
+                className="text-sm border border-neutral-400 rounded px-3 py-1"
+              >
+                + add pair
+              </button>
+            </div>
+            <p className="text-sm text-neutral-600">
+              Auto-pair gives each human an AI partner while AIs last, then
+              pairs the rest of the humans with each other.
+            </p>
           </div>
           <div className="flex items-center gap-3 mt-4">
             <label className="text-sm">
-              Round duration (s)
+              Round length (minutes)
               <input
                 type="number"
-                value={duration}
-                onChange={(e) => setDuration(Number(e.target.value))}
+                value={duration / 60}
+                onChange={(e) => setDuration(Math.max(30, Math.round(Number(e.target.value) * 60) || 30))}
+                min={0.5}
+                max={30}
+                step={0.5}
                 className="ml-2 border border-neutral-300 rounded px-2 py-1 w-20"
               />
             </label>
-            <button
-              onClick={saveConfig}
-              disabled={busy}
-              className="bg-black text-white px-3 py-1 rounded text-sm"
-            >
-              Save config
-            </button>
+            <span className="text-sm text-neutral-600" aria-live="polite">
+              {dirty ? "Saving…" : "Saved"}
+            </span>
           </div>
         </section>
 
@@ -458,7 +558,7 @@ export default function HostConsole() {
           <h2 className="font-semibold mb-2">Round controls</h2>
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => host("start_round")}
+              onClick={startRound}
               disabled={busy || !canStart}
               className="bg-black text-white px-3 py-1 rounded text-sm disabled:opacity-40"
             >
@@ -615,6 +715,16 @@ export default function HostConsole() {
                     </span>
                     {aIsAI && bIsAI && status === "round_active" && (
                       <span className="ml-auto flex gap-1">
+                        <label className="text-xs flex items-center gap-1 mr-1">
+                          <input
+                            type="checkbox"
+                            checked={!!autoPairs[p.id]}
+                            onChange={(e) =>
+                              setAutoPairs((m) => ({ ...m, [p.id]: e.target.checked }))
+                            }
+                          />
+                          auto-play
+                        </label>
                         <button
                           className="text-xs border border-neutral-400 rounded px-2"
                           onClick={() =>
@@ -644,12 +754,12 @@ export default function HostConsole() {
                           className={isA ? "text-blue-800" : "text-emerald-800"}
                         >
                           <strong>{isA ? a?.label : b?.label}:</strong>{" "}
-                          {visible ? m.text : <em className="text-neutral-400">…typing</em>}
+                          {visible ? m.text : <em className="text-neutral-500">…typing</em>}
                         </div>
                       );
                     })}
                     {ms.length === 0 && (
-                      <div className="text-neutral-400">(no messages)</div>
+                      <div className="text-neutral-500">(no messages)</div>
                     )}
                   </div>
                 </div>
