@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Session, Agent, Pair } from "@/lib/turing/types";
 import { tallyRound, leaderboard, type WitnessVerdict } from "@/lib/turing/verdict";
 import TellLoopPanel from "./TellLoopPanel";
@@ -146,6 +146,35 @@ export default function HostConsole() {
       setBusy(false);
     }
   }
+
+  // Auto-play for AI<->AI pairs: on each state poll, once the last message has
+  // finished "typing" and had a moment to be read, ask the other bot to reply.
+  // Runs from this tab, so it stops if the host closes the console.
+  const [autoPairs, setAutoPairs] = useState<Record<string, boolean>>({});
+  const inFlight = useRef(new Set<string>());
+  useEffect(() => {
+    if (!code || !session || session.status !== "round_active") return;
+    for (const p of session.pairs) {
+      if (!autoPairs[p.id] || inFlight.current.has(p.id)) continue;
+      const t = session.round.transcripts[p.id] ?? [];
+      const last = t[t.length - 1];
+      if (last && last.displayAt + 1500 > Date.now()) continue;
+      const witnessId = !last || last.from === p.bId ? p.aId : p.bId;
+      inFlight.current.add(p.id);
+      fetch("/api/turing/host", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "advance_ai", code, pairId: p.id, witnessId }),
+      })
+        .then(async (r) => {
+          const d = r.ok ? ((await r.json()) as { reply?: string }) : null;
+          // A failed or empty turn stops auto-play rather than retrying every second.
+          if (!d?.reply) setAutoPairs((m) => ({ ...m, [p.id]: false }));
+        })
+        .catch(() => setAutoPairs((m) => ({ ...m, [p.id]: false })))
+        .finally(() => inFlight.current.delete(p.id));
+    }
+  }, [code, session, autoPairs]);
 
   const witnessOptions = useMemo(() => {
     if (!session) return [];
@@ -615,6 +644,16 @@ export default function HostConsole() {
                     </span>
                     {aIsAI && bIsAI && status === "round_active" && (
                       <span className="ml-auto flex gap-1">
+                        <label className="text-xs flex items-center gap-1 mr-1">
+                          <input
+                            type="checkbox"
+                            checked={!!autoPairs[p.id]}
+                            onChange={(e) =>
+                              setAutoPairs((m) => ({ ...m, [p.id]: e.target.checked }))
+                            }
+                          />
+                          auto-play
+                        </label>
                         <button
                           className="text-xs border border-neutral-400 rounded px-2"
                           onClick={() =>
