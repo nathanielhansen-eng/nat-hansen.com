@@ -11,7 +11,7 @@ export default function Page() {
         Enter a room code from your instructor to join.
       </p>
       <JoinForm />
-      <div className="mt-10 text-xs text-neutral-500">
+      <div className="mt-10 text-xs text-neutral-600">
         <Link href="/turing/host" className="underline">
           Hosting?
         </Link>

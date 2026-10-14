@@ -53,22 +53,29 @@ export default function JoinForm() {
         />
       </label>
       <fieldset className="text-sm">
-        <legend className="mb-1">Role</legend>
-        <label className="mr-4">
+        <legend className="mb-1">Role (your instructor will say which)</legend>
+        <label className="flex gap-2 mb-2">
           <input
             type="radio"
+            name="role"
             checked={role === "participant"}
             onChange={() => setRole("participant")}
-          />{" "}
-          Participant
+          />
+          <span>
+            <strong>Participant</strong>: you chat with someone. They might be
+            a person, they might be a bot.
+          </span>
         </label>
-        <label>
+        <label className="flex gap-2">
           <input
             type="radio"
+            name="role"
             checked={role === "judge"}
             onChange={() => setRole("judge")}
-          />{" "}
-          Judge
+          />
+          <span>
+            <strong>Judge</strong>: you read the chats and decide who is a bot.
+          </span>
         </label>
       </fieldset>
       <button

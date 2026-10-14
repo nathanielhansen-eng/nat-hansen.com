@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ParticipantView } from "@/lib/turing/redact";
+import { STATUS_LABEL } from "@/lib/turing/status";
 
 function fmtClock(ms: number) {
   if (ms <= 0) return "0:00";
@@ -109,13 +110,16 @@ export default function PlayClient({ code }: { code: string }) {
           {status === "round_active" ? (
             <strong>{fmtClock(remaining)}</strong>
           ) : (
-            status
+            STATUS_LABEL[status]
           )}
         </span>
       </header>
 
       <div
         ref={logRef}
+        role="log"
+        aria-live="polite"
+        aria-label="Conversation"
         className="flex-1 overflow-y-auto border border-neutral-300 rounded p-3 space-y-2 text-sm bg-white"
       >
         {status === "lobby" && (
@@ -156,6 +160,7 @@ export default function PlayClient({ code }: { code: string }) {
       {status === "round_active" ? (
         <div className="mt-3 flex gap-2">
           <textarea
+            aria-label="Your message"
             value={draft}
             onChange={(e) => handleType(e.target.value)}
             onKeyDown={(e) => {

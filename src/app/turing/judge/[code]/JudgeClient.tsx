@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { JudgeView, LoopNote } from "@/lib/turing/redact";
+import { STATUS_LABEL } from "@/lib/turing/status";
 import type { Tell } from "@/lib/turing/types";
 import type { WitnessVerdict, AgentLeaderboard } from "@/lib/turing/verdict";
 
@@ -280,7 +281,7 @@ export default function JudgeClient({ code }: { code: string }) {
           {status === "round_active" ? (
             <strong>{fmtClock(remaining)}</strong>
           ) : (
-            status
+            STATUS_LABEL[status]
           )}
         </span>
       </header>
@@ -293,7 +294,7 @@ export default function JudgeClient({ code }: { code: string }) {
             <div className="text-xs font-mono mb-2">
               {p.aLabel} ↔ {p.bLabel}
             </div>
-            <div className="space-y-1 text-sm max-h-72 overflow-y-auto">
+            <div role="log" aria-live="polite" className="space-y-1 text-sm max-h-72 overflow-y-auto">
               {p.messages.map((m) => {
                 const isA = m.from === p.aId;
                 return (
@@ -336,7 +337,7 @@ export default function JudgeClient({ code }: { code: string }) {
                 </div>
               )}
               {p.messages.length === 0 && (
-                <div className="text-neutral-400">(no messages yet)</div>
+                <div className="text-neutral-500">(no messages yet)</div>
               )}
             </div>
           </div>
